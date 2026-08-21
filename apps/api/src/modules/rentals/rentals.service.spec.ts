@@ -38,6 +38,7 @@ const baseOwner = {
   passwordHash: 'hash',
   fullName: 'Test Owner',
   cnic: '1234567890123',
+  phone: '+923001234567',
   profilePhotoUrl: null,
   status: UserStatus.ACTIVE,
   createdAt: new Date(),
@@ -61,11 +62,15 @@ const baseRental = {
     id: renterId,
     fullName: 'Test Renter',
     profilePhotoUrl: null,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    phone: '+923001111111',
   },
   owner: {
     id: ownerId,
     fullName: 'Test Owner',
     profilePhotoUrl: null,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    phone: '+923002222222',
   },
 };
 
@@ -82,12 +87,13 @@ describe('RentalsService', () => {
       findById: jest.fn(),
       findByRenter: jest.fn(),
       findByOwner: jest.fn(),
-      findBlockingForVehicle: jest.fn(),
+      findCommittedForVehicle: jest.fn(),
       findBlockingForRenterAndVehicle: jest.fn(),
       updateStatus: jest.fn(),
       acceptPendingRental: jest.fn(),
       findRelatedIds: jest.fn(),
       completeActiveRental: jest.fn(),
+      cancelRental: jest.fn(),
     };
 
     vehiclesRepository = {
@@ -115,7 +121,7 @@ describe('RentalsService', () => {
       vehiclesRepository.findById.mockResolvedValue(baseVehicle);
       usersRepository.findById.mockResolvedValue(baseOwner);
       rentalsRepository.findBlockingForRenterAndVehicle.mockResolvedValue(null);
-      rentalsRepository.findBlockingForVehicle.mockResolvedValue(null);
+      rentalsRepository.findCommittedForVehicle.mockResolvedValue(null);
       rentalsRepository.create.mockResolvedValue(baseRental);
 
       const result = await service.createRental(renterId, { vehicleId });
@@ -192,15 +198,28 @@ describe('RentalsService', () => {
       });
     });
 
-    it('rejects when vehicle has blocking rental from another renter', async () => {
+    it('rejects when vehicle has a committed rental from another renter', async () => {
       vehiclesRepository.findById.mockResolvedValue(baseVehicle);
       usersRepository.findById.mockResolvedValue(baseOwner);
       rentalsRepository.findBlockingForRenterAndVehicle.mockResolvedValue(null);
-      rentalsRepository.findBlockingForVehicle.mockResolvedValue(baseRental);
+      rentalsRepository.findCommittedForVehicle.mockResolvedValue(baseRental);
 
       await expect(service.createRental(renterId, { vehicleId })).rejects.toMatchObject({
         errorCode: 'RENTAL_VEHICLE_CONFLICT',
       });
+    });
+
+    it('allows another renter to request a vehicle that only has pending requests', async () => {
+      vehiclesRepository.findById.mockResolvedValue(baseVehicle);
+      usersRepository.findById.mockResolvedValue(baseOwner);
+      rentalsRepository.findBlockingForRenterAndVehicle.mockResolvedValue(null);
+      rentalsRepository.findCommittedForVehicle.mockResolvedValue(null);
+      rentalsRepository.create.mockResolvedValue(baseRental);
+
+      const result = await service.createRental(renterId, { vehicleId });
+
+      expect(result.data.status).toBe('PENDING');
+      expect(result.data.contact).toBeUndefined();
     });
 
     it('rejects invalid rental date range', async () => {
@@ -215,24 +234,28 @@ describe('RentalsService', () => {
   });
 
   describe('acceptRental', () => {
-    it('allows owner to accept pending rental and start pickup', async () => {
+    it('allows owner to accept pending rental and share contact', async () => {
       rentalsRepository.findById.mockResolvedValue(baseRental);
       vehiclesRepository.findById.mockResolvedValue(baseVehicle);
       rentalsRepository.acceptPendingRental.mockResolvedValue({
         ...baseRental,
-        status: RentalStatus.PICKUP_PENDING,
+        status: RentalStatus.ACCEPTED,
       });
       rentalsRepository.findRelatedIds.mockResolvedValue({
         agreementId: 'agreement-1',
-        pickupHandoverId: 'handover-1',
+        pickupHandoverId: null,
       });
 
       const result = await service.acceptRental(ownerId, rentalId);
 
       expect(rentalsRepository.acceptPendingRental).toHaveBeenCalledWith(rentalId, vehicleId);
-      expect(result.data.status).toBe('PICKUP_PENDING');
-      expect(result.data.agreementId).toBe('agreement-1');
-      expect(result.data.pickupHandoverId).toBe('handover-1');
+      expect(result.data.status).toBe('ACCEPTED');
+      expect(result.data.contact).toEqual({
+        ownerPhone: '+923002222222',
+        renterPhone: '+923001111111',
+      });
+      expect(result.data.renterProfile.fullName).toBe('Test Renter');
+      expect(JSON.stringify(result.data.renterProfile)).not.toMatch(/cnic|email|phone/i);
       expect(rentalEventsService.emit).toHaveBeenCalledWith('RENTAL_ACCEPTED', expect.any(Object));
     });
 
@@ -325,18 +348,51 @@ describe('RentalsService', () => {
   describe('cancelRental', () => {
     it('allows renter to cancel pending rental', async () => {
       rentalsRepository.findById.mockResolvedValue(baseRental);
-      rentalsRepository.updateStatus.mockResolvedValue({
+      rentalsRepository.cancelRental.mockResolvedValue({
         ...baseRental,
         status: RentalStatus.CANCELLED,
       });
 
       const result = await service.cancelRental(renterId, rentalId);
 
+      expect(rentalsRepository.cancelRental).toHaveBeenCalledWith(rentalId, renterId);
       expect(result.data.status).toBe('CANCELLED');
       expect(rentalEventsService.emit).toHaveBeenCalledWith('RENTAL_CANCELLED', expect.any(Object));
     });
 
-    it('rejects cancel from non-renter', async () => {
+    it('allows owner or renter to cancel after accept', async () => {
+      rentalsRepository.findById.mockResolvedValue({
+        ...baseRental,
+        status: RentalStatus.ACCEPTED,
+      });
+      rentalsRepository.cancelRental.mockResolvedValue({
+        ...baseRental,
+        status: RentalStatus.CANCELLED,
+      });
+
+      const ownerResult = await service.cancelRental(ownerId, rentalId);
+      expect(ownerResult.data.status).toBe('CANCELLED');
+
+      const renterResult = await service.cancelRental(renterId, rentalId);
+      expect(renterResult.data.status).toBe('CANCELLED');
+    });
+
+    it('allows either participant to cancel an active rental', async () => {
+      rentalsRepository.findById.mockResolvedValue({
+        ...baseRental,
+        status: RentalStatus.ACTIVE,
+      });
+      rentalsRepository.cancelRental.mockResolvedValue({
+        ...baseRental,
+        status: RentalStatus.CANCELLED,
+      });
+
+      const result = await service.cancelRental(ownerId, rentalId);
+
+      expect(result.data.status).toBe('CANCELLED');
+    });
+
+    it('rejects cancel from a non-participant', async () => {
       rentalsRepository.findById.mockResolvedValue(baseRental);
 
       await expect(service.cancelRental(otherUserId, rentalId)).rejects.toMatchObject({
@@ -344,10 +400,18 @@ describe('RentalsService', () => {
       });
     });
 
-    it('rejects cancel when rental is not pending', async () => {
+    it('rejects owner cancel of a pending request', async () => {
+      rentalsRepository.findById.mockResolvedValue(baseRental);
+
+      await expect(service.cancelRental(ownerId, rentalId)).rejects.toMatchObject({
+        errorCode: 'RENTAL_FORBIDDEN',
+      });
+    });
+
+    it('rejects cancel when rental is completed', async () => {
       rentalsRepository.findById.mockResolvedValue({
         ...baseRental,
-        status: RentalStatus.ACCEPTED,
+        status: RentalStatus.COMPLETED,
       });
 
       await expect(service.cancelRental(renterId, rentalId)).rejects.toMatchObject({
@@ -369,7 +433,31 @@ describe('RentalsService', () => {
       expect(result.data.id).toBe(rentalId);
       expect(result.data.agreementId).toBe('agreement-1');
       expect(result.data.pickupHandoverId).toBe('handover-1');
+      expect(result.data.contact).toBeNull();
+      expect(result.data.renterProfile.fullName).toBe('Test Renter');
+      expect(JSON.stringify(result.data.renterProfile)).not.toMatch(/cnic|email|phone/i);
       expect(JSON.stringify(result.data)).not.toContain('cnic');
+    });
+
+    it('hides phones before accept and shows them after', async () => {
+      rentalsRepository.findRelatedIds.mockResolvedValue({
+        agreementId: 'agreement-1',
+        pickupHandoverId: null,
+      });
+
+      rentalsRepository.findById.mockResolvedValue(baseRental);
+      const pending = await service.getRental(rentalId, ownerId);
+      expect(pending.data.contact).toBeNull();
+
+      rentalsRepository.findById.mockResolvedValue({
+        ...baseRental,
+        status: RentalStatus.ACCEPTED,
+      });
+      const accepted = await service.getRental(rentalId, ownerId);
+      expect(accepted.data.contact).toEqual({
+        ownerPhone: '+923002222222',
+        renterPhone: '+923001111111',
+      });
     });
 
     it('allows owner to view rental details', async () => {

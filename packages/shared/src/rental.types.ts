@@ -39,9 +39,26 @@ export type RentalSummary = {
   updatedAt: string;
 };
 
+/** Limited party info on a rental request — no phone, CNIC, or email. */
+export type RentalRequestProfile = {
+  id: string;
+  fullName: string;
+  profilePhotoUrl: string | null;
+  memberSince: string;
+};
+
+/** Visible only to the two participants after the owner accepts. */
+export type RentalParticipantContact = {
+  ownerPhone: string;
+  renterPhone: string;
+};
+
 export type RentalDetailView = RentalSummary & {
   agreementId: string | null;
   pickupHandoverId: string | null;
+  renterProfile: RentalRequestProfile;
+  ownerProfile: RentalRequestProfile;
+  contact: RentalParticipantContact | null;
 };
 
 export type RentalLifecycleFilter = 'all' | 'active' | 'completed';

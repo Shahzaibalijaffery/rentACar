@@ -15,12 +15,12 @@ import { useProfileQuery } from '@/api/hooks/use-auth';
 import { useOpenPickupPhotos } from '@/features/handovers/use-open-pickup-photos';
 import { hasUserApprovedAgreement } from '@/features/agreements/agreement-utils';
 import { RentalNextStepCard } from '@/features/rentals/components/rental-next-step-card';
+import { RentalRequestProfileCard } from '@/features/rentals/components/rental-request-profile-card';
 import {
   formatRentalDate,
   getRentalNextStep,
   getRentalStatusLabel,
 } from '@/features/rentals/rental-utils';
-import { CnicProfileLookup } from '@/features/users/components/cnic-profile-lookup';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 
@@ -45,6 +45,8 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   const isActive = rental?.status === 'ACTIVE';
   const isCompleted = rental?.status === 'COMPLETED';
   const isOwnerView = perspective === 'owner';
+  const canCancelAfterAccept =
+    isAccepted || isAgreementPending || isPickupPending || isPickupApprovalPending || isActive;
 
   const agreementQuery = useAgreementByRentalQuery(
     rentalId,
@@ -72,7 +74,10 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
   const { handover, openPickupPhotos, isOpening } = useOpenPickupPhotos(
     rentalId,
-    Boolean(rental && (isPickupPending || isPickupApprovalPending || isActive || isCompleted)),
+    Boolean(
+      rental &&
+        (isAccepted || isPickupPending || isPickupApprovalPending || isActive || isCompleted),
+    ),
   );
 
   const nextStep = rental
@@ -88,27 +93,10 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
   const handleAccept = () => {
     acceptMutation.mutate(undefined, {
-      onSuccess: (accepted) => {
+      onSuccess: () => {
         Alert.alert(
           'Request accepted',
-          'Rental terms are confirmed. Photograph the vehicle before handover.',
-          [
-            {
-              text: 'Take pickup photos',
-              onPress: () => {
-                if (accepted.pickupHandoverId) {
-                  navigation.navigate('PickupHandover', {
-                    handoverId: accepted.pickupHandoverId,
-                    rentalId,
-                    perspective: 'owner',
-                  });
-                  return;
-                }
-                openPickupPhotos(navigation, 'owner');
-              },
-            },
-            { text: 'Later', style: 'cancel' },
-          ],
+          'You can now call the renter to arrange pickup. Start handover photos when you meet.',
         );
       },
       onError: (error) => Alert.alert('Accept failed', error.message),
@@ -134,15 +122,25 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   };
 
   const handleCancel = () => {
-    Alert.alert('Cancel request', 'Are you sure you want to cancel this rental request?', [
-      { text: 'Keep request', style: 'cancel' },
+    const title = isPending ? 'Cancel request' : 'Cancel rental';
+    const message = isPending
+      ? 'Are you sure you want to cancel this rental request?'
+      : 'Are you sure you want to cancel this rental? The other party will no longer be able to continue.';
+
+    Alert.alert(title, message, [
+      { text: 'Keep it', style: 'cancel' },
       {
-        text: 'Cancel request',
+        text: isPending ? 'Cancel request' : 'Cancel rental',
         style: 'destructive',
         onPress: () => {
           cancelMutation.mutate(undefined, {
             onSuccess: () => {
-              Alert.alert('Request cancelled', 'Your rental request has been cancelled.');
+              Alert.alert(
+                isPending ? 'Request cancelled' : 'Rental cancelled',
+                isPending
+                  ? 'Your rental request has been cancelled.'
+                  : 'This rental has been cancelled.',
+              );
             },
             onError: (error) => Alert.alert('Cancel failed', error.message),
           });
@@ -226,6 +224,12 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
             {nextStep ? <RentalNextStepCard step={nextStep} /> : null}
 
+            <RentalRequestProfileCard
+              label={isOwnerView ? 'Renter' : 'Owner'}
+              profile={isOwnerView ? rental.renterProfile : rental.ownerProfile}
+              phone={isOwnerView ? rental.contact?.renterPhone : rental.contact?.ownerPhone}
+            />
+
             {isOwnerView && isPending ? (
               <View style={styles.actions}>
                 <AppButton
@@ -251,7 +255,16 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
               />
             ) : null}
 
-            {isOwnerView && isAccepted ? (
+            {canCancelAfterAccept ? (
+              <AppButton
+                title="Cancel rental"
+                variant="secondary"
+                loading={cancelMutation.isPending}
+                onPress={handleCancel}
+              />
+            ) : null}
+
+            {isOwnerView && isAccepted && !agreement ? (
               <AppButton
                 title="Create agreement"
                 onPress={() => navigation.navigate('CreateAgreement', { rentalId })}
@@ -266,9 +279,9 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
               />
             ) : null}
 
-            {isOwnerView && isPickupPending ? (
+            {isOwnerView && (isAccepted || isPickupPending) ? (
               <AppButton
-                title="Take pickup photos"
+                title="Start pickup handover"
                 loading={isOpening}
                 onPress={() => openPickupPhotos(navigation, 'owner')}
               />
@@ -307,10 +320,6 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
             <AppText variant="body">End date: {formatRentalDate(rental.endDate)}</AppText>
             {isCompleted && rental.completedAt ? (
               <AppText variant="body">Completed: {formatRentalDate(rental.completedAt)}</AppText>
-            ) : null}
-
-            {rental.status !== 'REJECTED' && rental.status !== 'CANCELLED' ? (
-              <CnicProfileLookup participantLabel={isOwnerView ? 'renter' : 'owner'} />
             ) : null}
 
             {agreement ? (

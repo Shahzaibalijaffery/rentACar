@@ -28,30 +28,34 @@ type SeedUserKey = 'owner1' | 'owner2' | 'renter1' | 'renter2';
 
 const SEED_USERS: Record<
   SeedUserKey,
-  { email: string; fullName: string; cnic: string; role: 'owner' | 'renter' }
+  { email: string; fullName: string; cnic: string; phone: string; role: 'owner' | 'renter' }
 > = {
   owner1: {
     email: 'owner1@seed.rentacar.local',
     fullName: 'Ahmed Khan',
     cnic: '35201-1234567-1',
+    phone: '+923001111111',
     role: 'owner',
   },
   owner2: {
     email: 'owner2@seed.rentacar.local',
     fullName: 'Sara Malik',
     cnic: '35201-2345678-2',
+    phone: '+923002222222',
     role: 'owner',
   },
   renter1: {
     email: 'renter1@seed.rentacar.local',
     fullName: 'Ali Hassan',
     cnic: '35202-3456789-3',
+    phone: '+923003333333',
     role: 'renter',
   },
   renter2: {
     email: 'renter2@seed.rentacar.local',
     fullName: 'Fatima Noor',
     cnic: '35202-4567890-4',
+    phone: '+923004444444',
     role: 'renter',
   },
 };
@@ -126,6 +130,7 @@ async function createSeedUsers(passwordHash: string): Promise<Record<SeedUserKey
             passwordHash,
             fullName: user.fullName,
             cnic: user.cnic,
+            phone: user.phone,
             status: UserStatus.ACTIVE,
           },
           select: { id: true },
@@ -396,7 +401,7 @@ async function main(): Promise<void> {
   const passwordHash = await bcrypt.hash(SEED_PASSWORD, 12);
   const users = await createSeedUsers(passwordHash);
 
-  const corolla = await createVehicle({
+  await createVehicle({
     ownerId: users.owner1.id,
     make: 'Toyota',
     model: 'Corolla',
@@ -498,25 +503,24 @@ async function main(): Promise<void> {
   const agreementTerms =
     'Standard peer-to-peer rental terms. Renter returns vehicle in similar condition. Pickup photos are historical handover evidence only.';
 
-  // PENDING invitation
+  // Multiple PENDING requests for the same vehicle (Honda Civic)
   await prisma.rental.create({
     data: {
       renterId: users.renter1.id,
       ownerId: users.owner1.id,
-      vehicleId: corolla.id,
+      vehicleId: civic.id,
       status: RentalStatus.PENDING,
       startDate: rentalStart,
       endDate: rentalEnd,
     },
   });
 
-  // ACCEPTED invitation
   await prisma.rental.create({
     data: {
       renterId: users.renter2.id,
       ownerId: users.owner1.id,
       vehicleId: civic.id,
-      status: RentalStatus.ACCEPTED,
+      status: RentalStatus.PENDING,
       startDate: rentalStart,
       endDate: rentalEnd,
     },
@@ -692,10 +696,7 @@ async function main(): Promise<void> {
     console.log(`  ${user.email} — ${user.fullName} (${user.role})`);
   }
   console.log('\nSeeded rentals:');
-  console.log(
-    '  PENDING              — renter1 → owner1 Toyota Corolla (happy path: owner accept → pickup)',
-  );
-  console.log('  ACCEPTED             — renter2 → owner1 Honda Civic (legacy agreement draft)');
+  console.log('  PENDING x2          — renter1 & renter2 → owner1 Honda Civic');
   console.log('  AGREEMENT_PENDING    — renter1 → owner2 Kia Sportage (legacy renter approve)');
   console.log('  PICKUP_PENDING       — renter2 → owner2 Suzuki Wagon R');
   console.log('  PICKUP_APPROVAL_PEND — renter2 → owner2 Toyota Yaris');

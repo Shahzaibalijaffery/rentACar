@@ -18,10 +18,11 @@ export function RegisterScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [cnic, setCnic] = useState('');
+  const [phone, setPhone] = useState('');
 
   const handleRegister = () => {
     registerMutation.mutate(
-      { email, password, fullName, cnic },
+      { email, password, fullName, cnic, phone },
       {
         onSuccess: () => {
           Alert.alert('Account created', 'You can sign in now.', [
@@ -69,6 +70,14 @@ export function RegisterScreen({ navigation }: Props) {
           hint="Used to verify identity during rentals."
         />
         <FormField
+          label="Phone"
+          placeholder="03001234567"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
+          hint="Shared with the other party only after a request is accepted."
+        />
+        <FormField
           label="Password"
           placeholder="At least 8 characters"
           secureTextEntry
@@ -77,7 +86,11 @@ export function RegisterScreen({ navigation }: Props) {
           onChangeText={setPassword}
         />
 
-        <AppButton title="Create account" loading={registerMutation.isPending} onPress={handleRegister} />
+        <AppButton
+          title="Create account"
+          loading={registerMutation.isPending}
+          onPress={handleRegister}
+        />
       </AppCard>
 
       <AppButton

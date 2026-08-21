@@ -83,8 +83,21 @@ export class HandoversRepository {
   }): Promise<HandoverRecord> {
     return this.prisma.$transaction(async (tx) => {
       const rental = await tx.rental.findUnique({ where: { id: data.rentalId } });
-      if (rental?.status !== RentalStatus.PICKUP_PENDING) {
+      if (!rental) {
         throw new Error('RENTAL_INVALID_STATE');
+      }
+
+      const canStartPickup =
+        rental.status === RentalStatus.ACCEPTED || rental.status === RentalStatus.PICKUP_PENDING;
+      if (!canStartPickup) {
+        throw new Error('RENTAL_INVALID_STATE');
+      }
+
+      if (rental.status === RentalStatus.ACCEPTED) {
+        await tx.rental.update({
+          where: { id: data.rentalId },
+          data: { status: RentalStatus.PICKUP_PENDING },
+        });
       }
 
       const agreement = await tx.rentalAgreement.findFirst({

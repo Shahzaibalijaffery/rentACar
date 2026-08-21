@@ -71,6 +71,7 @@ model User {
   passwordHash    String
   fullName        String
   cnic            String     @unique
+  phone           String     @unique
   profilePhotoUrl String?
   status          UserStatus @default(PENDING_VERIFICATION)
   createdAt       DateTime   @default(now())

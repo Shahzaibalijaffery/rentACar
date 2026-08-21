@@ -4,7 +4,6 @@ import { PrismaService } from '../../common/database/prisma.service';
 import { DomainError } from '../../common/errors/domain.error';
 
 const RENTAL_PARTICIPANT_LOOKUP_STATUSES: RentalStatus[] = [
-  RentalStatus.PENDING,
   RentalStatus.ACCEPTED,
   RentalStatus.AGREEMENT_PENDING,
   RentalStatus.PICKUP_PENDING,
@@ -30,11 +29,16 @@ export class UsersRepository {
     return this.prisma.user.findUnique({ where: { cnic } });
   }
 
+  findByPhone(phone: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { phone } });
+  }
+
   create(data: {
     email: string;
     passwordHash: string;
     fullName: string;
     cnic: string;
+    phone: string;
   }): Promise<User> {
     return this.prisma.user.create({
       data: {
@@ -42,6 +46,7 @@ export class UsersRepository {
         passwordHash: data.passwordHash,
         fullName: data.fullName.trim(),
         cnic: data.cnic,
+        phone: data.phone,
       },
     });
   }

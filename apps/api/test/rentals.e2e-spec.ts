@@ -53,6 +53,7 @@ describe('Rentals (e2e)', () => {
       findMany: jest.fn().mockResolvedValue([]),
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
     },
   };
 

@@ -7,6 +7,7 @@ export type UserProfile = {
   email: string;
   fullName: string;
   cnic: string;
+  phone: string;
   profilePhotoUrl: string | null;
   status: UserStatus;
   emailVerified: boolean;

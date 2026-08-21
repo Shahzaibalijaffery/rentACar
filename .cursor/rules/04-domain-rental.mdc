@@ -13,17 +13,19 @@ All rental and handover state transitions are **enforced by the backend**. The m
 
 | Rule | Enforcement |
 |------|-------------|
-| Photo taker | **Owner only** takes vehicle-condition photos at pickup and return |
+| Photo taker | **Owner only** takes vehicle-condition photos at pickup |
 | Renter role | Views and **approves** owner's submitted photos — does not upload handover photos |
 | Photo parity | Both parties see the **exact same** submitted photo set |
-| Immutability | Approved handover evidence is **append-only** — never silently modify historical records |
-| Events | Pickup handover and return handover are **separate** events with distinct state |
+| Immutability | Submitted handover evidence is **append-only** after the owner submits |
+| Events | Pickup handover only in MVP — no return-photo workflow |
 
-Typical rental states (implement as explicit enum + transition table): `pending → pickup_pending → pickup_approval_pending → active → return_pending → return_approval_pending → completed → rated`.
+Typical rental states: `pending → accepted → pickup_pending → pickup_approval_pending → active → completed`.
 
-Owner accept auto-creates and fully approves a standard rental agreement (renter consented by requesting; owner consented by accepting). Do not add extra agreement draft/approve round-trips on the happy path. Keep pickup and return photo approval — those are the in-person evidence steps.
+Multiple renters may have `PENDING` requests for the same vehicle. Only one rental may be `ACCEPTED` or later (committed) for that vehicle at a time. Accepting one request auto-rejects remaining pending requests for that vehicle.
 
-`ACCEPTED` and `AGREEMENT_PENDING` remain valid only for in-flight/legacy rentals.
+Owner accept creates a standard approved agreement record and reveals participant phone numbers. Pickup handover is started later, when the parties meet. After accept, either participant may cancel the rental until it is completed.
+
+`AGREEMENT_PENDING` remains valid only for in-flight/legacy rentals.
 
 Reject invalid transitions with domain errors, not generic 500s.
 

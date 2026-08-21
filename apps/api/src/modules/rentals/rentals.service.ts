@@ -14,6 +14,7 @@ import { VehiclesRepository } from '../vehicles/vehicles.repository';
 import { CreateRentalDto } from './dto/create-rental.dto';
 import { RentalEventsService } from './rental-events.service';
 import {
+  assertRentalDetailIsSafe,
   assertRentalSummaryIsPublicSafe,
   toRentalDetailView,
   toRentalSummary,
@@ -68,10 +69,10 @@ export class RentalsService {
       );
     }
 
-    const existingForVehicle = await this.rentalsRepository.findBlockingForVehicle(dto.vehicleId);
-    if (existingForVehicle) {
+    const committedForVehicle = await this.rentalsRepository.findCommittedForVehicle(dto.vehicleId);
+    if (committedForVehicle) {
       throw new DomainError(
-        'This vehicle already has a pending or accepted rental request',
+        'This vehicle already has an accepted rental',
         'RENTAL_VEHICLE_CONFLICT',
         409,
       );
@@ -129,7 +130,7 @@ export class RentalsService {
     const rental = await this.getParticipantRentalOrThrow(rentalId, userId);
     const related = await this.rentalsRepository.findRelatedIds(rentalId);
     const detail = toRentalDetailView(rental, related);
-    assertRentalSummaryIsPublicSafe(detail);
+    assertRentalDetailIsSafe(detail);
     return { data: detail };
   }
 
@@ -173,7 +174,7 @@ export class RentalsService {
 
     const related = await this.rentalsRepository.findRelatedIds(rentalId);
     const detail = toRentalDetailView(updated, related);
-    assertRentalSummaryIsPublicSafe(detail);
+    assertRentalDetailIsSafe(detail);
 
     this.rentalEventsService.emit('RENTAL_COMPLETED', {
       rentalId: updated.id,
@@ -195,7 +196,7 @@ export class RentalsService {
       throw new DomainError('You cannot accept this rental request', 'RENTAL_FORBIDDEN', 403);
     }
 
-    this.assertTransitionAllowed(rental.status, RentalStatus.PICKUP_PENDING);
+    this.assertTransitionAllowed(rental.status, RentalStatus.ACCEPTED);
 
     const vehicle = await this.vehiclesRepository.findById(rental.vehicleId);
     if (!vehicle || !isVehicleActive(vehicle)) {
@@ -243,7 +244,7 @@ export class RentalsService {
 
     const related = await this.rentalsRepository.findRelatedIds(rentalId);
     const detail = toRentalDetailView(updated, related);
-    assertRentalSummaryIsPublicSafe(detail);
+    assertRentalDetailIsSafe(detail);
 
     this.rentalEventsService.emit('RENTAL_ACCEPTED', {
       rentalId: updated.id,
@@ -280,16 +281,37 @@ export class RentalsService {
     return { data: summary };
   }
 
-  async cancelRental(renterId: string, rentalId: string): Promise<ApiResponse<RentalSummary>> {
+  async cancelRental(userId: string, rentalId: string): Promise<ApiResponse<RentalSummary>> {
     const rental = await this.getRentalOrThrow(rentalId);
 
-    if (rental.renterId !== renterId) {
-      throw new DomainError('You cannot cancel this rental request', 'RENTAL_FORBIDDEN', 403);
+    if (rental.renterId !== userId && rental.ownerId !== userId) {
+      throw new DomainError('You cannot cancel this rental', 'RENTAL_FORBIDDEN', 403);
+    }
+
+    if (rental.status === RentalStatus.PENDING && rental.renterId !== userId) {
+      throw new DomainError(
+        'Owners reject pending requests instead of cancelling them',
+        'RENTAL_FORBIDDEN',
+        403,
+      );
     }
 
     this.assertTransitionAllowed(rental.status, RentalStatus.CANCELLED);
 
-    const updated = await this.rentalsRepository.updateStatus(rentalId, RentalStatus.CANCELLED);
+    let updated: RentalRecord;
+    try {
+      updated = await this.rentalsRepository.cancelRental(rentalId, userId);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'NOT_CANCELLABLE') {
+        throw new DomainError(
+          'This rental cannot be cancelled in its current state',
+          'RENTAL_INVALID_STATE',
+          409,
+        );
+      }
+      throw error;
+    }
+
     const summary = toRentalSummary(updated);
     assertRentalSummaryIsPublicSafe(summary);
 

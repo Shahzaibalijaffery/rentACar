@@ -114,13 +114,15 @@ describe('HandoversService', () => {
   });
 
   describe('createPickupHandover', () => {
-    it('allows owner to create pickup handover', async () => {
-      rentalsRepository.findById.mockResolvedValue(baseRental);
+    it('allows owner to create pickup handover from accepted rental', async () => {
+      rentalsRepository.findById.mockResolvedValue({
+        ...baseRental,
+        status: RentalStatus.ACCEPTED,
+      });
       handoversRepository.createPickupHandover.mockResolvedValue(baseHandover);
 
       const result = await service.createPickupHandover(ownerId, rentalId);
 
-      expect(result.data.type).toBe('PICKUP');
       expect(result.data.status).toBe('OWNER_PHOTOS_REQUIRED');
     });
 

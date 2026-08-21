@@ -9,7 +9,7 @@ import type {
 import { apiRequest } from '@/api/client';
 import { apiUploadFile } from '@/api/upload';
 import { authKeys } from '@/api/keys/auth.keys';
-import { getRefreshToken, saveRefreshToken } from '@/services/secure-storage';
+import { getRefreshToken, saveSession } from '@/services/secure-storage';
 import {
   clearStoredSession,
   restoreSessionFromStorage as restoreStoredSession,
@@ -21,6 +21,7 @@ type RegisterInput = {
   password: string;
   fullName: string;
   cnic: string;
+  phone: string;
 };
 
 type LoginInput = {
@@ -33,7 +34,7 @@ async function persistSession(tokens: {
   refreshToken: string;
 }): Promise<void> {
   useAuthStore.getState().setAccessToken(tokens.accessToken);
-  await saveRefreshToken(tokens.refreshToken);
+  await saveSession(tokens);
 }
 
 export function useRegisterMutation() {

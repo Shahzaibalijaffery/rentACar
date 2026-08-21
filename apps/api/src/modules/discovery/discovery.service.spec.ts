@@ -126,6 +126,7 @@ describe('toVehicleDiscoveryItem', () => {
         profilePhotoUrl: null,
         email: 'secret@example.com',
         cnic: '3520212345671',
+        phone: '+923009999999',
       },
     });
 
@@ -133,6 +134,7 @@ describe('toVehicleDiscoveryItem', () => {
     expect(item).not.toHaveProperty('latitude');
     expect(JSON.stringify(item)).not.toContain('secret@example.com');
     expect(JSON.stringify(item)).not.toContain('3520212345671');
+    expect(JSON.stringify(item)).not.toContain('+923009999999');
   });
 });
 

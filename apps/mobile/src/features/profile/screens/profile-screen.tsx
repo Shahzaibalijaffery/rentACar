@@ -90,7 +90,10 @@ export function ProfileScreen(_props: Props) {
         {profile ? (
           <>
             <AppCard style={styles.profileHeader}>
-              <ProfileAvatar fullName={profile.fullName} profilePhotoUrl={profile.profilePhotoUrl} />
+              <ProfileAvatar
+                fullName={profile.fullName}
+                profilePhotoUrl={profile.profilePhotoUrl}
+              />
               <AppText variant="heading">{profile.fullName}</AppText>
               <AppText variant="caption" style={styles.email}>
                 {profile.email}
@@ -137,6 +140,13 @@ export function ProfileScreen(_props: Props) {
               <AppText variant="caption" style={styles.note}>
                 Private — only shared with rental participants in agreements.
               </AppText>
+              <View style={styles.row}>
+                <AppText variant="label">Phone</AppText>
+                <AppText variant="body">{profile.phone}</AppText>
+              </View>
+              <AppText variant="caption" style={styles.note}>
+                Shared with the other party only after you accept or are accepted for a rental.
+              </AppText>
             </AppCard>
 
             <AppCard muted>
@@ -150,9 +160,7 @@ export function ProfileScreen(_props: Props) {
               </View>
               <View style={styles.row}>
                 <AppText variant="label">Member since</AppText>
-                <AppText variant="body">
-                  {new Date(profile.createdAt).toLocaleDateString()}
-                </AppText>
+                <AppText variant="body">{new Date(profile.createdAt).toLocaleDateString()}</AppText>
               </View>
             </AppCard>
           </>

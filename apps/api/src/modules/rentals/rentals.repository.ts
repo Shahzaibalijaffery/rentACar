@@ -9,7 +9,11 @@ import {
 import type { RentalLifecycleFilter } from '@rentacar/shared';
 import { PrismaService } from '../../common/database/prisma.service';
 import { activateRentalOnOwnerAccept } from '../agreements/agreement-activation';
-import { BLOCKING_RENTAL_STATUSES } from './rental-state.constants';
+import {
+  BLOCKING_RENTAL_STATUSES,
+  COMMITTED_RENTAL_STATUSES,
+  PARTICIPANT_CANCELLABLE_STATUSES,
+} from './rental-state.constants';
 import { resolveLifecycleStatuses } from './rental-lifecycle.constants';
 
 const rentalInclude = {
@@ -19,6 +23,8 @@ const rentalInclude = {
       id: true,
       fullName: true,
       profilePhotoUrl: true,
+      createdAt: true,
+      phone: true,
     },
   },
   owner: {
@@ -26,6 +32,8 @@ const rentalInclude = {
       id: true,
       fullName: true,
       profilePhotoUrl: true,
+      createdAt: true,
+      phone: true,
     },
   },
 } satisfies Prisma.RentalInclude;
@@ -180,14 +188,14 @@ export class RentalsRepository {
     });
   }
 
-  findBlockingForVehicle(
+  findCommittedForVehicle(
     vehicleId: string,
     excludeRentalId?: string,
   ): Promise<RentalRecord | null> {
     return this.prisma.rental.findFirst({
       where: {
         vehicleId,
-        status: { in: BLOCKING_RENTAL_STATUSES },
+        status: { in: COMMITTED_RENTAL_STATUSES },
         ...(excludeRentalId ? { id: { not: excludeRentalId } } : {}),
       },
       include: rentalInclude,
@@ -216,6 +224,56 @@ export class RentalsRepository {
     });
   }
 
+  cancelRental(rentalId: string, actorId: string): Promise<RentalRecord> {
+    return this.prisma.$transaction(async (tx) => {
+      const rental = await tx.rental.findUnique({ where: { id: rentalId } });
+      if (!rental) {
+        throw new Error('NOT_FOUND');
+      }
+      if (!PARTICIPANT_CANCELLABLE_STATUSES.includes(rental.status)) {
+        throw new Error('NOT_CANCELLABLE');
+      }
+
+      const updated = await tx.rental.update({
+        where: { id: rentalId },
+        data: { status: RentalStatus.CANCELLED },
+        include: rentalInclude,
+      });
+
+      await tx.rentalAgreement.updateMany({
+        where: {
+          rentalId,
+          status: { in: [AgreementStatus.DRAFT, AgreementStatus.PENDING_APPROVAL] },
+        },
+        data: {
+          status: AgreementStatus.CANCELLED,
+          cancelledAt: new Date(),
+          cancelledById: actorId,
+        },
+      });
+
+      await tx.handover.updateMany({
+        where: {
+          rentalId,
+          status: {
+            in: [HandoverStatus.OWNER_PHOTOS_REQUIRED, HandoverStatus.RENTER_APPROVAL_REQUIRED],
+          },
+        },
+        data: { status: HandoverStatus.CANCELLED },
+      });
+
+      const vehicle = await tx.vehicle.findUnique({ where: { id: rental.vehicleId } });
+      if (vehicle?.activeRentalId === rentalId) {
+        await tx.vehicle.update({
+          where: { id: rental.vehicleId },
+          data: { activeRentalId: null },
+        });
+      }
+
+      return updated;
+    });
+  }
+
   acceptPendingRental(rentalId: string, vehicleId: string): Promise<RentalRecord | null> {
     return this.prisma.$transaction(async (tx) => {
       const rental = await tx.rental.findUnique({ where: { id: rentalId } });
@@ -226,7 +284,7 @@ export class RentalsRepository {
       const conflict = await tx.rental.findFirst({
         where: {
           vehicleId,
-          status: { in: BLOCKING_RENTAL_STATUSES },
+          status: { in: COMMITTED_RENTAL_STATUSES },
           id: { not: rentalId },
         },
       });

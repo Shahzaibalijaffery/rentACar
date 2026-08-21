@@ -12,6 +12,7 @@ const ownerUser = {
   passwordHash: 'hashed',
   fullName: 'Owner User',
   cnic: '35201-1234567-1',
+  phone: '+923001111111',
   profilePhotoUrl: 'https://cdn.example/owner.jpg',
   status: UserStatus.ACTIVE,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),

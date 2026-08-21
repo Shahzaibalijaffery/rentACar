@@ -14,6 +14,7 @@ const baseUser = {
   passwordHash: 'hashed',
   fullName: 'Test User',
   cnic: '35202-1234567-1',
+  phone: '+923001234567',
   profilePhotoUrl: null,
   status: UserStatus.PENDING_VERIFICATION,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -43,6 +44,7 @@ describe('AuthService', () => {
     usersRepository = {
       findByEmail: jest.fn(),
       findByCnic: jest.fn(),
+      findByPhone: jest.fn(),
       create: jest.fn(),
       getByIdOrThrow: jest.fn(),
       findById: jest.fn(),
@@ -103,6 +105,7 @@ describe('AuthService', () => {
   it('registers a new user without verification email when disabled', async () => {
     usersRepository.findByEmail.mockResolvedValue(null);
     usersRepository.findByCnic.mockResolvedValue(null);
+    usersRepository.findByPhone.mockResolvedValue(null);
     usersRepository.create.mockResolvedValue(baseUser);
     usersRepository.markEmailVerified.mockResolvedValue({
       ...baseUser,
@@ -115,6 +118,7 @@ describe('AuthService', () => {
       password: 'Password1',
       fullName: 'Test User',
       cnic: '35202-1234567-1',
+      phone: '03001234567',
     });
 
     expect(result.data.userId).toBe('user-1');
@@ -134,6 +138,7 @@ describe('AuthService', () => {
         password: 'Password1',
         fullName: 'Test User',
         cnic: '35202-1234567-1',
+        phone: '03001234567',
       }),
     ).rejects.toMatchObject({ errorCode: 'EMAIL_ALREADY_EXISTS' });
   });
@@ -148,6 +153,7 @@ describe('AuthService', () => {
         password: 'Password1',
         fullName: 'Test User',
         cnic: '35202-1234567-1',
+        phone: '03001234567',
       }),
     ).rejects.toMatchObject({ errorCode: 'CNIC_ALREADY_EXISTS' });
   });

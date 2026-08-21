@@ -22,4 +22,9 @@ export class RegisterDto {
   @IsNotEmpty()
   @Matches(/^[\d-]+$/, { message: 'CNIC must contain digits and optional dashes' })
   cnic!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^[\d+\s-]+$/, { message: 'Phone must contain digits' })
+  phone!: string;
 }

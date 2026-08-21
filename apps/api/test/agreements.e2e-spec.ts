@@ -53,6 +53,7 @@ describe('Agreements (e2e)', () => {
       findMany: jest.fn().mockResolvedValue([]),
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
     },
     rentalAgreement: {
       findUnique: jest.fn(),

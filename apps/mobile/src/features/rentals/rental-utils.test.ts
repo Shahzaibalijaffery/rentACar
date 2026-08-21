@@ -26,23 +26,23 @@ describe('rental utils', () => {
         agreementFullyApproved: false,
       }),
     ).toEqual({
-      title: 'Accept request',
-      description: 'Accepting confirms the rental terms and starts vehicle pickup.',
+      title: 'Review request',
+      description: 'View the renter profile, then accept or reject this request.',
     });
   });
 
-  it('tells the renter pickup follows owner accept', () => {
+  it('tells both parties to call after accept', () => {
     expect(
       getRentalNextStep({
-        status: 'PENDING',
-        perspective: 'renter',
-        hasAgreement: false,
-        userApprovedAgreement: false,
-        agreementFullyApproved: false,
+        status: 'ACCEPTED',
+        perspective: 'owner',
+        hasAgreement: true,
+        userApprovedAgreement: true,
+        agreementFullyApproved: true,
       }),
     ).toEqual({
-      title: 'Waiting for owner',
-      description: 'If the owner accepts, you go straight to pickup photos.',
+      title: 'Call the renter',
+      description: 'Arrange pickup by phone, then start handover photos when you meet.',
     });
   });
 });

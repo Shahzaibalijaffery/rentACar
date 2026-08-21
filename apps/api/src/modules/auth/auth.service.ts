@@ -12,6 +12,7 @@ import { PasswordService } from '../../common/auth/password.service';
 import { EmailService } from '../../common/email/email.service';
 import { DomainError } from '../../common/errors/domain.error';
 import { normalizeCnic } from '../../common/utils/cnic.util';
+import { normalizePhone } from '../../common/utils/phone.util';
 import { generateSecureToken, hashToken } from '../../common/utils/token.util';
 import { AppConfig } from '../../config/env.config';
 import { PrismaService } from '../../common/database/prisma.service';
@@ -35,10 +36,12 @@ export class AuthService {
   async register(dto: RegisterDto): Promise<ApiResponse<RegisterResponse>> {
     const email = dto.email.toLowerCase().trim();
     const normalizedCnic = normalizeCnic(dto.cnic);
+    const normalizedPhone = normalizePhone(dto.phone);
 
-    const [existingEmail, existingCnic] = await Promise.all([
+    const [existingEmail, existingCnic, existingPhone] = await Promise.all([
       this.usersRepository.findByEmail(email),
       this.usersRepository.findByCnic(normalizedCnic),
+      this.usersRepository.findByPhone(normalizedPhone),
     ]);
 
     if (existingEmail) {
@@ -53,6 +56,14 @@ export class AuthService {
       throw new DomainError('An account with this CNIC already exists', 'CNIC_ALREADY_EXISTS', 409);
     }
 
+    if (existingPhone) {
+      throw new DomainError(
+        'An account with this phone number already exists',
+        'PHONE_ALREADY_EXISTS',
+        409,
+      );
+    }
+
     const passwordHash = await this.passwordService.hash(dto.password);
 
     let user: User;
@@ -62,6 +73,7 @@ export class AuthService {
         passwordHash,
         fullName: dto.fullName,
         cnic: normalizedCnic,
+        phone: normalizedPhone,
       });
     } catch (error) {
       this.handlePrismaUniqueError(error);
@@ -245,6 +257,13 @@ export class AuthService {
         throw new DomainError(
           'An account with this CNIC already exists',
           'CNIC_ALREADY_EXISTS',
+          409,
+        );
+      }
+      if (target.includes('phone')) {
+        throw new DomainError(
+          'An account with this phone number already exists',
+          'PHONE_ALREADY_EXISTS',
           409,
         );
       }

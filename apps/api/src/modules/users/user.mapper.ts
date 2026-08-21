@@ -7,6 +7,7 @@ export function toUserProfile(user: User): UserProfile {
     email: user.email,
     fullName: user.fullName,
     cnic: user.cnic,
+    phone: user.phone,
     profilePhotoUrl: user.profilePhotoUrl,
     status: user.status,
     emailVerified: user.emailVerifiedAt !== null,

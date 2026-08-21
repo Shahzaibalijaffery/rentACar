@@ -26,7 +26,7 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
 
     Alert.alert(
       'Request rental',
-      `Send a request for ${vehicle.year} ${vehicle.make} ${vehicle.model}? If the owner accepts, the rental terms apply and pickup photos start next.\n\n${DEFAULT_RENTAL_AGREEMENT_TERMS}`,
+      `Send a request for ${vehicle.year} ${vehicle.make} ${vehicle.model}? If the owner accepts, you can call them to arrange pickup.\n\n${DEFAULT_RENTAL_AGREEMENT_TERMS}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -38,7 +38,7 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
                 onSuccess: (rental) => {
                   Alert.alert(
                     'Request sent',
-                    'Waiting for the owner to accept. Pickup starts as soon as they do.',
+                    'Waiting for the owner to accept. You will see their phone number if they do.',
                     [
                       {
                         text: 'View request',

@@ -58,24 +58,24 @@ export function getRentalNextStep(input: {
   if (status === 'PENDING') {
     return perspective === 'owner'
       ? {
-          title: 'Accept request',
-          description: 'Accepting confirms the rental terms and starts vehicle pickup.',
+          title: 'Review request',
+          description: 'View the renter profile, then accept or reject this request.',
         }
       : {
           title: 'Waiting for owner',
-          description: 'If the owner accepts, you go straight to pickup photos.',
+          description: 'The owner will review your request and accept or reject it.',
         };
   }
 
   if (status === 'ACCEPTED') {
     return perspective === 'owner'
       ? {
-          title: 'Create agreement',
-          description: 'This request still needs terms. Create them to continue to pickup.',
+          title: 'Call the renter',
+          description: 'Arrange pickup by phone, then start handover photos when you meet.',
         }
       : {
-          title: 'Waiting for agreement',
-          description: 'The owner still needs to send rental terms for this request.',
+          title: 'Call the owner',
+          description: 'Call to arrange pickup, then meet at the vehicle.',
         };
   }
 

@@ -1,6 +1,10 @@
 import { env } from '@/config/env';
 import { ApiError, parseApiErrorBody } from '@/api/errors';
-import { clearRefreshToken, getRefreshToken, saveRefreshToken } from '@/services/secure-storage';
+import {
+  clearRefreshToken,
+  getStoredSession,
+  saveSession,
+} from '@/services/secure-storage';
 import { resetAppMode } from '@/stores/app-mode-store';
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -18,7 +22,7 @@ async function persistSession(tokens: {
   refreshToken: string;
 }): Promise<void> {
   useAuthStore.getState().setAccessToken(tokens.accessToken);
-  await saveRefreshToken(tokens.refreshToken);
+  await saveSession(tokens);
 }
 
 async function requestRefreshToken(refreshToken: string): Promise<RefreshResponse> {
@@ -76,7 +80,7 @@ export async function refreshSessionFromStorage(refreshToken?: string): Promise<
   }
 
   refreshPromise = (async () => {
-    const token = refreshToken ?? (await getRefreshToken());
+    const token = refreshToken ?? (await getStoredSession())?.refreshToken;
     if (!token) {
       return null;
     }
@@ -110,18 +114,20 @@ export async function restoreSessionFromStorage(): Promise<boolean> {
       return true;
     }
 
-    const refreshToken = await getRefreshToken();
-    if (!refreshToken) {
+    const session = await getStoredSession();
+    if (!session) {
       useAuthStore.getState().setHydrated(true);
       return false;
     }
 
-    if (accessToken) {
+    if (session.accessToken) {
+      useAuthStore.getState().setAccessToken(session.accessToken);
       useAuthStore.getState().setHydrated(true);
+      void refreshSessionFromStorage(session.refreshToken);
       return true;
     }
 
-    const nextAccessToken = await refreshSessionFromStorage(refreshToken);
+    const nextAccessToken = await refreshSessionFromStorage(session.refreshToken);
     useAuthStore.getState().setHydrated(true);
     return nextAccessToken !== null;
   })().finally(() => {

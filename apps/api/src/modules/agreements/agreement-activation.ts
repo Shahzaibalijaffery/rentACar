@@ -140,16 +140,25 @@ export async function activateRentalOnOwnerAccept(
     },
   });
 
-  await tx.rental.update({
-    where: { id: rental.id },
-    data: { status: RentalStatus.PICKUP_PENDING },
+  await tx.agreementAuditEntry.create({
+    data: {
+      agreementId: agreement.id,
+      actorId: rental.renterId,
+      action: 'AGREEMENT_RENTER_APPROVED',
+    },
   });
 
-  await ensurePickupHandoverInTransaction(tx, {
-    rentalId: rental.id,
-    ownerId: rental.ownerId,
-    renterId: rental.renterId,
-    vehicleId: rental.vehicleId,
-    actorId,
+  await tx.rental.update({
+    where: { id: rental.id },
+    data: { status: RentalStatus.ACCEPTED },
+  });
+
+  await tx.rental.updateMany({
+    where: {
+      vehicleId: rental.vehicleId,
+      status: RentalStatus.PENDING,
+      id: { not: rental.id },
+    },
+    data: { status: RentalStatus.REJECTED },
   });
 }

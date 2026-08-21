@@ -35,6 +35,8 @@ export type {
   CreateRentalRequest,
   RentalDetailView,
   RentalLifecycleFilter,
+  RentalParticipantContact,
+  RentalRequestProfile,
   RentalStatus,
   RentalSummary,
   RentalVehicleSummary,
