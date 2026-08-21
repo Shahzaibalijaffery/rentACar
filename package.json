@@ -15,6 +15,8 @@
     "mobile:ios": "npm run ios -w @rentacar/mobile",
     "mobile:android": "npm run android -w @rentacar/mobile",
     "shared:build": "npm run build -w @rentacar/shared",
+    "render:build": "npm run shared:build && npm run api:build",
+    "render:start": "npm run start:prod -w @rentacar/api",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

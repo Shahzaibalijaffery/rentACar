@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: rentacar-api
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: npm ci --include=dev && npm run render:build
+    startCommand: npm run render:start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: APP_URL
+        sync: false
+      - key: STORAGE_PUBLIC_BASE_URL
+        sync: false
