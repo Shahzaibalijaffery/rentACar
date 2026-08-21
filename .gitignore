@@ -69,5 +69,6 @@ DerivedData/
 .gradle/
 local.properties
 
-storage/
+# Local uploaded files (not source code under apps/api/src/common/storage/)
+/storage/
 apps/api/storage/
