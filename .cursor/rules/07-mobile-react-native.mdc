@@ -1,0 +1,50 @@
+---
+description: React Native CLI architecture, features, theme, and UI patterns
+globs: apps/mobile/**
+alwaysApply: false
+---
+
+# React Native CLI (Mobile)
+
+## Setup
+
+- React Native **CLI** project — not Expo (no `expo-*` dependencies unless explicitly approved).
+- TypeScript strict mode. Path aliases configured (`@/features`, `@/components`, `@/theme`).
+
+## Feature structure
+
+```
+src/features/<feature>/
+├── screens/
+├── components/       # feature-private UI only
+├── hooks/
+└── index.ts          # public exports
+```
+
+## Design system
+
+- **Centralized theme** in `src/theme/`: colors, typography, spacing, radii, shadows.
+- All screens consume theme tokens — no hardcoded hex/spacing scattered across files.
+- Shared UI primitives (`Button`, `Text`, `Input`, `Card`) live in `src/components/`.
+
+## Screens & navigation
+
+- Screens are thin: compose components, call hooks, handle navigation.
+- Business logic and API calls belong in hooks (`useRentalAgreement`, `usePickupApproval`), not in screen components.
+- Do not implement map views or map SDK integrations.
+
+## Images
+
+- Upload via presigned URL or multipart endpoint; display from object-storage URLs.
+- Use `react-native-fast-image` or equivalent for caching — never store image binaries locally as persistence.
+
+## Handover UX
+
+- Owner flow: camera/upload for condition photos at pickup and return.
+- Renter flow: view owner's submitted photos, approve or reject — **no camera for handover photos**.
+- Show loading/error states; invalidate TanStack Query caches after successful actions.
+
+## Performance
+
+- FlatList for lists; memoize expensive list items.
+- Avoid giant screen files — split into subcomponents when a screen exceeds ~200 lines.

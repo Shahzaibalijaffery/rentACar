@@ -1,0 +1,46 @@
+---
+description: Security, authorization, CNIC privacy, and sensitive data handling
+alwaysApply: true
+---
+
+# Security & Privacy
+
+## Authorization
+
+- **Authenticate** every protected endpoint. **Authorize** every action — verify the caller owns or participates in the resource (rental party, vehicle owner, etc.).
+- Use NestJS guards for auth; enforce role/participation checks in services, not only in controllers.
+- **Never trust the mobile client** for state transitions, ownership, or permissions — validate server-side.
+
+## CNIC (sensitive PII)
+
+| Rule | Detail |
+|------|--------|
+| Collection | During registration |
+| Uniqueness | One CNIC → one account (enforce at DB + service layer) |
+| MVP verification | Format/normalization only — no government API, no OCR |
+| Visibility | User sees own CNIC; owner and renter see each other's CNIC **only inside their rental agreement** |
+| Prohibited exposure | Public profiles, vehicle listings, discovery, ratings, URLs, logs, analytics, error messages, or API responses to unrelated users |
+
+```typescript
+// ❌ BAD — CNIC in public vehicle listing DTO
+{ id, make, model, ownerCnic }
+
+// ✅ GOOD — CNIC only in rental-agreement response for participants
+{ rentalId, owner: { name, cnic }, renter: { name, cnic } }
+```
+
+## Secrets & tokens
+
+- Store JWT/session secrets, DB URLs, and object-storage credentials in environment variables only.
+- Mobile: never embed secrets in the app bundle; use secure storage for tokens (Keychain/Keystore).
+- Rotate-friendly token design; short-lived access tokens where applicable.
+
+## Data handling
+
+- Images in object storage; MongoDB stores URLs/metadata only.
+- Redact CNIC and tokens from all logs, Sentry payloads, and analytics events.
+- Validate and sanitize all inputs; use parameterized queries via Prisma (never raw string concatenation).
+
+## Future-proofing
+
+- Keep auth module interface stable so SMS/WhatsApp OTP or stronger identity verification can be added without rewriting consumers.

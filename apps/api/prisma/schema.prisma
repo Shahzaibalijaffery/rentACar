@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+}
+
+enum VehicleAvailability {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+enum VehicleStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum RentalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  AGREEMENT_PENDING
+  PICKUP_PENDING
+  PICKUP_APPROVAL_PENDING
+  ACTIVE
+  RETURN_PENDING
+  RETURN_APPROVAL_PENDING
+  COMPLETED
+  RATED
+}
+
+enum AgreementStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  CANCELLED
+}
+
+enum HandoverType {
+  PICKUP
+  RETURN
+}
+
+enum HandoverStatus {
+  OWNER_PHOTOS_REQUIRED
+  RENTER_APPROVAL_REQUIRED
+  APPROVED
+  CANCELLED
+}
+
+/// Internal metadata (schema version, bootstrap flags). Not a product domain model.
+model AppMeta {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  key   String @unique
+  value String
+}
+
+model User {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  email           String     @unique
+  emailVerifiedAt DateTime?
+  passwordHash    String
+  fullName        String
+  cnic            String     @unique
+  profilePhotoUrl String?
+  status          UserStatus @default(PENDING_VERIFICATION)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  emailVerificationTokens EmailVerificationToken[]
+  refreshTokens           RefreshToken[]
+  vehicles                Vehicle[]
+  rentalsAsRenter         Rental[]                 @relation("RentalRenter")
+  rentalsAsOwner          Rental[]                 @relation("RentalOwner")
+  agreementsAsOwner       RentalAgreement[]        @relation("AgreementOwner")
+  agreementsAsRenter      RentalAgreement[]        @relation("AgreementRenter")
+  agreementAuditEntries   AgreementAuditEntry[]
+  handoversAsOwner        Handover[]               @relation("HandoverOwner")
+  handoversAsRenter       Handover[]               @relation("HandoverRenter")
+  handoverPhotosUploaded  HandoverPhoto[]
+  handoverApprovals       HandoverApproval[]
+  handoverAuditEntries    HandoverAuditEntry[]
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @db.ObjectId
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model RefreshToken {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @db.ObjectId
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Vehicle {
+  id           String              @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId      String              @db.ObjectId
+  make         String
+  model        String
+  year         Int
+  color        String
+  availability VehicleAvailability @default(AVAILABLE)
+  status       VehicleStatus       @default(ACTIVE)
+  latitude     Float
+  longitude    Float
+  /// Set while a rental is ACTIVE — hides vehicle from discovery without overwriting owner availability preference
+  activeRentalId String?             @db.ObjectId
+  /// GeoJSON Point for MongoDB 2dsphere queries: { type: "Point", coordinates: [lng, lat] }
+  location     Json?
+  geohash      String
+  areaLabel    String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  owner   User           @relation(fields: [ownerId], references: [id])
+  photos  VehiclePhoto[]
+  rentals Rental[]
+
+  @@index([ownerId])
+  @@index([ownerId, status])
+  @@index([status, availability])
+  @@index([geohash])
+  @@index([latitude, longitude])
+  @@index([activeRentalId])
+}
+
+model VehiclePhoto {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  vehicleId  String   @db.ObjectId
+  storageKey String
+  url        String
+  mimeType   String
+  sizeBytes  Int
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+}
+
+model Rental {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  renterId  String       @db.ObjectId
+  ownerId   String       @db.ObjectId
+  vehicleId String       @db.ObjectId
+  status    RentalStatus @default(PENDING)
+  startDate     DateTime?
+  endDate       DateTime?
+  completedAt   DateTime?
+  completedById String?      @db.ObjectId
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  renter    User              @relation("RentalRenter", fields: [renterId], references: [id])
+  owner     User              @relation("RentalOwner", fields: [ownerId], references: [id])
+  vehicle   Vehicle           @relation(fields: [vehicleId], references: [id])
+  agreements RentalAgreement[]
+  handovers  Handover[]
+
+  @@index([renterId])
+  @@index([ownerId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([vehicleId, status])
+  @@index([renterId, vehicleId, status])
+  @@index([completedAt])
+  @@index([status, completedAt])
+}
+
+model RentalAgreement {
+  id                 String          @id @default(auto()) @map("_id") @db.ObjectId
+  rentalId           String          @db.ObjectId
+  ownerId            String          @db.ObjectId
+  renterId           String          @db.ObjectId
+  vehicleId          String          @db.ObjectId
+  status             AgreementStatus @default(PENDING_APPROVAL)
+  version            Int             @default(1)
+  terms              String
+  startDate          DateTime?
+  endDate            DateTime?
+  ownerApprovedAt    DateTime?
+  renterApprovedAt   DateTime?
+  cancelledAt        DateTime?
+  cancelledById      String?         @db.ObjectId
+  /// Immutable snapshots captured when both parties approve
+  approvedTerms      String?
+  approvedStartDate  DateTime?
+  approvedEndDate    DateTime?
+  ownerCnicSnapshot  String?
+  renterCnicSnapshot String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  rental Rental                @relation(fields: [rentalId], references: [id])
+  owner  User                  @relation("AgreementOwner", fields: [ownerId], references: [id])
+  renter User                  @relation("AgreementRenter", fields: [renterId], references: [id])
+  audit  AgreementAuditEntry[]
+
+  @@index([rentalId])
+  @@index([rentalId, status])
+  @@index([ownerId])
+  @@index([renterId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AgreementAuditEntry {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  agreementId String   @db.ObjectId
+  actorId     String   @db.ObjectId
+  action      String
+  createdAt   DateTime @default(now())
+
+  agreement RentalAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  actor     User            @relation(fields: [actorId], references: [id])
+
+  @@index([agreementId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+// Handover, Rating, etc. are added incrementally with their feature modules.
+
+model Handover {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  rentalId    String         @db.ObjectId
+  ownerId     String         @db.ObjectId
+  renterId    String         @db.ObjectId
+  vehicleId   String         @db.ObjectId
+  type        HandoverType
+  status      HandoverStatus @default(OWNER_PHOTOS_REQUIRED)
+  submittedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  rental    Rental               @relation(fields: [rentalId], references: [id])
+  owner     User                 @relation("HandoverOwner", fields: [ownerId], references: [id])
+  renter    User                 @relation("HandoverRenter", fields: [renterId], references: [id])
+  photos    HandoverPhoto[]
+  approvals HandoverApproval[]
+  audit     HandoverAuditEntry[]
+
+  @@index([rentalId])
+  @@index([rentalId, type])
+  @@index([ownerId])
+  @@index([renterId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model HandoverPhoto {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  handoverId   String   @db.ObjectId
+  storageKey   String
+  /// Protected content URL — requires authenticated participant access
+  url          String
+  mimeType     String
+  sizeBytes    Int
+  sortOrder    Int      @default(0)
+  uploadedById String   @db.ObjectId
+  createdAt    DateTime @default(now())
+
+  handover   Handover @relation(fields: [handoverId], references: [id], onDelete: Cascade)
+  uploadedBy User     @relation(fields: [uploadedById], references: [id])
+
+  @@index([handoverId])
+}
+
+model HandoverApproval {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  handoverId   String   @db.ObjectId
+  approvedById String   @db.ObjectId
+  role         String
+  approvedAt   DateTime @default(now())
+
+  handover   Handover @relation(fields: [handoverId], references: [id], onDelete: Cascade)
+  approvedBy User     @relation(fields: [approvedById], references: [id])
+
+  @@unique([handoverId, approvedById])
+  @@index([handoverId])
+}
+
+model HandoverAuditEntry {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  handoverId String   @db.ObjectId
+  actorId    String   @db.ObjectId
+  action     String
+  createdAt  DateTime @default(now())
+
+  handover Handover @relation(fields: [handoverId], references: [id], onDelete: Cascade)
+  actor    User     @relation(fields: [actorId], references: [id])
+
+  @@index([handoverId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+// Rating, etc. are added incrementally with their feature modules.

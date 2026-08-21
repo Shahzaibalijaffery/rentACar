@@ -1,0 +1,45 @@
+---
+description: Rental domain rules — state machine, handovers, location, and ratings
+alwaysApply: true
+---
+
+# Domain Rules — Rentals
+
+## State authority
+
+All rental and handover state transitions are **enforced by the backend**. The mobile app requests actions; the server validates preconditions and transitions state atomically.
+
+## Handover rules
+
+| Rule | Enforcement |
+|------|-------------|
+| Photo taker | **Owner only** takes vehicle-condition photos at pickup and return |
+| Renter role | Views and **approves** owner's submitted photos — does not upload handover photos |
+| Photo parity | Both parties see the **exact same** submitted photo set |
+| Immutability | Approved handover evidence is **append-only** — never silently modify historical records |
+| Events | Pickup handover and return handover are **separate** events with distinct state |
+
+Typical rental states (implement as explicit enum + transition table): `invited → agreement_pending → pickup_pending → pickup_approval_pending → active → return_pending → return_approval_pending → completed → rated`.
+
+Reject invalid transitions with domain errors, not generic 500s.
+
+## Location
+
+- **No maps, no map SDK** in MVP.
+- Store approximate location (e.g., geohash or rounded coordinates) for discovery distance queries.
+- Never expose owner's exact private/home address in public listings or discovery responses.
+- Distance-based discovery uses server-side geo queries; return only approximate area to clients.
+
+## Ratings
+
+- Ratings require a **completed** rental; one rating per party per rental (enforce unique constraint).
+- Schema: stars (required) + optional comment — no complex dispute workflow in MVP.
+- Ratings affect reputation aggregates; do not expose CNIC or private agreement data in rating responses.
+
+## Notifications
+
+Essential notifications only (invitation, agreement, handover approval needed, rental status changes). No chat or messaging infrastructure in MVP.
+
+## Future payments
+
+Do not embed payment/subscription logic into rental state machine. Use separate modules/events so billing can be integrated later.

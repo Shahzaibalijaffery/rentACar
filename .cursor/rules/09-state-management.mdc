@@ -1,0 +1,43 @@
+---
+description: TanStack Query for server state and Zustand for client-only state
+globs: apps/mobile/src/**
+alwaysApply: false
+---
+
+# State Management (Mobile)
+
+## Server state — TanStack Query
+
+- **All API data** flows through TanStack Query hooks in `src/api/`.
+- Define query key factories per feature: `rentalKeys.detail(id)`, `vehicleKeys.nearby(params)`.
+- Mutations invalidate related queries on success.
+- Do not duplicate server data in Zustand.
+
+```typescript
+// ✅ GOOD
+const { data, isLoading } = useQuery({ queryKey: rentalKeys.detail(id), queryFn: () => fetchRental(id) });
+
+// ❌ BAD — fetching in useEffect + storing in Zustand
+useEffect(() => { fetchRental(id).then(setRental); }, [id]);
+```
+
+## Client state — Zustand (sparingly)
+
+Use Zustand **only** for truly client-side state:
+
+- Auth session token reference (if not handled by secure storage + context)
+- Onboarding/wizard step progress
+- UI preferences (theme mode)
+- Transient form drafts that must survive navigation
+
+Do **not** use Zustand for: vehicle lists, rental status, user profile data, handover photos — these are server state.
+
+## Optimistic updates
+
+- Allowed only for low-risk UI (e.g., toggling a local filter).
+- Never optimistically transition rental/handover states — wait for server confirmation.
+
+## Error & loading
+
+- Every query hook consumer handles `isLoading`, `isError`, and empty states.
+- Centralize API error parsing in the HTTP client layer.

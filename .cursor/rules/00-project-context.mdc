@@ -1,0 +1,44 @@
+---
+description: Product context, MVP scope, tech stack, and out-of-scope features
+alwaysApply: true
+---
+
+# RentACar — Project Context
+
+## Product
+
+Peer-to-peer car rental: owners list vehicles; renters discover and rent them. A user can be both owner and renter.
+
+### Core rental flow
+
+```
+discover vehicle → rental invitation → rental agreement → pickup handover
+→ owner takes fresh photos → renter approves same photos → rental active
+→ return handover → owner takes fresh photos → renter approves → completed
+→ mutual ratings
+```
+
+### MVP features
+
+Email verification, user/owner/renter profiles, CNIC (one account per CNIC), multiple vehicles per owner, vehicle photos, availability, approximate location, nearby discovery, rental invitations/agreements, pickup/return handovers, fresh vehicle photos, approval system, rental state management, mutual ratings, reputation, essential notifications.
+
+### Technology stack (fixed)
+
+| Layer | Choice |
+|-------|--------|
+| Mobile | React Native **CLI** (not Expo), TypeScript |
+| Backend | NestJS, TypeScript |
+| Database | MongoDB Atlas via Prisma |
+| Server state (mobile) | TanStack Query |
+| Client state (mobile) | Zustand only where appropriate |
+| Images | Object storage URLs — **never** store image binaries in MongoDB |
+
+### Out of scope for MVP — do not implement
+
+Payments, subscriptions, billing (Google Play, Apple StoreKit, Stripe), wallets, commissions, refunds, chat/messaging/calling, maps/map SDKs, social/community, public posts, favorites, referrals, coupons, AI damage detection, government CNIC verification, CNIC OCR, face verification, advanced dispute resolution, advanced fleet management, advanced analytics.
+
+Payments and owner subscriptions are **future** features. Keep rental logic decoupled so billing can be added later without rewriting core flows.
+
+### Authentication (MVP)
+
+Email verification only. No SMS OTP, no WhatsApp OTP. Design auth so stronger verification can be added later without breaking existing users.

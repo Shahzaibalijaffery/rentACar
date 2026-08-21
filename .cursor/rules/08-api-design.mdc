@@ -1,0 +1,40 @@
+---
+description: REST API design, DTOs, versioning, and response conventions
+globs: apps/api/src/**/*.controller.ts,apps/api/src/**/dto/**
+alwaysApply: false
+---
+
+# API Design
+
+## Conventions
+
+- RESTful resources: `/api/v1/vehicles`, `/api/v1/rentals`, `/api/v1/rentals/:id/handovers`.
+- Use HTTP verbs correctly: GET (read), POST (create/action), PATCH (partial update), DELETE (remove).
+- Nouns for resources; verbs only for non-CRUD actions (`POST /rentals/:id/approve-pickup`).
+
+## Request/response
+
+- Every request body validated via DTO class.
+- Consistent success envelope: `{ data: T }` or paginated `{ data: T[], meta: { page, total } }`.
+- Consistent error envelope: `{ statusCode, message, errorCode?, details? }`.
+- Use appropriate HTTP status codes (400 validation, 401 unauth, 403 forbidden, 404 not found, 409 conflict for duplicate CNIC/rating).
+
+## Authorization per endpoint
+
+| Endpoint type | Check |
+|---------------|-------|
+| Public discovery | No CNIC, no exact owner address |
+| Own profile | User can read/update own data including CNIC |
+| Rental agreement | Only owner + renter participants; includes mutual CNIC |
+| Handover photos | Only rental participants; owner uploads, renter approves |
+| Ratings | Only after rental completed; one per side |
+
+## Pagination & filtering
+
+- Cursor or offset pagination for vehicle discovery and rental lists.
+- Filter/query params validated as DTOs; never pass raw client strings to Prisma.
+
+## Idempotency
+
+- State transition endpoints should be safe to retry (check current state before transitioning).
+- Use 409 Conflict when an action is invalid for the current state.

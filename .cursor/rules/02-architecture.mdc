@@ -1,0 +1,48 @@
+---
+description: Monorepo layout, feature-based modules, and separation of concerns
+alwaysApply: true
+---
+
+# Architecture
+
+## Repository layout
+
+```
+rentACar/
+├── apps/
+│   ├── api/                    # NestJS backend
+│   │   ├── prisma/
+│   │   └── src/
+│   │       ├── modules/        # one folder per domain feature
+│   │       ├── common/         # guards, filters, pipes, decorators
+│   │       └── config/
+│   └── mobile/                 # React Native CLI
+│       └── src/
+│           ├── features/       # feature screens, hooks, local components
+│           ├── components/     # shared reusable UI
+│           ├── theme/          # design tokens, colors, typography, spacing
+│           ├── api/            # API client, TanStack Query hooks/keys
+│           └── stores/         # Zustand stores (client-only state)
+└── packages/
+    └── shared/                 # shared types/constants (optional, when needed)
+```
+
+When scaffolding, follow this layout. Do not invent alternate top-level structures without strong reason.
+
+## Principles
+
+- **Feature-based modules** — group by domain (`rentals`, `vehicles`, `handovers`, `ratings`), not by technical layer only.
+- **Separation of concerns**:
+  - Controllers/handlers: HTTP only — no business logic.
+  - Services: business rules and orchestration.
+  - Repositories/Prisma layer: data access only.
+  - Mobile screens: composition; logic in hooks/services.
+- **Reusable components** — extract shared UI to `components/` or `theme/`; feature-specific UI stays in `features/<name>/`.
+- **Single source of truth** — rental/handover state lives on the backend; mobile reflects server state via TanStack Query.
+- **Extensibility** — design boundaries (interfaces, module exports) so future payments/subscriptions plug in without coupling to rental state machine.
+
+## API ↔ mobile contract
+
+- RESTful JSON APIs with consistent response envelopes and error shapes.
+- Version endpoints under `/api/v1/` when the API is introduced.
+- Shared DTO shapes may live in `packages/shared` to avoid drift between backend and mobile.

@@ -1,0 +1,39 @@
+---
+description: MongoDB + Prisma schema design, indexing, and data modeling
+globs: apps/api/prisma/**,**/*.prisma
+alwaysApply: false
+---
+
+# Database — MongoDB + Prisma
+
+## Modeling principles
+
+- One Prisma schema at `apps/api/prisma/schema.prisma`.
+- Normalize by domain collections: `User`, `Vehicle`, `Rental`, `Handover`, `HandoverPhoto`, `Rating`, etc.
+- Use `@db.ObjectId` for MongoDB IDs; define relations explicitly.
+- **CNIC**: store on `User`; add **unique index** on normalized CNIC field.
+- **Images**: store `url` / `storageKey` / `mimeType` / `uploadedAt` — never `Bytes` or base64 in documents.
+
+## Indexing
+
+Add indexes for real query patterns:
+
+- `User.cnic` (unique)
+- `Vehicle.ownerId`, `Vehicle.location` (2dsphere or geohash field for proximity)
+- `Rental.status`, `Rental.vehicleId`, `Rental.renterId`, `Rental.ownerId`
+- `Rating.rentalId` + `Rating.fromUserId` (compound unique — prevent duplicate ratings)
+- `Handover.rentalId` + `Handover.type` (pickup vs return)
+
+## Migrations
+
+- Use `prisma db push` or migrations appropriate for the team's workflow; never hand-edit production data outside migration scripts.
+- Seed scripts for dev only; never seed real CNIC or PII.
+
+## Sensitive fields
+
+- CNIC field: never include in default Prisma `select` for public queries; use explicit `select` in agreement-only service methods.
+- Consider field-level encryption for CNIC at rest if the team adopts it — at minimum, never log the raw value.
+
+## Handover immutability
+
+Model handover photos as append-only records linked to a handover event. Approved handovers reference a fixed photo set ID; edits create new records, not in-place updates.

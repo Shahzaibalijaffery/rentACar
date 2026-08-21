@@ -1,0 +1,39 @@
+---
+description: Core engineering standards — quality, TypeScript, naming, and no technical debt
+alwaysApply: true
+---
+
+# Engineering Standards
+
+## Before writing code
+
+1. **Inspect existing code** — search for similar modules, utilities, hooks, DTOs, and patterns already in the repo.
+2. **Reuse, don't duplicate** — extend existing architecture; never create competing implementations (second HTTP client, second auth flow, parallel state pattern).
+3. **Match conventions** — naming, folder layout, error shapes, and import style must match surrounding code.
+
+## Code quality
+
+- Production-quality, maintainable, modular, feature-based code with clear separation of concerns.
+- **Strict TypeScript** — no `any` unless unavoidable and documented; enable strict compiler options; prefer explicit types at module boundaries.
+- **File size** — keep files focused. Split when a file exceeds ~250 lines or mixes unrelated concerns (e.g., UI + API + business rules in one file).
+- **Dependencies** — add only when justified; prefer platform/stdlib/existing libs over new packages.
+- **No hacks** — no shortcuts that create technical debt (hardcoded env values, bypassing validation, client-side state authority, copy-paste logic).
+
+## Error handling & validation
+
+- Validate all external input at API boundaries (DTOs + class-validator or equivalent).
+- Use typed domain errors; map to consistent HTTP responses in NestJS exception filters.
+- Never swallow errors silently. Log with context but **never log sensitive data** (CNIC, tokens, passwords).
+- Mobile: surface user-friendly messages; use TanStack Query error boundaries and typed API error parsing.
+
+## Naming
+
+- **Files**: kebab-case (`rental-agreement.service.ts`, `use-rental-status.ts`).
+- **Types/interfaces**: PascalCase. **Functions/variables**: camelCase. **Constants**: SCREAMING_SNAKE_CASE.
+- **NestJS modules**: feature name (`rentals`, `vehicles`, `handovers`).
+- **React Native screens/components**: PascalCase component files; colocate feature code under `features/<feature>/`.
+
+## Configuration
+
+- All secrets and environment-specific values via env vars — never commit secrets.
+- Use `.env.example` with documented keys; validate required env at startup (backend) and build time where possible.

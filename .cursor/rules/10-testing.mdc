@@ -1,0 +1,44 @@
+---
+description: Testing standards for business logic, APIs, and critical flows
+globs: **/*.spec.ts,**/*.test.ts,**/__tests__/**
+alwaysApply: false
+---
+
+# Testing
+
+## What to test (required)
+
+- **Rental state machine**: valid and invalid transitions for every status change.
+- **Handover rules**: owner-only photo upload, renter-only approval, immutability of approved evidence.
+- **CNIC uniqueness**: duplicate registration rejected; CNIC absent from public/listing serializers.
+- **Rating constraints**: one rating per user per rental; only after completion.
+- **Authorization**: non-participants cannot access agreements, handovers, or CNIC.
+
+## Backend (NestJS)
+
+- Unit test services with mocked PrismaService — focus on business logic, not framework wiring.
+- Use `*.spec.ts` colocated with the service under test.
+- Integration/e2e tests for critical API flows when the test harness exists.
+
+```typescript
+// Example: invalid transition
+it('rejects pickup approval when rental is not in PICKUP_APPROVAL_PENDING', async () => {
+  await expect(service.approvePickupPhotos(rentalId, renterId))
+    .rejects.toThrow(InvalidTransitionError);
+});
+```
+
+## Mobile
+
+- Unit test pure hooks and utilities (query key factories, formatters, validators).
+- Component tests for critical flows (approval screen, agreement view) when test infra is set up.
+- Do not test TanStack Query internals — test your hook's behavior with mocked API.
+
+## What not to test
+
+- Trivial getters, pass-through controllers, or framework boilerplate.
+- Snapshot tests of entire screens (brittle, low value).
+
+## Test data
+
+- Use factories/fixtures with fake CNIC values — never real PII in tests or committed fixtures.

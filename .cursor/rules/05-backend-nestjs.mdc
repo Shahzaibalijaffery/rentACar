@@ -1,0 +1,53 @@
+---
+description: NestJS backend architecture, modules, and patterns
+globs: apps/api/**
+alwaysApply: false
+---
+
+# NestJS Backend
+
+## Module structure
+
+Each domain feature under `apps/api/src/modules/<feature>/`:
+
+```
+<feature>/
+├── <feature>.module.ts
+├── <feature>.controller.ts
+├── <feature>.service.ts
+├── dto/                  # request/response DTOs with validation decorators
+├── entities/ or types/   # domain types (if not Prisma-generated)
+└── <feature>.spec.ts     # unit tests for business logic
+```
+
+## Patterns
+
+- **Controllers**: route definitions, DTO binding, call service, return response. No Prisma calls in controllers.
+- **Services**: business logic, authorization checks, state transitions, orchestration.
+- **Prisma**: inject `PrismaService`; keep queries in a dedicated repository class when a service grows large.
+- **DTOs**: use `class-validator` + `class-transformer`; validate every request body and query param.
+- **Guards**: JWT auth guard globally; add participation/ownership guards per route where needed.
+- **Exception filters**: map domain errors to `{ statusCode, message, errorCode }` consistently.
+
+## Rental state transitions
+
+Implement as a dedicated service method per transition with explicit precondition checks. Use Prisma transactions when updating rental + handover + audit records together.
+
+```typescript
+// ✅ GOOD — explicit transition with guards
+async approvePickupPhotos(rentalId: string, renterId: string) {
+  const rental = await this.findRentalForRenter(rentalId, renterId);
+  if (rental.status !== RentalStatus.PICKUP_APPROVAL_PENDING) {
+    throw new InvalidTransitionError(...);
+  }
+  // transition atomically
+}
+```
+
+## Images
+
+Accept upload metadata or presigned-URL flow. Store object-storage keys/URLs in MongoDB — never binary blobs.
+
+## Config
+
+Use `@nestjs/config` with Joi/Zod validation schema. Fail fast on missing required env vars at bootstrap.
