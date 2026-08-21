@@ -21,6 +21,8 @@ export const envValidationSchema = Joi.object({
   R2_SECRET_ACCESS_KEY: Joi.string().required(),
   R2_BUCKET_NAME: Joi.string().required(),
   R2_PUBLIC_BASE_URL: Joi.string().uri().required(),
+  GEOCODING_COUNTRY_CODES: Joi.string().default('pk'),
+  GEOCODING_USER_AGENT: Joi.string().default('RentACar/1.0 (peer-to-peer car rental)'),
 });
 
 export type AppConfig = {
@@ -44,6 +46,8 @@ export type AppConfig = {
   r2SecretAccessKey: string;
   r2BucketName: string;
   r2PublicBaseUrl: string;
+  geocodingCountryCodes: string;
+  geocodingUserAgent: string;
 };
 
 export default (): AppConfig => ({
@@ -67,4 +71,7 @@ export default (): AppConfig => ({
   r2SecretAccessKey: process.env['R2_SECRET_ACCESS_KEY'] ?? '',
   r2BucketName: process.env['R2_BUCKET_NAME'] ?? '',
   r2PublicBaseUrl: process.env['R2_PUBLIC_BASE_URL'] ?? '',
+  geocodingCountryCodes: process.env['GEOCODING_COUNTRY_CODES'] ?? 'pk',
+  geocodingUserAgent:
+    process.env['GEOCODING_USER_AGENT'] ?? 'RentACar/1.0 (peer-to-peer car rental)',
 });

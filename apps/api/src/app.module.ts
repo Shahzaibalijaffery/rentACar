@@ -15,6 +15,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
 import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { RentalsModule } from './modules/rentals/rentals.module';
 import { AgreementsModule } from './modules/agreements/agreements.module';
+import { GeocodingModule } from './modules/geocoding/geocoding.module';
 import { HandoversModule } from './modules/handovers/handovers.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { HandoversModule } from './modules/handovers/handovers.module';
     DiscoveryModule,
     RentalsModule,
     AgreementsModule,
+    GeocodingModule,
     HandoversModule,
   ],
   providers: [

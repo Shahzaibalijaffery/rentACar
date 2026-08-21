@@ -21,6 +21,7 @@ export type {
   VerifyEmailResponse,
 } from './auth.types';
 export type { DiscoverVehiclesQuery, VehicleDiscoveryItem } from './discovery.types';
+export type { AreaSearchResult } from './geocoding.types';
 export type {
   HandoverApprovalView,
   HandoverAuditAction,

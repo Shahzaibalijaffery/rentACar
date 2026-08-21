@@ -16,6 +16,10 @@ export function validateVehicleForm(values: VehicleFormValues): string | null {
   if (!values.model.trim()) return 'Model is required';
   if (!values.color.trim()) return 'Color is required';
 
+  if (!values.areaLabel.trim()) {
+    return 'Search and select the area where the vehicle is usually kept';
+  }
+
   const year = Number(values.year);
   if (!Number.isInteger(year) || year < MIN_YEAR || year > MAX_YEAR) {
     return `Year must be between ${MIN_YEAR} and ${MAX_YEAR}`;
@@ -23,12 +27,12 @@ export function validateVehicleForm(values: VehicleFormValues): string | null {
 
   const latitude = Number(values.latitude);
   if (Number.isNaN(latitude) || latitude < -90 || latitude > 90) {
-    return 'Latitude must be between -90 and 90';
+    return 'Select an area from search results or use the vehicle location button';
   }
 
   const longitude = Number(values.longitude);
   if (Number.isNaN(longitude) || longitude < -180 || longitude > 180) {
-    return 'Longitude must be between -180 and 180';
+    return 'Select an area from search results or use the vehicle location button';
   }
 
   return null;
@@ -42,7 +46,7 @@ export function toVehiclePayload(values: VehicleFormValues) {
     color: values.color.trim(),
     latitude: Number(values.latitude),
     longitude: Number(values.longitude),
-    areaLabel: values.areaLabel.trim() || undefined,
+    areaLabel: values.areaLabel.trim(),
   };
 }
 

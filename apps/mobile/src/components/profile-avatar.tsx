@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Image, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Image, StyleSheet, View, type ImageStyle, type ViewStyle } from 'react-native';
 import { AppText } from '@/components/app-text';
 import { isDisplayableImageUrl } from '@/utils/image-url';
 import { colors, radii } from '@/theme';
@@ -29,7 +29,11 @@ export function ProfileAvatar({
     return (
       <Image
         source={{ uri: profilePhotoUrl }}
-        style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }, style]}
+        style={[
+          styles.avatar,
+          { width: size, height: size, borderRadius: size / 2 },
+          style as ImageStyle | undefined,
+        ]}
         onError={() => setLoadFailed(true)}
         accessibilityLabel="Profile photo"
       />

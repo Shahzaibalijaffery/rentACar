@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import { AppInput } from '@/components/app-input';
-import { AppText } from '@/components/app-text';
 import type { VehicleFormValues } from '@/features/vehicles/vehicle-form-utils';
-import { colors, spacing } from '@/theme';
+import { AreaSearchField } from '@/features/vehicles/components/area-search-field';
+import { spacing } from '@/theme';
 
 type VehicleFormFieldsProps = {
   values: VehicleFormValues;
@@ -16,10 +16,6 @@ export function VehicleFormFields({ values, onChange }: VehicleFormFieldsProps) 
 
   return (
     <View style={styles.container}>
-      <AppText variant="caption" style={styles.hint}>
-        Approximate location is used for nearby discovery. Your exact address is never shown
-        publicly.
-      </AppText>
       <AppInput placeholder="Make" value={values.make} onChangeText={(v) => setField('make', v)} />
       <AppInput
         placeholder="Model"
@@ -37,22 +33,27 @@ export function VehicleFormFields({ values, onChange }: VehicleFormFieldsProps) 
         value={values.color}
         onChangeText={(v) => setField('color', v)}
       />
-      <AppInput
-        placeholder="Area label (e.g. Clifton)"
-        value={values.areaLabel}
-        onChangeText={(v) => setField('areaLabel', v)}
-      />
-      <AppInput
-        placeholder="Latitude"
-        keyboardType="decimal-pad"
-        value={values.latitude}
-        onChangeText={(v) => setField('latitude', v)}
-      />
-      <AppInput
-        placeholder="Longitude"
-        keyboardType="decimal-pad"
-        value={values.longitude}
-        onChangeText={(v) => setField('longitude', v)}
+
+      <AreaSearchField
+        selectedAreaLabel={values.areaLabel}
+        latitude={values.latitude}
+        longitude={values.longitude}
+        onSelect={(result) => {
+          onChange({
+            ...values,
+            areaLabel: result.areaLabel,
+            latitude: String(result.latitude),
+            longitude: String(result.longitude),
+          });
+        }}
+        onClearSelection={() => {
+          onChange({
+            ...values,
+            areaLabel: '',
+            latitude: '',
+            longitude: '',
+          });
+        }}
       />
     </View>
   );
@@ -61,9 +62,5 @@ export function VehicleFormFields({ values, onChange }: VehicleFormFieldsProps) 
 const styles = StyleSheet.create({
   container: {
     gap: spacing.sm,
-  },
-  hint: {
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
   },
 });
