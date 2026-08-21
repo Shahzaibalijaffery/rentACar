@@ -1,9 +1,5 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createReadStream, existsSync } from 'fs';
-import { join } from 'path';
+import { Injectable } from '@nestjs/common';
 import type { ApiResponse, HandoverView } from '@rentacar/shared';
-import { AppConfig } from '../../config/env.config';
 import { DomainError } from '../../common/errors/domain.error';
 import {
   ALLOWED_IMAGE_MIME_TYPES,
@@ -14,7 +10,6 @@ import { StorageService } from '../../common/storage/storage.service';
 import { RentalsRepository } from '../rentals/rentals.repository';
 import { HandoverEventsService } from './handover-events.service';
 import {
-  buildHandoverPhotoContentUrl,
   canTransitionHandover,
   MAX_PICKUP_HANDOVER_PHOTOS,
   MIN_PICKUP_HANDOVER_PHOTOS,
@@ -31,7 +26,6 @@ export class HandoversService {
     private readonly rentalsRepository: RentalsRepository,
     private readonly storageService: StorageService,
     private readonly handoverEventsService: HandoverEventsService,
-    private readonly configService: ConfigService<AppConfig, true>,
   ) {}
 
   async createPickupHandover(
@@ -129,19 +123,17 @@ export class HandoversService {
       storageKey,
     });
 
-    const appUrl = this.configService.get('appUrl', { infer: true });
-
     let updated: HandoverRecord;
     try {
       updated = await this.handoversRepository.addPhoto({
         handoverId,
         storageKey: stored.storageKey,
+        url: stored.url,
         mimeType: file.mimetype,
         sizeBytes: file.size,
         sortOrder: photoCount,
         uploadedById: ownerId,
         actorId: ownerId,
-        buildPhotoUrl: (photoId) => buildHandoverPhotoContentUrl(appUrl, handoverId, photoId),
       });
     } catch (error) {
       await this.storageService.deleteObject(stored.storageKey);
@@ -282,29 +274,6 @@ export class HandoversService {
     this.handoverEventsService.emit('RENTAL_BECAME_ACTIVE', this.toEventPayload(updated));
 
     return { data: toHandoverView(updated) };
-  }
-
-  async getPhotoContent(
-    handoverId: string,
-    photoId: string,
-    userId: string,
-  ): Promise<{ stream: StreamableFile; mimeType: string }> {
-    const handover = await this.getParticipantHandoverOrThrow(handoverId, userId);
-    const photo = handover.photos.find((item) => item.id === photoId);
-    if (!photo) {
-      throw new DomainError('Photo not found', 'PHOTO_NOT_FOUND', 404);
-    }
-
-    const storageDir = this.configService.get('storageLocalDir', { infer: true });
-    const absolutePath = join(storageDir, photo.storageKey);
-    if (!existsSync(absolutePath)) {
-      throw new DomainError('Photo file not found', 'PHOTO_NOT_FOUND', 404);
-    }
-
-    return {
-      stream: new StreamableFile(createReadStream(absolutePath)),
-      mimeType: photo.mimeType,
-    };
   }
 
   private async getHandoverOrThrow(handoverId: string): Promise<HandoverRecord> {

@@ -10,6 +10,7 @@
     "api:dev": "npm run start:dev -w @rentacar/api",
     "api:build": "npm run build -w @rentacar/api",
     "api:test": "npm run test -w @rentacar/api",
+    "api:storage-check": "npm run storage:check -w @rentacar/api",
     "api:seed": "npm run prisma:seed -w @rentacar/api",
     "mobile:start": "npm run start -w @rentacar/mobile",
     "mobile:ios": "npm run ios -w @rentacar/mobile",

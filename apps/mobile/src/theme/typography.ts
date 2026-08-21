@@ -1,15 +1,26 @@
 import { TextStyle } from 'react-native';
 
 export const typography = {
+  display: {
+    fontSize: 32,
+    fontWeight: '700',
+    lineHeight: 40,
+    letterSpacing: -0.5,
+  },
   title: {
     fontSize: 24,
     fontWeight: '700',
     lineHeight: 32,
   },
   heading: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    lineHeight: 28,
+    lineHeight: 26,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    lineHeight: 24,
   },
   body: {
     fontSize: 16,

@@ -16,7 +16,7 @@ const OPTIONS: { value: RentalLifecycleFilter; label: string }[] = [
 
 export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProps) {
   return (
-    <View style={styles.row}>
+    <View style={styles.track}>
       {OPTIONS.map((option) => {
         const selected = option.value === value;
         return (
@@ -27,7 +27,9 @@ export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProp
             onPress={() => onChange(option.value)}
             style={[styles.tab, selected ? styles.tabSelected : null]}
           >
-            <AppText variant="body">{option.label}</AppText>
+            <AppText variant="subtitle" style={selected ? styles.tabTextSelected : styles.tabText}>
+              {option.label}
+            </AppText>
           </Pressable>
         );
       })}
@@ -36,22 +38,26 @@ export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProp
 }
 
 const styles = StyleSheet.create({
-  row: {
+  track: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radii.full,
+    padding: 4,
+    gap: 4,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.backgroundSecondary,
+    borderRadius: radii.full,
   },
   tabSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
+  },
+  tabText: {
+    color: colors.textSecondary,
+  },
+  tabTextSelected: {
+    color: colors.primary,
   },
 });

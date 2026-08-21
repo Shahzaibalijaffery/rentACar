@@ -1,7 +1,7 @@
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import type { VehicleDiscoveryItem } from '@rentacar/shared';
 import { AppText } from '@/components/app-text';
-import { colors, spacing } from '@/theme';
+import { colors, radii, shadows, spacing } from '@/theme';
 
 type VehicleDiscoveryCardProps = {
   vehicle: VehicleDiscoveryItem;
@@ -12,17 +12,22 @@ export function VehicleDiscoveryCard({ vehicle, onPress }: VehicleDiscoveryCardP
   const coverPhoto = vehicle.photos[0];
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed ? styles.pressed : null]}
+      onPress={onPress}
+    >
       {coverPhoto ? (
         <Image source={{ uri: coverPhoto.url }} style={styles.photo} />
       ) : (
         <View style={styles.photoPlaceholder}>
-          <AppText variant="caption">No photo</AppText>
+          <AppText variant="caption" style={styles.placeholderText}>
+            No photo
+          </AppText>
         </View>
       )}
 
       <View style={styles.content}>
-        <AppText variant="body" style={styles.title}>
+        <AppText variant="heading">
           {vehicle.year} {vehicle.make} {vehicle.model}
         </AppText>
         <AppText variant="caption" style={styles.meta}>
@@ -30,12 +35,17 @@ export function VehicleDiscoveryCard({ vehicle, onPress }: VehicleDiscoveryCardP
         </AppText>
         {vehicle.areaLabel ? (
           <AppText variant="caption" style={styles.meta}>
-            Area: {vehicle.areaLabel}
+            {vehicle.areaLabel}
           </AppText>
         ) : null}
-        <AppText variant="caption" style={styles.owner}>
-          Listed by {vehicle.owner.fullName}
-        </AppText>
+        <View style={styles.footer}>
+          <AppText variant="caption" style={styles.owner}>
+            {vehicle.owner.fullName}
+          </AppText>
+          <AppText variant="caption" style={styles.cta}>
+            View details
+          </AppText>
+        </View>
       </View>
     </Pressable>
   );
@@ -43,36 +53,49 @@ export function VehicleDiscoveryCard({ vehicle, onPress }: VehicleDiscoveryCardP
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: radii.lg,
     overflow: 'hidden',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...shadows.md,
+  },
+  pressed: {
+    opacity: 0.96,
   },
   photo: {
     width: '100%',
-    height: 160,
-    backgroundColor: colors.background,
+    height: 180,
+    backgroundColor: colors.surfaceMuted,
   },
   photoPlaceholder: {
     width: '100%',
-    height: 160,
+    height: 180,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: colors.surfaceMuted,
+  },
+  placeholderText: {
+    color: colors.textSecondary,
   },
   content: {
-    padding: spacing.md,
+    padding: spacing.lg,
     gap: spacing.xs,
-  },
-  title: {
-    fontWeight: '600',
   },
   meta: {
     color: colors.textSecondary,
   },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
   owner: {
     color: colors.textSecondary,
-    marginTop: spacing.xs,
+  },
+  cta: {
+    color: colors.primary,
+    fontWeight: '600',
   },
 });

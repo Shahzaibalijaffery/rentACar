@@ -56,8 +56,12 @@ const SEED_USERS: Record<
   },
 };
 
-function handoverPhotoUrl(handoverId: string, photoId: string): string {
-  return `${APP_URL}/api/v1/handovers/${handoverId}/photos/${photoId}/content`;
+const R2_PUBLIC_BASE_URL =
+  process.env.R2_PUBLIC_BASE_URL?.replace(/\/$/, '') ??
+  'https://pub-a8fc968b7b3242a1afd4d43bf56607ac.r2.dev';
+
+function handoverPhotoUrl(storageKey: string): string {
+  return `${R2_PUBLIC_BASE_URL}/${storageKey}`;
 }
 
 async function wipeSeedData(): Promise<void> {
@@ -299,11 +303,12 @@ async function createApprovedPickupHandover(input: {
 
   const photoIds: string[] = [];
   for (let index = 0; index < 3; index += 1) {
+    const storageKey = `seed/handovers/${handover.id}/${index + 1}.jpg`;
     const photo = await prisma.handoverPhoto.create({
       data: {
         handoverId: handover.id,
-        storageKey: `seed/handovers/${handover.id}/${index + 1}.jpg`,
-        url: 'pending',
+        storageKey,
+        url: handoverPhotoUrl(storageKey),
         mimeType: 'image/jpeg',
         sizeBytes: 95_000,
         sortOrder: index,
@@ -312,10 +317,6 @@ async function createApprovedPickupHandover(input: {
       select: { id: true },
     });
     photoIds.push(photo.id);
-    await prisma.handoverPhoto.update({
-      where: { id: photo.id },
-      data: { url: handoverPhotoUrl(handover.id, photo.id) },
-    });
   }
 
   return { id: handover.id };
@@ -347,21 +348,18 @@ async function createSubmittedPickupHandover(input: {
   });
 
   for (let index = 0; index < 3; index += 1) {
-    const photo = await prisma.handoverPhoto.create({
+    const storageKey = `seed/handovers/${handover.id}/${index + 1}.jpg`;
+    await prisma.handoverPhoto.create({
       data: {
         handoverId: handover.id,
-        storageKey: `seed/handovers/${handover.id}/${index + 1}.jpg`,
-        url: 'pending',
+        storageKey,
+        url: handoverPhotoUrl(storageKey),
         mimeType: 'image/jpeg',
         sizeBytes: 95_000,
         sortOrder: index,
         uploadedById: input.ownerId,
       },
       select: { id: true },
-    });
-    await prisma.handoverPhoto.update({
-      where: { id: photo.id },
-      data: { url: handoverPhotoUrl(handover.id, photo.id) },
     });
   }
 

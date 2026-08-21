@@ -1,17 +1,19 @@
 import { ActivityIndicator, Pressable, PressableProps, StyleSheet } from 'react-native';
 import { AppText } from '@/components/app-text';
-import { colors, radii, spacing } from '@/theme';
+import { colors, radii, shadows, spacing } from '@/theme';
 
 type AppButtonProps = PressableProps & {
   title: string;
   loading?: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  size?: 'md' | 'sm';
 };
 
 export function AppButton({
   title,
   loading = false,
   variant = 'primary',
+  size = 'md',
   disabled,
   style,
   ...props
@@ -24,7 +26,8 @@ export function AppButton({
       disabled={isDisabled}
       style={({ pressed }) => [
         styles.base,
-        variant === 'primary' ? styles.primary : styles.secondary,
+        size === 'sm' ? styles.sm : styles.md,
+        variantStyles[variant],
         pressed && !isDisabled ? styles.pressed : null,
         isDisabled ? styles.disabled : null,
         typeof style === 'function' ? style({ pressed }) : style,
@@ -32,12 +35,9 @@ export function AppButton({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.background : colors.primary} />
+        <ActivityIndicator color={variant === 'primary' ? colors.textOnPrimary : colors.primary} />
       ) : (
-        <AppText
-          variant="body"
-          style={variant === 'primary' ? styles.primaryText : styles.secondaryText}
-        >
+        <AppText variant="body" style={[styles.text, textStyles[variant]]}>
           {title}
         </AppText>
       )}
@@ -45,34 +45,66 @@ export function AppButton({
   );
 }
 
+const variantStyles = StyleSheet.create({
+  primary: {
+    backgroundColor: colors.primary,
+    ...shadows.sm,
+  },
+  secondary: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
+  danger: {
+    backgroundColor: colors.errorMuted,
+    borderWidth: 1,
+    borderColor: colors.error,
+  },
+});
+
+const textStyles = StyleSheet.create({
+  primary: {
+    color: colors.textOnPrimary,
+    fontWeight: '600',
+  },
+  secondary: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  ghost: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  danger: {
+    color: colors.error,
+    fontWeight: '600',
+  },
+});
+
 const styles = StyleSheet.create({
   base: {
-    minHeight: 48,
     borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
-  primary: {
-    backgroundColor: colors.primary,
+  md: {
+    minHeight: 52,
   },
-  secondary: {
-    backgroundColor: colors.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
+  sm: {
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
   },
-  primaryText: {
-    color: colors.background,
-    fontWeight: '600',
-  },
-  secondaryText: {
-    color: colors.primary,
-    fontWeight: '600',
+  text: {
+    textAlign: 'center',
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.92,
   },
   disabled: {
-    opacity: 0.6,
+    opacity: 0.55,
   },
 });

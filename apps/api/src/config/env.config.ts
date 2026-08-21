@@ -16,8 +16,11 @@ export const envValidationSchema = Joi.object({
   SMTP_USER: Joi.string().allow('').optional(),
   SMTP_PASS: Joi.string().allow('').optional(),
   APP_URL: Joi.string().uri().default('http://localhost:3000'),
-  STORAGE_LOCAL_DIR: Joi.string().default('./storage'),
-  STORAGE_PUBLIC_BASE_URL: Joi.string().uri().default('http://localhost:3000/api/v1/files'),
+  R2_ACCOUNT_ID: Joi.string().required(),
+  R2_ACCESS_KEY_ID: Joi.string().required(),
+  R2_SECRET_ACCESS_KEY: Joi.string().required(),
+  R2_BUCKET_NAME: Joi.string().required(),
+  R2_PUBLIC_BASE_URL: Joi.string().uri().required(),
 });
 
 export type AppConfig = {
@@ -36,8 +39,11 @@ export type AppConfig = {
   smtpUser: string | undefined;
   smtpPass: string | undefined;
   appUrl: string;
-  storageLocalDir: string;
-  storagePublicBaseUrl: string;
+  r2AccountId: string;
+  r2AccessKeyId: string;
+  r2SecretAccessKey: string;
+  r2BucketName: string;
+  r2PublicBaseUrl: string;
 };
 
 export default (): AppConfig => ({
@@ -56,7 +62,9 @@ export default (): AppConfig => ({
   smtpUser: process.env['SMTP_USER']?.length ? process.env['SMTP_USER'] : undefined,
   smtpPass: process.env['SMTP_PASS']?.length ? process.env['SMTP_PASS'] : undefined,
   appUrl: process.env['APP_URL'] ?? 'http://localhost:3000',
-  storageLocalDir: process.env['STORAGE_LOCAL_DIR'] ?? './storage',
-  storagePublicBaseUrl:
-    process.env['STORAGE_PUBLIC_BASE_URL'] ?? 'http://localhost:3000/api/v1/files',
+  r2AccountId: process.env['R2_ACCOUNT_ID'] ?? '',
+  r2AccessKeyId: process.env['R2_ACCESS_KEY_ID'] ?? '',
+  r2SecretAccessKey: process.env['R2_SECRET_ACCESS_KEY'] ?? '',
+  r2BucketName: process.env['R2_BUCKET_NAME'] ?? '',
+  r2PublicBaseUrl: process.env['R2_PUBLIC_BASE_URL'] ?? '',
 });

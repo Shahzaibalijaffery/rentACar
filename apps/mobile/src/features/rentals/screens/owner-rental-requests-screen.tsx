@@ -1,26 +1,35 @@
 import { useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RentalLifecycleFilter } from '@rentacar/shared';
-import { AppButton } from '@/components/app-button';
-import { AppText } from '@/components/app-text';
+import { EmptyState } from '@/components/empty-state';
 import { QueryState } from '@/components/query-state';
+import { ScreenLayout } from '@/components/screen-layout';
 import { useIncomingRentalsQuery } from '@/api/hooks/use-rentals';
 import { RentalLifecycleTabs } from '@/features/rentals/components/rental-lifecycle-tabs';
 import { RentalListItem } from '@/features/rentals/components/rental-list-item';
 import type { AppStackParamList } from '@/navigation/types';
-import { colors, spacing } from '@/theme';
+import { spacing } from '@/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'OwnerRentalRequests'>;
 
-function emptyMessage(lifecycle: RentalLifecycleFilter): string {
+function emptyCopy(lifecycle: RentalLifecycleFilter): { title: string; message: string } {
   switch (lifecycle) {
     case 'active':
-      return 'No active rentals for your vehicles.';
+      return {
+        title: 'No active rentals',
+        message: 'Active rentals on your vehicles will show up here.',
+      };
     case 'completed':
-      return 'No completed rentals yet.';
+      return {
+        title: 'No completed rentals',
+        message: 'Completed trips on your vehicles will appear here.',
+      };
     default:
-      return 'No rental requests for your vehicles yet.';
+      return {
+        title: 'No incoming requests',
+        message: 'When renters request your vehicles, they will appear here.',
+      };
   }
 }
 
@@ -28,9 +37,10 @@ export function OwnerRentalRequestsScreen({ navigation, route }: Props) {
   const initialLifecycle = route.params?.lifecycle ?? 'all';
   const [lifecycle, setLifecycle] = useState<RentalLifecycleFilter>(initialLifecycle);
   const rentalsQuery = useIncomingRentalsQuery(lifecycle);
+  const empty = emptyCopy(lifecycle);
 
   return (
-    <View style={styles.container}>
+    <ScreenLayout scroll={false} contentStyle={styles.content}>
       <RentalLifecycleTabs value={lifecycle} onChange={setLifecycle} />
 
       <QueryState
@@ -39,12 +49,13 @@ export function OwnerRentalRequestsScreen({ navigation, route }: Props) {
         errorMessage={rentalsQuery.error?.message}
       >
         {rentalsQuery.data && rentalsQuery.data.length === 0 ? (
-          <AppText variant="body">{emptyMessage(lifecycle)}</AppText>
+          <EmptyState title={empty.title} message={empty.message} />
         ) : (
           <FlatList
             data={rentalsQuery.data ?? []}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
               <RentalListItem
                 rental={item}
@@ -60,21 +71,17 @@ export function OwnerRentalRequestsScreen({ navigation, route }: Props) {
           />
         )}
       </QueryState>
-
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
-    </View>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  content: {
     flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.lg,
-    gap: spacing.md,
+    paddingTop: spacing.md,
   },
   list: {
     gap: spacing.md,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.xl,
   },
 });

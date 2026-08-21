@@ -5,7 +5,6 @@ import {
   VehicleAvailability,
   VehicleStatus,
 } from '@prisma/client';
-import { ConfigService } from '@nestjs/config';
 import { RentalsRepository } from '../rentals/rentals.repository';
 import { StorageService } from '../../common/storage/storage.service';
 import { HandoverEventsService } from './handover-events.service';
@@ -79,7 +78,6 @@ describe('HandoversService', () => {
   let rentalsRepository: jest.Mocked<RentalsRepository>;
   let storageService: jest.Mocked<StorageService>;
   let handoverEventsService: jest.Mocked<HandoverEventsService>;
-  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     handoversRepository = {
@@ -107,16 +105,11 @@ describe('HandoversService', () => {
       emit: jest.fn(),
     };
 
-    configService = {
-      get: jest.fn().mockReturnValue('http://localhost:3000'),
-    } as unknown as jest.Mocked<ConfigService>;
-
     service = new HandoversService(
       handoversRepository,
       rentalsRepository,
       storageService,
       handoverEventsService,
-      configService,
     );
   });
 
@@ -163,7 +156,7 @@ describe('HandoversService', () => {
       handoversRepository.countPhotos.mockResolvedValue(0);
       storageService.saveObject.mockResolvedValue({
         storageKey: 'handovers/key.jpg',
-        url: 'ignored',
+        url: 'https://cdn.example.com/handovers/key.jpg',
       });
       handoversRepository.addPhoto.mockResolvedValue({
         ...baseHandover,
@@ -172,7 +165,7 @@ describe('HandoversService', () => {
             id: photoId,
             handoverId,
             storageKey: 'handovers/key.jpg',
-            url: 'http://localhost:3000/api/v1/handovers/handover-1/photos/photo-1/content',
+            url: 'https://cdn.example.com/handovers/key.jpg',
             mimeType: 'image/jpeg',
             sizeBytes: 1024,
             sortOrder: 0,
@@ -201,7 +194,7 @@ describe('HandoversService', () => {
       handoversRepository.countPhotos.mockResolvedValue(0);
       storageService.saveObject.mockResolvedValue({
         storageKey: 'handovers/key.jpg',
-        url: 'ignored',
+        url: 'https://cdn.example.com/handovers/key.jpg',
       });
       handoversRepository.addPhoto.mockRejectedValue(new Error('HANDOVER_NOT_EDITABLE'));
 

@@ -4,13 +4,11 @@ import {
   Get,
   Param,
   Post,
-  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import type { Response } from 'express';
 import type { ApiResponse, HandoverView } from '@rentacar/shared';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
@@ -82,23 +80,5 @@ export class HandoversController {
     @Param('id') id: string,
   ): Promise<ApiResponse<HandoverView>> {
     return this.handoversService.approveHandover(user.userId, id);
-  }
-
-  @Get('handovers/:handoverId/photos/:photoId/content')
-  async getPhotoContent(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param('handoverId') handoverId: string,
-    @Param('photoId') photoId: string,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const { stream, mimeType } = await this.handoversService.getPhotoContent(
-      handoverId,
-      photoId,
-      user.userId,
-    );
-
-    res.setHeader('Content-Type', mimeType);
-    res.setHeader('Cache-Control', 'private, no-store');
-    return stream;
   }
 }

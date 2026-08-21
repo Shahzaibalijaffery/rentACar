@@ -1,14 +1,14 @@
 import { Global, Module } from '@nestjs/common';
-import { LocalStorageService } from './local-storage.service';
+import { R2StorageService } from './r2-storage.service';
 import { StorageService } from './storage.service';
 
 @Global()
 @Module({
   providers: [
-    LocalStorageService,
+    R2StorageService,
     {
       provide: StorageService,
-      useExisting: LocalStorageService,
+      useExisting: R2StorageService,
     },
   ],
   exports: [StorageService],

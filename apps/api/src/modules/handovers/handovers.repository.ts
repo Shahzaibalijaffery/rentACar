@@ -141,12 +141,12 @@ export class HandoversRepository {
   addPhoto(data: {
     handoverId: string;
     storageKey: string;
+    url: string;
     mimeType: string;
     sizeBytes: number;
     sortOrder: number;
     uploadedById: string;
     actorId: string;
-    buildPhotoUrl: (photoId: string) => string;
   }): Promise<HandoverRecord> {
     return this.prisma.$transaction(async (tx) => {
       const handover = await tx.handover.findUnique({ where: { id: data.handoverId } });
@@ -154,21 +154,16 @@ export class HandoversRepository {
         throw new Error('HANDOVER_NOT_EDITABLE');
       }
 
-      const photo = await tx.handoverPhoto.create({
+      await tx.handoverPhoto.create({
         data: {
           handoverId: data.handoverId,
           storageKey: data.storageKey,
-          url: data.buildPhotoUrl('pending'),
+          url: data.url,
           mimeType: data.mimeType,
           sizeBytes: data.sizeBytes,
           sortOrder: data.sortOrder,
           uploadedById: data.uploadedById,
         },
-      });
-
-      await tx.handoverPhoto.update({
-        where: { id: photo.id },
-        data: { url: data.buildPhotoUrl(photo.id) },
       });
 
       await tx.handoverAuditEntry.create({

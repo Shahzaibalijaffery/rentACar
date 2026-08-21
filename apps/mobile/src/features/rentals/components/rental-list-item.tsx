@@ -1,8 +1,9 @@
 import { Pressable, StyleSheet } from 'react-native';
 import type { RentalSummary } from '@rentacar/shared';
 import { AppText } from '@/components/app-text';
+import { StatusBadge } from '@/components/status-badge';
 import { formatRentalDate, getRentalStatusLabel } from '@/features/rentals/rental-utils';
-import { colors, radii, spacing } from '@/theme';
+import { colors, radii, shadows, spacing } from '@/theme';
 
 type RentalListItemProps = {
   rental: RentalSummary;
@@ -19,19 +20,24 @@ export function RentalListItem({ rental, perspective, onPress }: RentalListItemP
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={`${rental.vehicle.make} ${rental.vehicle.model}, ${getRentalStatusLabel(rental.status)}`}
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed ? styles.pressed : null]}
     >
       <AppText variant="heading">
         {rental.vehicle.year} {rental.vehicle.make} {rental.vehicle.model}
       </AppText>
-      <AppText variant="body">Status: {getRentalStatusLabel(rental.status)}</AppText>
-      <AppText variant="body">
+      <StatusBadge status={rental.status} />
+      <AppText variant="body" style={styles.meta}>
         {counterparty.label}: {counterparty.name}
       </AppText>
-      <AppText variant="caption">Requested: {formatRentalDate(rental.createdAt)}</AppText>
+      <AppText variant="caption" style={styles.meta}>
+        Requested {formatRentalDate(rental.createdAt)}
+      </AppText>
       {rental.completedAt ? (
-        <AppText variant="caption">Completed: {formatRentalDate(rental.completedAt)}</AppText>
+        <AppText variant="caption" style={styles.meta}>
+          Completed {formatRentalDate(rental.completedAt)}
+        </AppText>
       ) : null}
     </Pressable>
   );
@@ -39,14 +45,18 @@ export function RentalListItem({ rental, perspective, onPress }: RentalListItemP
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: radii.md,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.xs,
+    borderColor: colors.borderLight,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    ...shadows.sm,
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.94,
+  },
+  meta: {
+    color: colors.textSecondary,
   },
 });

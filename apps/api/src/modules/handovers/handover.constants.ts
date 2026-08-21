@@ -16,15 +16,3 @@ export const HANDOVER_TRANSITIONS: Record<HandoverStatus, HandoverStatus[]> = {
 export function canTransitionHandover(from: HandoverStatus, to: HandoverStatus): boolean {
   return HANDOVER_TRANSITIONS[from]?.includes(to) ?? false;
 }
-
-export function buildHandoverPhotoContentPath(handoverId: string, photoId: string): string {
-  return `/api/v1/handovers/${handoverId}/photos/${photoId}/content`;
-}
-
-export function buildHandoverPhotoContentUrl(
-  appUrl: string,
-  handoverId: string,
-  photoId: string,
-): string {
-  return `${appUrl}${buildHandoverPhotoContentPath(handoverId, photoId)}`;
-}

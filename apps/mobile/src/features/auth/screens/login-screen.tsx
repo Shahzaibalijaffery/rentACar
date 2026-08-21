@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
-import { AppInput } from '@/components/app-input';
+import { AppCard } from '@/components/app-card';
 import { AppText } from '@/components/app-text';
+import { FormField } from '@/components/form-field';
+import { ScreenLayout } from '@/components/screen-layout';
 import { useLoginMutation } from '@/api/hooks/use-auth';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
@@ -27,54 +29,63 @@ export function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <AppText variant="title">Sign in</AppText>
-      <AppText variant="caption" style={styles.subtitle}>
-        Use your verified RentACar account.
-      </AppText>
+    <ScreenLayout>
+      <View style={styles.header}>
+        <AppText variant="display" style={styles.brand}>
+          RentACar
+        </AppText>
+        <AppText variant="body" style={styles.subtitle}>
+          Peer-to-peer car rental, simplified.
+        </AppText>
+      </View>
 
-      <AppInput
-        placeholder="Email"
-        keyboardType="email-address"
-        autoComplete="email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <AppInput
-        placeholder="Password"
-        secureTextEntry
-        autoComplete="password"
-        value={password}
-        onChangeText={setPassword}
-      />
+      <AppCard>
+        <AppText variant="heading">Welcome back</AppText>
+        <AppText variant="caption" style={styles.cardHint}>
+          Sign in to continue as a renter or owner.
+        </AppText>
 
-      <AppButton title="Sign in" loading={loginMutation.isPending} onPress={handleLogin} />
+        <FormField
+          label="Email"
+          placeholder="you@example.com"
+          keyboardType="email-address"
+          autoComplete="email"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <FormField
+          label="Password"
+          placeholder="Your password"
+          secureTextEntry
+          autoComplete="password"
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      {/* Email verification disabled for now
-      <AppButton
-        title="Need to verify email?"
-        variant="secondary"
-        onPress={() => navigation.navigate('VerifyEmail', { email })}
-      />
-      */}
+        <AppButton title="Sign in" loading={loginMutation.isPending} onPress={handleLogin} />
+      </AppCard>
 
       <AppButton
         title="Create an account"
         variant="secondary"
         onPress={() => navigation.navigate('Register')}
       />
-    </View>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.lg,
-    gap: spacing.md,
+  header: {
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  brand: {
+    color: colors.primary,
   },
   subtitle: {
+    color: colors.textSecondary,
+  },
+  cardHint: {
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },

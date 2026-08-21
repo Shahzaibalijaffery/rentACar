@@ -38,9 +38,10 @@ describe('Health (e2e)', () => {
     return request(app.getHttpServer())
       .get('/api/v1/health')
       .expect(200)
-      .expect(({ body }: { body: { data: { status: string; database: string } } }) => {
+      .expect(({ body }: { body: { data: { status: string; database: string; storage: { driver: string } } } }) => {
         expect(body.data.status).toBe('ok');
         expect(body.data.database).toBe('connected');
+        expect(body.data.storage.driver).toBe('r2');
       });
   });
 });

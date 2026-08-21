@@ -15,12 +15,21 @@ import { AgreementDetailScreen } from '@/features/agreements/screens/agreement-d
 import { PickupHandoverScreen } from '@/features/handovers/screens/pickup-handover-screen';
 import { ProfileSearchScreen } from '@/features/users/screens/profile-search-screen';
 import type { AppStackParamList } from '@/navigation/types';
+import { colors } from '@/theme';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
+const screenOptions = {
+  headerStyle: { backgroundColor: colors.surface },
+  headerShadowVisible: false,
+  headerTintColor: colors.primary,
+  headerTitleStyle: { color: colors.text, fontWeight: '600' as const },
+  contentStyle: { backgroundColor: colors.background },
+};
+
 export function AppNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={screenOptions}>
       <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'RentACar' }} />
       <Stack.Screen
         name="ProfileSearch"
@@ -31,58 +40,58 @@ export function AppNavigator() {
       <Stack.Screen
         name="DiscoveryVehicleDetail"
         component={DiscoveryVehicleDetailScreen}
-        options={{ title: 'Vehicle' }}
+        options={{ title: 'Vehicle details' }}
       />
-      <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'My Profile' }} />
+      <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'My profile' }} />
       <Stack.Screen
         name="MyVehicles"
         component={MyVehiclesScreen}
-        options={{ title: 'My Vehicles' }}
+        options={{ title: 'My vehicles' }}
       />
       <Stack.Screen
         name="AddVehicle"
         component={AddVehicleScreen}
-        options={{ title: 'Add Vehicle' }}
+        options={{ title: 'Add vehicle' }}
       />
       <Stack.Screen
         name="EditVehicle"
         component={EditVehicleScreen}
-        options={{ title: 'Edit Vehicle' }}
+        options={{ title: 'Edit vehicle' }}
       />
       <Stack.Screen
         name="VehicleDetails"
         component={VehicleDetailsScreen}
-        options={{ title: 'Vehicle Details' }}
+        options={{ title: 'Vehicle details' }}
       />
       <Stack.Screen
         name="MyRentalRequests"
         component={MyRentalRequestsScreen}
-        options={{ title: 'My Rental Requests' }}
+        options={{ title: 'My rentals' }}
       />
       <Stack.Screen
         name="OwnerRentalRequests"
         component={OwnerRentalRequestsScreen}
-        options={{ title: 'Incoming Requests' }}
+        options={{ title: 'Incoming requests' }}
       />
       <Stack.Screen
         name="RentalRequestDetail"
         component={RentalRequestDetailScreen}
-        options={{ title: 'Rental Request' }}
+        options={{ title: 'Rental details' }}
       />
       <Stack.Screen
         name="CreateAgreement"
         component={CreateAgreementScreen}
-        options={{ title: 'Create Agreement' }}
+        options={{ title: 'Create agreement' }}
       />
       <Stack.Screen
         name="AgreementDetail"
         component={AgreementDetailScreen}
-        options={{ title: 'Rental Agreement' }}
+        options={{ title: 'Rental agreement' }}
       />
       <Stack.Screen
         name="PickupHandover"
         component={PickupHandoverScreen}
-        options={{ title: 'Pickup Handover' }}
+        options={{ title: 'Pickup handover' }}
       />
     </Stack.Navigator>
   );

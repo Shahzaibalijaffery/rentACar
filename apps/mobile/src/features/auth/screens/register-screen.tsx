@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
-import { AppInput } from '@/components/app-input';
+import { AppCard } from '@/components/app-card';
 import { AppText } from '@/components/app-text';
+import { FormField } from '@/components/form-field';
+import { ScreenLayout } from '@/components/screen-layout';
 import { useRegisterMutation } from '@/api/hooks/use-auth';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
@@ -34,54 +36,64 @@ export function RegisterScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <AppText variant="title">Create account</AppText>
-      <AppText variant="caption" style={styles.subtitle}>
-        Register with your CNIC to use RentACar as an owner or renter.
-      </AppText>
+    <ScreenLayout>
+      <View style={styles.header}>
+        <AppText variant="title">Create your account</AppText>
+        <AppText variant="body" style={styles.subtitle}>
+          One account works for both renting and listing vehicles.
+        </AppText>
+      </View>
 
-      <AppInput placeholder="Full name" value={fullName} onChangeText={setFullName} />
-      <AppInput
-        placeholder="Email"
-        keyboardType="email-address"
-        autoComplete="email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <AppInput
-        placeholder="CNIC (13 digits)"
-        keyboardType="number-pad"
-        value={cnic}
-        onChangeText={setCnic}
-      />
-      <AppInput
-        placeholder="Password"
-        secureTextEntry
-        autoComplete="password-new"
-        value={password}
-        onChangeText={setPassword}
-      />
+      <AppCard>
+        <FormField
+          label="Full name"
+          placeholder="Your full name"
+          value={fullName}
+          onChangeText={setFullName}
+          autoCapitalize="words"
+        />
+        <FormField
+          label="Email"
+          placeholder="you@example.com"
+          keyboardType="email-address"
+          autoComplete="email"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <FormField
+          label="CNIC"
+          placeholder="35201-1234567-1"
+          keyboardType="number-pad"
+          value={cnic}
+          onChangeText={setCnic}
+          hint="Used to verify identity during rentals."
+        />
+        <FormField
+          label="Password"
+          placeholder="At least 8 characters"
+          secureTextEntry
+          autoComplete="password-new"
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      <AppButton title="Register" loading={registerMutation.isPending} onPress={handleRegister} />
+        <AppButton title="Create account" loading={registerMutation.isPending} onPress={handleRegister} />
+      </AppCard>
 
       <AppButton
         title="Already have an account? Sign in"
-        variant="secondary"
+        variant="ghost"
         onPress={() => navigation.navigate('Login')}
       />
-    </View>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.lg,
-    gap: spacing.md,
+  header: {
+    gap: spacing.xs,
   },
   subtitle: {
     color: colors.textSecondary,
-    marginBottom: spacing.sm,
   },
 });

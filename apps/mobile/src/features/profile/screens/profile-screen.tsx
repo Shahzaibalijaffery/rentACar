@@ -1,23 +1,25 @@
 import { useEffect, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, StyleSheet, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
+import { AppCard } from '@/components/app-card';
 import { AppModeSwitcher } from '@/components/app-mode-switcher';
-import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
+import { FormField } from '@/components/form-field';
 import { QueryState } from '@/components/query-state';
+import { ScreenLayout } from '@/components/screen-layout';
 import {
   useProfileQuery,
   useUpdateProfileMutation,
   useUploadProfilePhotoMutation,
 } from '@/api/hooks/use-auth';
 import type { AppStackParamList } from '@/navigation/types';
-import { colors, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>;
 
-export function ProfileScreen({ navigation }: Props) {
+export function ProfileScreen(_props: Props) {
   const profileQuery = useProfileQuery();
   const updateProfileMutation = useUpdateProfileMutation();
   const uploadPhotoMutation = useUploadProfilePhotoMutation();
@@ -76,7 +78,7 @@ export function ProfileScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScreenLayout>
       <QueryState
         isLoading={profileQuery.isLoading}
         isError={profileQuery.isError}
@@ -84,101 +86,111 @@ export function ProfileScreen({ navigation }: Props) {
       >
         {profile ? (
           <>
-            {profile.profilePhotoUrl ? (
-              <Image source={{ uri: profile.profilePhotoUrl }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <AppText variant="title">{profile.fullName.charAt(0)}</AppText>
-              </View>
-            )}
+            <AppCard style={styles.profileHeader}>
+              {profile.profilePhotoUrl ? (
+                <Image source={{ uri: profile.profilePhotoUrl }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <AppText variant="title" style={styles.avatarInitial}>
+                    {profile.fullName.charAt(0)}
+                  </AppText>
+                </View>
+              )}
+              <AppText variant="heading">{profile.fullName}</AppText>
+              <AppText variant="caption" style={styles.email}>
+                {profile.email}
+              </AppText>
+              <AppButton
+                title="Change photo"
+                variant="secondary"
+                size="sm"
+                loading={uploadPhotoMutation.isPending}
+                onPress={() => {
+                  void handlePickPhoto();
+                }}
+              />
+            </AppCard>
 
-            <AppButton
-              title="Change profile photo"
-              variant="secondary"
-              loading={uploadPhotoMutation.isPending}
-              onPress={() => {
-                void handlePickPhoto();
-              }}
-            />
-
-            <View style={styles.section}>
-              <AppText variant="label">Switch profile</AppText>
+            <AppCard>
+              <AppText variant="label">Active profile</AppText>
               <AppText variant="caption" style={styles.note}>
-                One account can rent and list vehicles. Switch between renter and owner mode to
-                change what you see on the home screen.
+                Switch between renter and owner mode for the home screen.
               </AppText>
               <AppModeSwitcher compact />
-            </View>
+            </AppCard>
 
-            <AppText variant="label">Full name</AppText>
-            <AppInput
-              placeholder="Full name"
-              value={displayName}
-              onChangeText={setFullName}
-              autoCapitalize="words"
-            />
-            <AppButton
-              title="Save name"
-              loading={updateProfileMutation.isPending}
-              onPress={handleSaveName}
-            />
+            <AppCard>
+              <FormField
+                label="Full name"
+                placeholder="Full name"
+                value={displayName}
+                onChangeText={setFullName}
+                autoCapitalize="words"
+              />
+              <AppButton
+                title="Save name"
+                loading={updateProfileMutation.isPending}
+                onPress={handleSaveName}
+              />
+            </AppCard>
 
-            <View style={styles.section}>
-              <AppText variant="label">Email</AppText>
-              <AppText variant="body">{profile.email}</AppText>
-            </View>
-
-            <View style={styles.section}>
-              <AppText variant="label">CNIC</AppText>
-              <AppText variant="body">{profile.cnic}</AppText>
+            <AppCard muted>
+              <View style={styles.row}>
+                <AppText variant="label">CNIC</AppText>
+                <AppText variant="body">{profile.cnic}</AppText>
+              </View>
               <AppText variant="caption" style={styles.note}>
-                Your CNIC is private and only visible to you and rental participants in agreements.
+                Private — only shared with rental participants in agreements.
               </AppText>
-            </View>
+            </AppCard>
 
-            <View style={styles.section}>
-              <AppText variant="label">Account status</AppText>
-              <AppText variant="body">{profile.status}</AppText>
-              <AppText variant="body">
-                Email verified: {profile.emailVerified ? 'Yes' : 'No'}
-              </AppText>
-            </View>
-
-            <View style={styles.section}>
-              <AppText variant="label">Member since</AppText>
-              <AppText variant="body">{new Date(profile.createdAt).toLocaleDateString()}</AppText>
-            </View>
+            <AppCard muted>
+              <View style={styles.row}>
+                <AppText variant="label">Status</AppText>
+                <AppText variant="body">{profile.status}</AppText>
+              </View>
+              <View style={styles.row}>
+                <AppText variant="label">Email verified</AppText>
+                <AppText variant="body">{profile.emailVerified ? 'Yes' : 'No'}</AppText>
+              </View>
+              <View style={styles.row}>
+                <AppText variant="label">Member since</AppText>
+                <AppText variant="body">
+                  {new Date(profile.createdAt).toLocaleDateString()}
+                </AppText>
+              </View>
+            </AppCard>
           </>
         ) : null}
       </QueryState>
-
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
-    </ScrollView>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: spacing.lg,
-    gap: spacing.md,
-    backgroundColor: colors.background,
+  profileHeader: {
+    alignItems: 'center',
   },
   avatar: {
     width: 96,
     height: 96,
-    borderRadius: 48,
-    alignSelf: 'center',
+    borderRadius: radii.full,
   },
   avatarPlaceholder: {
     width: 96,
     height: 96,
-    borderRadius: 48,
-    alignSelf: 'center',
-    backgroundColor: colors.backgroundSecondary,
+    borderRadius: radii.full,
+    backgroundColor: colors.primaryMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  section: {
+  avatarInitial: {
+    color: colors.primary,
+  },
+  email: {
+    color: colors.textSecondary,
+  },
+  row: {
     gap: spacing.xs,
   },
   note: {
