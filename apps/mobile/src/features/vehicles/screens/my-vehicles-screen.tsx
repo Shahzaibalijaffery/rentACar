@@ -1,11 +1,11 @@
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { QueryState } from '@/components/query-state';
 import { useMyVehiclesQuery } from '@/api/hooks/use-vehicles';
 import type { AppStackParamList } from '@/navigation/types';
-import { colors, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'MyVehicles'>;
 
@@ -30,25 +30,46 @@ export function MyVehiclesScreen({ navigation }: Props) {
               You have not listed any vehicles yet.
             </AppText>
           }
-          renderItem={({ item }) => (
-            <Pressable
-              style={styles.card}
-              onPress={() => navigation.navigate('VehicleDetails', { vehicleId: item.id })}
-            >
-              <AppText variant="body" style={styles.title}>
-                {item.year} {item.make} {item.model}
-              </AppText>
-              <AppText variant="caption" style={styles.meta}>
-                {item.color} · {item.availability} · {item.photos.length} photo
-                {item.photos.length === 1 ? '' : 's'}
-              </AppText>
-              {item.areaLabel ? (
-                <AppText variant="caption" style={styles.meta}>
-                  Area: {item.areaLabel}
-                </AppText>
-              ) : null}
-            </Pressable>
-          )}
+          renderItem={({ item }) => {
+            const coverPhoto = item.photos[0];
+
+            return (
+              <Pressable
+                style={styles.card}
+                onPress={() => navigation.navigate('VehicleDetails', { vehicleId: item.id })}
+              >
+                {coverPhoto ? (
+                  <View>
+                    <Image source={{ uri: coverPhoto.url }} style={styles.photo} />
+                    <View style={styles.badge}>
+                      <AppText variant="caption" style={styles.badgeText}>
+                        {item.photos.length === 1 ? '1 photo' : `${item.photos.length} photos`}
+                      </AppText>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.photoPlaceholder}>
+                    <AppText variant="caption" style={styles.placeholderText}>
+                      No photo
+                    </AppText>
+                  </View>
+                )}
+                <View style={styles.content}>
+                  <AppText variant="body" style={styles.title}>
+                    {item.year} {item.make} {item.model}
+                  </AppText>
+                  <AppText variant="caption" style={styles.meta}>
+                    {item.color} · {item.availability}
+                  </AppText>
+                  {item.areaLabel ? (
+                    <AppText variant="caption" style={styles.meta}>
+                      Area: {item.areaLabel}
+                    </AppText>
+                  ) : null}
+                </View>
+              </Pressable>
+            );
+          }}
         />
       </QueryState>
     </View>
@@ -69,9 +90,39 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: radii.md,
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+  },
+  photo: {
+    width: '100%',
+    height: 160,
+    backgroundColor: colors.surfaceMuted,
+  },
+  photoPlaceholder: {
+    width: '100%',
+    height: 160,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceMuted,
+  },
+  placeholderText: {
+    color: colors.textSecondary,
+  },
+  badge: {
+    position: 'absolute',
+    right: spacing.sm,
+    bottom: spacing.sm,
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  badgeText: {
+    color: colors.textOnPrimary,
+  },
+  content: {
     padding: spacing.md,
-    backgroundColor: colors.backgroundSecondary,
   },
   title: {
     fontWeight: '600',

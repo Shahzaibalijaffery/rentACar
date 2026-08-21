@@ -1,8 +1,9 @@
-import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
+import { PhotoCover } from '@/components/photo-cover';
 import { QueryState } from '@/components/query-state';
 import {
   useArchiveVehicleMutation,
@@ -134,20 +135,11 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
             ) : null}
 
             <AppText variant="label">Photos</AppText>
-            <View style={styles.photoGrid}>
-              {vehicle.photos.map((photo) => (
-                <View key={photo.id} style={styles.photoItem}>
-                  <Image source={{ uri: photo.url }} style={styles.photo} />
-                  {!isArchived ? (
-                    <AppButton
-                      title="Remove"
-                      variant="secondary"
-                      onPress={() => handleDeletePhoto(photo.id)}
-                    />
-                  ) : null}
-                </View>
-              ))}
-            </View>
+            <PhotoCover
+              photos={vehicle.photos}
+              emptyLabel="No vehicle photos yet"
+              onRemovePhoto={isArchived ? undefined : handleDeletePhoto}
+            />
 
             {!isArchived ? (
               <AppButton
@@ -184,17 +176,5 @@ const styles = StyleSheet.create({
   },
   coords: {
     color: colors.textSecondary,
-  },
-  photoGrid: {
-    gap: spacing.sm,
-  },
-  photoItem: {
-    gap: spacing.xs,
-  },
-  photo: {
-    width: '100%',
-    height: 180,
-    borderRadius: 8,
-    backgroundColor: colors.backgroundSecondary,
   },
 });

@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { AppConfig } from '../../config/env.config';
+import { UserStatus, type User } from '@prisma/client';
+import type { AuthTokens } from '@rentacar/shared';
 import { PrismaService } from '../../common/database/prisma.service';
 import {
   generateSecureToken,
   hashToken,
   parseDurationToSeconds,
 } from '../../common/utils/token.util';
-import type { AuthTokens } from '@rentacar/shared';
-import type { User } from '@prisma/client';
+import { AppConfig } from '../../config/env.config';
 
 type AccessTokenPayload = {
   sub: string;
@@ -26,36 +26,22 @@ export class TokenService {
   ) {}
 
   async issueTokens(user: User): Promise<AuthTokens> {
-    const accessExpiresIn = this.configService.get('jwtAccessExpiresIn', { infer: true });
+    const { accessToken, expiresIn } = await this.signAccessToken(user);
     const refreshExpiresIn = this.configService.get('jwtRefreshExpiresIn', { infer: true });
-
-    const payload: AccessTokenPayload = {
-      sub: user.id,
-      email: user.email,
-      emailVerified: user.emailVerifiedAt !== null,
-    };
-
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get('jwtAccessSecret', { infer: true }),
-      expiresIn: accessExpiresIn as `${number}${'s' | 'm' | 'h' | 'd'}`,
-    });
-
     const refreshToken = generateSecureToken(48);
-    const refreshTokenHash = hashToken(refreshToken);
-    const refreshExpiresMs = this.parseRefreshExpiryDate(refreshExpiresIn);
 
     await this.prisma.refreshToken.create({
       data: {
         userId: user.id,
-        tokenHash: refreshTokenHash,
-        expiresAt: refreshExpiresMs,
+        tokenHash: hashToken(refreshToken),
+        expiresAt: this.parseRefreshExpiryDate(refreshExpiresIn),
       },
     });
 
     return {
       accessToken,
       refreshToken,
-      expiresIn: parseDurationToSeconds(accessExpiresIn),
+      expiresIn,
     };
   }
 
@@ -70,17 +56,38 @@ export class TokenService {
       include: { user: true },
     });
 
-    if (!stored) {
+    if (!stored || stored.user.status === UserStatus.SUSPENDED) {
       throw new Error('INVALID_REFRESH_TOKEN');
     }
 
-    await this.prisma.refreshToken.update({
-      where: { id: stored.id },
-      data: { revokedAt: new Date() },
+    const { accessToken, expiresIn } = await this.signAccessToken(stored.user);
+    return {
+      user: stored.user,
+      tokens: {
+        accessToken,
+        refreshToken,
+        expiresIn,
+      },
+    };
+  }
+
+  private async signAccessToken(user: User): Promise<{ accessToken: string; expiresIn: number }> {
+    const accessExpiresIn = this.configService.get('jwtAccessExpiresIn', { infer: true });
+    const payload: AccessTokenPayload = {
+      sub: user.id,
+      email: user.email,
+      emailVerified: user.emailVerifiedAt !== null,
+    };
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get('jwtAccessSecret', { infer: true }),
+      expiresIn: accessExpiresIn as `${number}${'s' | 'm' | 'h' | 'd'}`,
     });
 
-    const tokens = await this.issueTokens(stored.user);
-    return { user: stored.user, tokens };
+    return {
+      accessToken,
+      expiresIn: parseDurationToSeconds(accessExpiresIn),
+    };
   }
 
   async revokeRefreshToken(refreshToken: string): Promise<void> {

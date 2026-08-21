@@ -21,6 +21,7 @@ import {
   getRentalNextStep,
   getRentalStatusLabel,
 } from '@/features/rentals/rental-utils';
+import { PhotoCover } from '@/components/photo-cover';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 
@@ -220,6 +221,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
             <AppText variant="title">
               {rental.vehicle.year} {rental.vehicle.make} {rental.vehicle.model}
             </AppText>
+            <PhotoCover photos={rental.vehicle.photos} emptyLabel="No vehicle photos" />
             <AppText variant="body">Status: {getRentalStatusLabel(rental.status)}</AppText>
 
             {nextStep ? <RentalNextStepCard step={nextStep} /> : null}

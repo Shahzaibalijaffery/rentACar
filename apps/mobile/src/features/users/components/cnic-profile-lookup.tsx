@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Alert, Image, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import type { AgreementParticipant } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
+import { ProfileAvatar } from '@/components/profile-avatar';
 import { useLookupUserByCnicMutation } from '@/api/hooks/use-users';
 import { colors, radii, spacing } from '@/theme';
 
@@ -57,13 +58,11 @@ export function CnicProfileLookup({ participantLabel }: Props) {
 
       {profile ? (
         <View style={styles.profileCard}>
-          {profile.profilePhotoUrl ? (
-            <Image source={{ uri: profile.profilePhotoUrl }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <AppText variant="title">{profile.fullName.charAt(0)}</AppText>
-            </View>
-          )}
+          <ProfileAvatar
+            fullName={profile.fullName}
+            profilePhotoUrl={profile.profilePhotoUrl}
+            size={72}
+          />
           <AppText variant="title">{profile.fullName}</AppText>
           <AppText variant="body">CNIC: {profile.cnic}</AppText>
         </View>
@@ -85,18 +84,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     paddingTop: spacing.sm,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-  },
-  avatarPlaceholder: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.border,
   },
 });

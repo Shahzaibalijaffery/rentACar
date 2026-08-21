@@ -152,7 +152,10 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
             ) : null}
 
             <AppText variant="label">Submitted evidence</AppText>
-            <HandoverPhotoGrid photos={handover.photos} />
+            <HandoverPhotoGrid
+              photos={handover.photos}
+              onRemovePhoto={canEditPhotos ? handleDeletePhoto : undefined}
+            />
 
             {canEditPhotos ? (
               <>
@@ -164,15 +167,6 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
                   loading={uploadMutation.isPending}
                   onPress={handleAddPhoto}
                 />
-                {handover.photos.map((photo) => (
-                  <AppButton
-                    key={photo.id}
-                    title={`Remove photo ${photo.sortOrder + 1}`}
-                    variant="secondary"
-                    loading={deleteMutation.isPending}
-                    onPress={() => handleDeletePhoto(photo.id)}
-                  />
-                ))}
                 <AppButton
                   title="Submit photo set"
                   loading={submitMutation.isPending}

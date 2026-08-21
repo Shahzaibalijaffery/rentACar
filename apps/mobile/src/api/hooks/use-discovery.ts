@@ -38,7 +38,6 @@ export function useDiscoveryInfiniteQuery(params: DiscoverySearchParams) {
           page: pageParam,
           pageSize,
         })}`,
-        { auth: false },
       ),
     getNextPageParam: (lastPage) => {
       const { page, pageSize: size, total } = lastPage.meta;

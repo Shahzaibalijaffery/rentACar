@@ -9,7 +9,7 @@ export type StoredSession = {
   refreshToken: string;
 };
 
-function sessionOptions(): Keychain.SetOptions {
+function sessionSetOptions(): Keychain.SetOptions {
   return {
     service: SESSION_SERVICE,
     accessible: Keychain.ACCESSIBLE.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
@@ -22,28 +22,54 @@ function sessionOptions(): Keychain.SetOptions {
   };
 }
 
+function sessionGetOptions(): Keychain.GetOptions {
+  return {
+    service: SESSION_SERVICE,
+  };
+}
+
+function parseStoredSession(raw: string): StoredSession | null {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      'accessToken' in parsed &&
+      'refreshToken' in parsed &&
+      typeof parsed.accessToken === 'string' &&
+      typeof parsed.refreshToken === 'string' &&
+      parsed.refreshToken.length > 0
+    ) {
+      return {
+        accessToken: parsed.accessToken,
+        refreshToken: parsed.refreshToken,
+      };
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export async function saveSession(session: StoredSession): Promise<void> {
-  await Keychain.setGenericPassword('session', JSON.stringify(session), sessionOptions());
+  const payload = JSON.stringify({
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+  });
+  const result = await Keychain.setGenericPassword('session', payload, sessionSetOptions());
+  if (result === false) {
+    throw new Error('Failed to persist session');
+  }
 }
 
 export async function getStoredSession(): Promise<StoredSession | null> {
   try {
-    const credentials = await Keychain.getGenericPassword({ service: SESSION_SERVICE });
-    if (credentials) {
-      const parsed: unknown = JSON.parse(credentials.password);
-      if (
-        parsed &&
-        typeof parsed === 'object' &&
-        'accessToken' in parsed &&
-        'refreshToken' in parsed &&
-        typeof parsed.accessToken === 'string' &&
-        typeof parsed.refreshToken === 'string' &&
-        parsed.refreshToken.length > 0
-      ) {
-        return {
-          accessToken: parsed.accessToken,
-          refreshToken: parsed.refreshToken,
-        };
+    const credentials = await Keychain.getGenericPassword(sessionGetOptions());
+    if (credentials && typeof credentials !== 'boolean') {
+      const session = parseStoredSession(credentials.password);
+      if (session) {
+        return session;
       }
     }
 

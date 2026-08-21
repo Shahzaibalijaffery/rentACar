@@ -31,30 +31,48 @@ export class JwtAuthGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (isPublic) {
-      return true;
-    }
-
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = this.extractBearerToken(request);
+
+    if (isPublic) {
+      if (token) {
+        const viewer = await this.tryVerifyUser(token);
+        if (viewer) {
+          request.user = viewer;
+        }
+      }
+      return true;
+    }
 
     if (!token) {
       throw new UnauthorizedException('Authentication required');
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
-        secret: this.configService.get('jwtAccessSecret', { infer: true }),
-      });
-
-      request.user = {
-        userId: payload.sub,
-        email: payload.email,
-        emailVerified: payload.emailVerified,
-      };
+      request.user = await this.verifyUser(token);
       return true;
     } catch {
       throw new UnauthorizedException('Invalid or expired access token');
+    }
+  }
+
+  private async verifyUser(token: string): Promise<AuthenticatedUser> {
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
+      secret: this.configService.get('jwtAccessSecret', { infer: true }),
+    });
+
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      emailVerified: payload.emailVerified,
+    };
+  }
+
+  private async tryVerifyUser(token: string): Promise<AuthenticatedUser | undefined> {
+    try {
+      return await this.verifyUser(token);
+    } catch {
+      return undefined;
     }
   }
 

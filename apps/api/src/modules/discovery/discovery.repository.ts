@@ -19,6 +19,7 @@ export type DiscoverNearbyInput = {
   make?: string;
   model?: string;
   availability: VehicleAvailability;
+  excludeOwnerId?: string;
 };
 
 type FacetAggregateResult = {
@@ -95,6 +96,10 @@ export class DiscoveryRepository {
       location: { $exists: true, $ne: null },
       $or: [{ activeRentalId: null }, { activeRentalId: { $exists: false } }],
     };
+
+    if (input.excludeOwnerId) {
+      geoQuery['ownerId'] = { $ne: { $oid: input.excludeOwnerId } };
+    }
 
     const postGeoMatch: Record<string, unknown> = {};
     if (input.make?.trim()) {

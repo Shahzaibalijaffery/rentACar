@@ -1,8 +1,13 @@
 jest.mock('react-native-keychain', () => ({
-  setGenericPassword: jest.fn().mockResolvedValue(undefined),
+  setGenericPassword: jest.fn().mockResolvedValue({ service: 'rentacar.session', storage: 'KeystoreAESGCM_NoAuth' }),
   getGenericPassword: jest.fn().mockResolvedValue(false),
   resetGenericPassword: jest.fn().mockResolvedValue(undefined),
-  ACCESSIBLE: { WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY' },
+  ACCESSIBLE: {
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
+    AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 'AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY',
+  },
+  SECURITY_LEVEL: { ANY: 0 },
+  STORAGE_TYPE: { AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth' },
 }));
 
 jest.mock('@react-navigation/native', () => ({

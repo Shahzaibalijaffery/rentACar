@@ -17,12 +17,15 @@ type RefreshResponse = {
 let restorePromise: Promise<boolean> | null = null;
 let refreshPromise: Promise<string | null> | null = null;
 
-async function persistSession(tokens: {
+export async function persistSession(tokens: {
   accessToken: string;
   refreshToken: string;
 }): Promise<void> {
+  await saveSession({
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+  });
   useAuthStore.getState().setAccessToken(tokens.accessToken);
-  await saveSession(tokens);
 }
 
 async function requestRefreshToken(refreshToken: string): Promise<RefreshResponse> {
@@ -115,7 +118,7 @@ export async function restoreSessionFromStorage(): Promise<boolean> {
     }
 
     const session = await getStoredSession();
-    if (!session) {
+    if (!session?.refreshToken) {
       useAuthStore.getState().setHydrated(true);
       return false;
     }
@@ -123,7 +126,6 @@ export async function restoreSessionFromStorage(): Promise<boolean> {
     if (session.accessToken) {
       useAuthStore.getState().setAccessToken(session.accessToken);
       useAuthStore.getState().setHydrated(true);
-      void refreshSessionFromStorage(session.refreshToken);
       return true;
     }
 

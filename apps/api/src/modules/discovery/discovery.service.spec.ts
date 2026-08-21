@@ -58,10 +58,30 @@ describe('DiscoveryService', () => {
         pageSize: 20,
       }),
     );
+    expect(repository.discoverNearby.mock.calls[0]?.[0]).not.toHaveProperty('excludeOwnerId');
     expect(result.data).toHaveLength(1);
     expect(result.data[0]?.distanceLabel).toBe('850 m away');
     expect(result.meta.total).toBe(1);
     assertDiscoveryItemIsPublicSafe(result.data[0]!);
+  });
+
+  it('excludes the viewer own vehicles from discovery', async () => {
+    repository.discoverNearby.mockResolvedValue({ items: [], total: 0 });
+
+    await service.discoverVehicles(
+      {
+        latitude: 24.86,
+        longitude: 67.0,
+        availability: VehicleAvailability.AVAILABLE,
+      },
+      'owner-1',
+    );
+
+    expect(repository.discoverNearby).toHaveBeenCalledWith(
+      expect.objectContaining({
+        excludeOwnerId: 'owner-1',
+      }),
+    );
   });
 
   it('rejects invalid coordinates', async () => {
@@ -105,6 +125,36 @@ describe('DiscoveryRepository pipeline', () => {
     expect(JSON.stringify(pipeline)).toContain('Toyota');
     expect(JSON.stringify(pipeline)).not.toContain('email');
     expect(JSON.stringify(pipeline)).not.toContain('cnic');
+    expect(JSON.stringify(pipeline)).not.toContain('excludeOwnerId');
+  });
+
+  it('filters the viewer own vehicles out of the geoNear query', async () => {
+    const aggregateRaw = jest.fn().mockResolvedValue([{ data: [], meta: [{ total: 0 }] }]);
+    const prisma = {
+      $runCommandRaw: jest.fn().mockResolvedValue({ ok: 1 }),
+      vehicle: {
+        aggregateRaw,
+      },
+    };
+
+    const repository = new DiscoveryRepository(prisma as never);
+
+    await repository.discoverNearby({
+      latitude: 24.86,
+      longitude: 67.0,
+      radiusKm: 5,
+      page: 1,
+      pageSize: 10,
+      availability: VehicleAvailability.AVAILABLE,
+      excludeOwnerId: 'owner-1',
+    });
+
+    const firstCall = aggregateRaw.mock.calls[0] as
+      [{ pipeline: Record<string, unknown>[] }] | undefined;
+    const pipeline = firstCall?.[0]?.pipeline ?? [];
+    const geoNear = pipeline[0]?.$geoNear as { query?: Record<string, unknown> } | undefined;
+
+    expect(geoNear?.query?.ownerId).toEqual({ $ne: { $oid: 'owner-1' } });
   });
 });
 

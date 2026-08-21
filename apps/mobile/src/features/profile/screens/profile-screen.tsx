@@ -93,20 +93,15 @@ export function ProfileScreen(_props: Props) {
               <ProfileAvatar
                 fullName={profile.fullName}
                 profilePhotoUrl={profile.profilePhotoUrl}
+                onEdit={() => {
+                  void handlePickPhoto();
+                }}
+                editLoading={uploadPhotoMutation.isPending}
               />
               <AppText variant="heading">{profile.fullName}</AppText>
               <AppText variant="caption" style={styles.email}>
                 {profile.email}
               </AppText>
-              <AppButton
-                title="Change photo"
-                variant="secondary"
-                size="sm"
-                loading={uploadPhotoMutation.isPending}
-                onPress={() => {
-                  void handlePickPhoto();
-                }}
-              />
             </AppCard>
 
             <AppCard>

@@ -15,7 +15,14 @@ export function ProfileVehicleCard({ vehicle, onPress }: ProfileVehicleCardProps
   return (
     <Pressable style={styles.card} onPress={onPress}>
       {coverPhoto ? (
-        <Image source={{ uri: coverPhoto.url }} style={styles.photo} />
+        <View>
+          <Image source={{ uri: coverPhoto.url }} style={styles.photo} />
+          <View style={styles.badge}>
+            <AppText variant="caption" style={styles.badgeText}>
+              {vehicle.photos.length === 1 ? '1 photo' : `${vehicle.photos.length} photos`}
+            </AppText>
+          </View>
+        </View>
       ) : (
         <View style={styles.photoPlaceholder}>
           <AppText variant="caption">No photo</AppText>
@@ -54,6 +61,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 140,
     backgroundColor: colors.background,
+  },
+  badge: {
+    position: 'absolute',
+    right: spacing.sm,
+    bottom: spacing.sm,
+    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    borderRadius: 999,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  badgeText: {
+    color: colors.textOnPrimary,
   },
   photoPlaceholder: {
     width: '100%',

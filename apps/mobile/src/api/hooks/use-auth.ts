@@ -9,9 +9,10 @@ import type {
 import { apiRequest } from '@/api/client';
 import { apiUploadFile } from '@/api/upload';
 import { authKeys } from '@/api/keys/auth.keys';
-import { getRefreshToken, saveSession } from '@/services/secure-storage';
+import { getRefreshToken } from '@/services/secure-storage';
 import {
   clearStoredSession,
+  persistSession,
   restoreSessionFromStorage as restoreStoredSession,
 } from '@/services/session-service';
 import { useAuthStore } from '@/stores/auth-store';
@@ -28,14 +29,6 @@ type LoginInput = {
   email: string;
   password: string;
 };
-
-async function persistSession(tokens: {
-  accessToken: string;
-  refreshToken: string;
-}): Promise<void> {
-  useAuthStore.getState().setAccessToken(tokens.accessToken);
-  await saveSession(tokens);
-}
 
 export function useRegisterMutation() {
   return useMutation({
@@ -59,7 +52,10 @@ export function useLoginMutation() {
         auth: false,
       }),
     onSuccess: async (data) => {
-      await persistSession(data);
+      await persistSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      });
       queryClient.setQueryData(authKeys.profile(), data.user);
     },
   });

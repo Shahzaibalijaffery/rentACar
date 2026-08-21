@@ -20,3 +20,10 @@ export const CurrentUser = createParamDecorator(
     return request.user;
   },
 );
+
+export const OptionalCurrentUser = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext): AuthenticatedUser | undefined => {
+    const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
+    return request.user;
+  },
+);

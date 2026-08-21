@@ -1,9 +1,11 @@
-import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { DEFAULT_RENTAL_AGREEMENT_TERMS } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
+import { PhotoCover } from '@/components/photo-cover';
 import { QueryState } from '@/components/query-state';
+import { useProfileQuery } from '@/api/hooks/use-auth';
 import { useCreateRentalMutation } from '@/api/hooks/use-rentals';
 import { usePublicVehicleQuery } from '@/api/hooks/use-discovery';
 import type { AppStackParamList } from '@/navigation/types';
@@ -14,10 +16,12 @@ type Props = NativeStackScreenProps<AppStackParamList, 'DiscoveryVehicleDetail'>
 export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
   const { vehicleId, distanceLabel } = route.params;
   const vehicleQuery = usePublicVehicleQuery(vehicleId);
+  const profileQuery = useProfileQuery();
   const createRentalMutation = useCreateRentalMutation();
 
   const vehicle = vehicleQuery.data;
-  const canRequestRental = vehicle?.availability === 'AVAILABLE';
+  const isOwnVehicle = Boolean(vehicle && profileQuery.data?.id === vehicle.owner.id);
+  const canRequestRental = vehicle?.availability === 'AVAILABLE' && !isOwnVehicle;
 
   const handleRequestRental = () => {
     if (!vehicle) {
@@ -80,13 +84,11 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
             <AppText variant="body">Owner: {vehicle.owner.fullName}</AppText>
 
             <AppText variant="label">Photos</AppText>
-            <View style={styles.photoGrid}>
-              {vehicle.photos.map((photo) => (
-                <Image key={photo.id} source={{ uri: photo.url }} style={styles.photo} />
-              ))}
-            </View>
+            <PhotoCover photos={vehicle.photos} emptyLabel="No vehicle photos yet" />
 
-            {canRequestRental ? (
+            {isOwnVehicle ? (
+              <AppText variant="body">This is your vehicle. Switch to owner mode to manage it.</AppText>
+            ) : canRequestRental ? (
               <AppButton
                 title="Request rental"
                 loading={createRentalMutation.isPending}
@@ -109,14 +111,5 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
     backgroundColor: colors.background,
-  },
-  photoGrid: {
-    gap: spacing.sm,
-  },
-  photo: {
-    width: '100%',
-    height: 180,
-    borderRadius: 8,
-    backgroundColor: colors.backgroundSecondary,
   },
 });

@@ -1,52 +1,17 @@
-import { Image, ImageProps, StyleSheet, View } from 'react-native';
-import { useAuthStore } from '@/stores/auth-store';
-import { colors, radii, spacing } from '@/theme';
-
-type AuthenticatedImageProps = Omit<ImageProps, 'source'> & {
-  uri: string;
-};
-
-export function AuthenticatedImage({ uri, style, ...props }: AuthenticatedImageProps) {
-  const accessToken = useAuthStore((state) => state.accessToken);
-
-  return (
-    <Image
-      {...props}
-      style={[styles.image, style]}
-      source={{
-        uri,
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
-      }}
-    />
-  );
-}
+import { PhotoCover } from '@/components/photo-cover';
 
 type HandoverPhotoGridProps = {
   photos: { id: string; url: string }[];
+  onRemovePhoto?: (photoId: string) => void;
 };
 
-export function HandoverPhotoGrid({ photos }: HandoverPhotoGridProps) {
-  if (photos.length === 0) {
-    return null;
-  }
-
+export function HandoverPhotoGrid({ photos, onRemovePhoto }: HandoverPhotoGridProps) {
   return (
-    <View style={styles.grid}>
-      {photos.map((photo) => (
-        <AuthenticatedImage key={photo.id} uri={photo.url} accessibilityLabel="Handover photo" />
-      ))}
-    </View>
+    <PhotoCover
+      photos={photos}
+      authenticated
+      emptyLabel="No pickup photos yet"
+      onRemovePhoto={onRemovePhoto}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  grid: {
-    gap: spacing.sm,
-  },
-  image: {
-    width: '100%',
-    height: 180,
-    borderRadius: radii.md,
-    backgroundColor: colors.backgroundSecondary,
-  },
-});

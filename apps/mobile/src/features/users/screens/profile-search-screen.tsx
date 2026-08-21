@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { UserProfileSearchResult } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
+import { ProfileAvatar } from '@/components/profile-avatar';
 import { useSearchUserByCnicMutation } from '@/api/hooks/use-users';
 import { ProfileVehicleCard } from '@/features/users/components/profile-vehicle-card';
 import type { AppStackParamList } from '@/navigation/types';
@@ -57,16 +58,11 @@ export function ProfileSearchScreen({ navigation }: Props) {
       {searchResult ? (
         <View style={styles.resultSection}>
           <View style={styles.profileCard}>
-            {searchResult.user.profilePhotoUrl ? (
-              <Image
-                source={{ uri: searchResult.user.profilePhotoUrl }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <AppText variant="title">{searchResult.user.fullName.charAt(0)}</AppText>
-              </View>
-            )}
+            <ProfileAvatar
+              fullName={searchResult.user.fullName}
+              profilePhotoUrl={searchResult.user.profilePhotoUrl}
+              size={80}
+            />
             <AppText variant="title">{searchResult.user.fullName}</AppText>
           </View>
 
@@ -111,18 +107,5 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radii.md,
     backgroundColor: colors.backgroundSecondary,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  avatarPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.border,
   },
 });

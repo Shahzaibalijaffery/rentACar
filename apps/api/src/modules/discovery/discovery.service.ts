@@ -12,6 +12,7 @@ export class DiscoveryService {
 
   async discoverVehicles(
     query: DiscoverVehiclesQueryDto,
+    viewerUserId?: string,
   ): Promise<PaginatedResponse<VehicleDiscoveryItem>> {
     const { latitude, longitude } = validateCoordinates(query.latitude, query.longitude);
     const radiusKm = resolveSearchRadiusKm(query.radiusKm);
@@ -27,6 +28,7 @@ export class DiscoveryService {
       availability: query.availability!,
       ...(query.make !== undefined ? { make: query.make } : {}),
       ...(query.model !== undefined ? { model: query.model } : {}),
+      ...(viewerUserId ? { excludeOwnerId: viewerUserId } : {}),
     });
 
     const data = items.map(toVehicleDiscoveryItem);
