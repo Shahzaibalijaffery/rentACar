@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Image, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
@@ -7,15 +7,17 @@ import { AppCard } from '@/components/app-card';
 import { AppModeSwitcher } from '@/components/app-mode-switcher';
 import { AppText } from '@/components/app-text';
 import { FormField } from '@/components/form-field';
+import { ProfileAvatar } from '@/components/profile-avatar';
 import { QueryState } from '@/components/query-state';
 import { ScreenLayout } from '@/components/screen-layout';
+import { normalizeUploadMimeType } from '@/utils/image-url';
 import {
   useProfileQuery,
   useUpdateProfileMutation,
   useUploadProfilePhotoMutation,
 } from '@/api/hooks/use-auth';
 import type { AppStackParamList } from '@/navigation/types';
-import { colors, radii, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>;
 
@@ -60,7 +62,8 @@ export function ProfileScreen(_props: Props) {
     }
 
     const asset = result.assets[0];
-    if (!asset.uri || !asset.type) {
+    const fileName = asset.fileName ?? 'profile.jpg';
+    if (!asset.uri) {
       Alert.alert('Photo error', 'Could not read selected image');
       return;
     }
@@ -68,8 +71,8 @@ export function ProfileScreen(_props: Props) {
     uploadPhotoMutation.mutate(
       {
         uri: asset.uri,
-        type: asset.type,
-        name: asset.fileName ?? 'profile.jpg',
+        type: normalizeUploadMimeType(asset.type, fileName),
+        name: fileName,
       },
       {
         onError: (error) => Alert.alert('Upload failed', error.message),
@@ -87,15 +90,7 @@ export function ProfileScreen(_props: Props) {
         {profile ? (
           <>
             <AppCard style={styles.profileHeader}>
-              {profile.profilePhotoUrl ? (
-                <Image source={{ uri: profile.profilePhotoUrl }} style={styles.avatar} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <AppText variant="title" style={styles.avatarInitial}>
-                    {profile.fullName.charAt(0)}
-                  </AppText>
-                </View>
-              )}
+              <ProfileAvatar fullName={profile.fullName} profilePhotoUrl={profile.profilePhotoUrl} />
               <AppText variant="heading">{profile.fullName}</AppText>
               <AppText variant="caption" style={styles.email}>
                 {profile.email}
@@ -170,22 +165,6 @@ export function ProfileScreen(_props: Props) {
 const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
-  },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: radii.full,
-  },
-  avatarPlaceholder: {
-    width: 96,
-    height: 96,
-    borderRadius: radii.full,
-    backgroundColor: colors.primaryMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: {
-    color: colors.primary,
   },
   email: {
     color: colors.textSecondary,
