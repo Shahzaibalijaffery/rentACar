@@ -91,7 +91,7 @@ export function AppNavigator() {
       <Stack.Screen
         name="PickupHandover"
         component={PickupHandoverScreen}
-        options={{ title: 'Pickup handover' }}
+        options={{ title: 'Pickup photos' }}
       />
     </Stack.Navigator>
   );

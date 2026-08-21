@@ -20,7 +20,7 @@ export type AppStackParamList = {
   OwnerRentalRequests: { lifecycle?: RentalLifecycleFilter } | undefined;
   RentalRequestDetail: { rentalId: string; perspective: 'renter' | 'owner' };
   CreateAgreement: { rentalId: string };
-  AgreementDetail: { agreementId: string; rentalId: string };
+  AgreementDetail: { agreementId: string; rentalId: string; perspective?: 'owner' | 'renter' };
   PickupHandover: { handoverId: string; rentalId: string; perspective: 'owner' | 'renter' };
 };
 

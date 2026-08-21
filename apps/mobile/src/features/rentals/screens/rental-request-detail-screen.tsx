@@ -10,12 +10,19 @@ import {
   useRejectRentalMutation,
   useRentalQuery,
 } from '@/api/hooks/use-rentals';
-import { useAgreementByRentalQuery } from '@/api/hooks/use-agreements';
 import {
-  useCreatePickupHandoverMutation,
-  usePickupHandoverByRentalQuery,
-} from '@/api/hooks/use-handovers';
-import { formatRentalDate, getRentalStatusLabel } from '@/features/rentals/rental-utils';
+  useAgreementByRentalQuery,
+  useApproveAgreementMutation,
+} from '@/api/hooks/use-agreements';
+import { useProfileQuery } from '@/api/hooks/use-auth';
+import { useOpenPickupPhotos } from '@/features/handovers/use-open-pickup-photos';
+import { hasUserApprovedAgreement } from '@/features/agreements/agreement-utils';
+import { RentalNextStepCard } from '@/features/rentals/components/rental-next-step-card';
+import {
+  formatRentalDate,
+  getRentalNextStep,
+  getRentalStatusLabel,
+} from '@/features/rentals/rental-utils';
 import { CnicProfileLookup } from '@/features/users/components/cnic-profile-lookup';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
@@ -25,12 +32,14 @@ type Props = NativeStackScreenProps<AppStackParamList, 'RentalRequestDetail'>;
 export function RentalRequestDetailScreen({ navigation, route }: Props) {
   const { rentalId, perspective } = route.params;
   const rentalQuery = useRentalQuery(rentalId);
+  const profileQuery = useProfileQuery();
   const acceptMutation = useAcceptRentalMutation(rentalId);
   const rejectMutation = useRejectRentalMutation(rentalId);
   const cancelMutation = useCancelRentalMutation(rentalId);
   const completeMutation = useCompleteRentalMutation(rentalId);
 
   const rental = rentalQuery.data;
+  const userId = profileQuery.data?.id;
   const isPending = rental?.status === 'PENDING';
   const isAccepted = rental?.status === 'ACCEPTED';
   const isAgreementPending = rental?.status === 'AGREEMENT_PENDING';
@@ -44,21 +53,44 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
     rentalId,
     Boolean(
       rental &&
-      (isAgreementPending || isPickupPending || isPickupApprovalPending || isActive || isCompleted),
+        (isAgreementPending ||
+          isPickupPending ||
+          isPickupApprovalPending ||
+          isActive ||
+          isCompleted),
     ),
   );
 
-  const handoverQuery = usePickupHandoverByRentalQuery(
+  const agreement = agreementQuery.data;
+  const approveAgreementMutation = useApproveAgreementMutation(agreement?.id ?? '', rentalId);
+  const userApprovedAgreement =
+    agreement && userId ? hasUserApprovedAgreement(agreement, userId) : false;
+  const canApproveAgreement =
+    isAgreementPending &&
+    agreement?.status === 'PENDING_APPROVAL' &&
+    !userApprovedAgreement &&
+    Boolean(agreement);
+
+  const { handover, openPickupPhotos, isOpening } = useOpenPickupPhotos(
     rentalId,
     Boolean(rental && (isPickupPending || isPickupApprovalPending || isActive || isCompleted)),
   );
 
-  const createHandoverMutation = useCreatePickupHandoverMutation(rentalId);
+  const nextStep = rental
+    ? getRentalNextStep({
+        status: rental.status,
+        perspective,
+        hasAgreement: Boolean(agreement),
+        userApprovedAgreement,
+        agreementFullyApproved: agreement?.status === 'APPROVED',
+        handoverStatus: handover?.status,
+      })
+    : null;
 
   const handleAccept = () => {
     acceptMutation.mutate(undefined, {
       onSuccess: () => {
-        Alert.alert('Request accepted', 'The rental request has been accepted.');
+        Alert.alert('Request accepted', 'Create the rental agreement as the next step.');
       },
       onError: (error) => Alert.alert('Accept failed', error.message),
     });
@@ -100,6 +132,44 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
     ]);
   };
 
+  const handleApproveAgreement = () => {
+    Alert.alert('Approve agreement', 'Confirm that you approve this rental agreement.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Approve',
+        onPress: () => {
+          approveAgreementMutation.mutate(undefined, {
+            onSuccess: (updated) => {
+              if (updated.status === 'APPROVED') {
+                if (isOwnerView) {
+                  Alert.alert(
+                    'Agreement approved',
+                    'Pickup is ready. Take photos of the vehicle condition next.',
+                    [
+                      {
+                        text: 'Take pickup photos',
+                        onPress: () => openPickupPhotos(navigation, 'owner'),
+                      },
+                      { text: 'Later', style: 'cancel' },
+                    ],
+                  );
+                } else {
+                  Alert.alert(
+                    'Agreement approved',
+                    'The owner will photograph the vehicle before pickup.',
+                  );
+                }
+              } else {
+                Alert.alert('Approval recorded', 'Waiting for the other party to approve.');
+              }
+            },
+            onError: (error) => Alert.alert('Approval failed', error.message),
+          });
+        },
+      },
+    ]);
+  };
+
   const handleComplete = () => {
     Alert.alert(
       'Complete rental',
@@ -124,7 +194,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <QueryState
-        isLoading={rentalQuery.isLoading}
+        isLoading={rentalQuery.isLoading || profileQuery.isLoading}
         isError={rentalQuery.isError}
         errorMessage={rentalQuery.error?.message}
       >
@@ -134,24 +204,8 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
               {rental.vehicle.year} {rental.vehicle.make} {rental.vehicle.model}
             </AppText>
             <AppText variant="body">Status: {getRentalStatusLabel(rental.status)}</AppText>
-            <AppText variant="body">Color: {rental.vehicle.color}</AppText>
-            {rental.vehicle.areaLabel ? (
-              <AppText variant="body">Area: {rental.vehicle.areaLabel}</AppText>
-            ) : null}
-            <AppText variant="body">
-              {isOwnerView ? 'Renter' : 'Owner'}:{' '}
-              {isOwnerView ? rental.renter.fullName : rental.owner.fullName}
-            </AppText>
-            <AppText variant="body">Requested: {formatRentalDate(rental.createdAt)}</AppText>
-            <AppText variant="body">Start date: {formatRentalDate(rental.startDate)}</AppText>
-            <AppText variant="body">End date: {formatRentalDate(rental.endDate)}</AppText>
-            {isCompleted && rental.completedAt ? (
-              <AppText variant="body">Completed: {formatRentalDate(rental.completedAt)}</AppText>
-            ) : null}
 
-            {rental.status !== 'REJECTED' && rental.status !== 'CANCELLED' ? (
-              <CnicProfileLookup participantLabel={isOwnerView ? 'renter' : 'owner'} />
-            ) : null}
+            {nextStep ? <RentalNextStepCard step={nextStep} /> : null}
 
             {isOwnerView && isPending ? (
               <View style={styles.actions}>
@@ -185,76 +239,73 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
               />
             ) : null}
 
-            {(isAgreementPending ||
-              isPickupPending ||
-              isPickupApprovalPending ||
-              isActive ||
-              isCompleted) &&
-            agreementQuery.data ? (
+            {canApproveAgreement ? (
               <AppButton
-                title="View agreement"
+                title="Approve agreement"
+                loading={approveAgreementMutation.isPending}
+                onPress={handleApproveAgreement}
+              />
+            ) : null}
+
+            {isOwnerView && isPickupPending ? (
+              <AppButton
+                title="Take pickup photos"
+                loading={isOpening}
+                onPress={() => openPickupPhotos(navigation, 'owner')}
+              />
+            ) : null}
+
+            {(isPickupApprovalPending || isActive || isCompleted) && handover ? (
+              <AppButton
+                title={
+                  isPickupApprovalPending && !isOwnerView
+                    ? 'Review & approve pickup photos'
+                    : 'View pickup photos'
+                }
+                onPress={() => openPickupPhotos(navigation, perspective)}
+              />
+            ) : null}
+
+            {isActive && isOwnerView ? (
+              <AppButton
+                title="Complete rental"
+                loading={completeMutation.isPending}
+                onPress={handleComplete}
+              />
+            ) : null}
+
+            <AppText variant="label">Details</AppText>
+            <AppText variant="body">Color: {rental.vehicle.color}</AppText>
+            {rental.vehicle.areaLabel ? (
+              <AppText variant="body">Area: {rental.vehicle.areaLabel}</AppText>
+            ) : null}
+            <AppText variant="body">
+              {isOwnerView ? 'Renter' : 'Owner'}:{' '}
+              {isOwnerView ? rental.renter.fullName : rental.owner.fullName}
+            </AppText>
+            <AppText variant="body">Requested: {formatRentalDate(rental.createdAt)}</AppText>
+            <AppText variant="body">Start date: {formatRentalDate(rental.startDate)}</AppText>
+            <AppText variant="body">End date: {formatRentalDate(rental.endDate)}</AppText>
+            {isCompleted && rental.completedAt ? (
+              <AppText variant="body">Completed: {formatRentalDate(rental.completedAt)}</AppText>
+            ) : null}
+
+            {rental.status !== 'REJECTED' && rental.status !== 'CANCELLED' ? (
+              <CnicProfileLookup participantLabel={isOwnerView ? 'renter' : 'owner'} />
+            ) : null}
+
+            {agreement ? (
+              <AppButton
+                title="View full agreement"
+                variant="secondary"
                 onPress={() =>
                   navigation.navigate('AgreementDetail', {
-                    agreementId: agreementQuery.data.id,
+                    agreementId: agreement.id,
                     rentalId,
+                    perspective,
                   })
                 }
               />
-            ) : null}
-
-            {isAgreementPending && !agreementQuery.data && !agreementQuery.isLoading ? (
-              <AppText variant="body">Agreement is being prepared.</AppText>
-            ) : null}
-
-            {isOwnerView && isPickupPending && !handoverQuery.data ? (
-              <AppButton
-                title="Start pickup handover"
-                loading={createHandoverMutation.isPending}
-                onPress={() => {
-                  createHandoverMutation.mutate(undefined, {
-                    onSuccess: (handover) => {
-                      navigation.navigate('PickupHandover', {
-                        handoverId: handover.id,
-                        rentalId,
-                        perspective: 'owner',
-                      });
-                    },
-                    onError: (error) => Alert.alert('Could not start handover', error.message),
-                  });
-                }}
-              />
-            ) : null}
-
-            {handoverQuery.data ? (
-              <AppButton
-                title="Open pickup handover"
-                onPress={() =>
-                  navigation.navigate('PickupHandover', {
-                    handoverId: handoverQuery.data.id,
-                    rentalId,
-                    perspective: isOwnerView ? 'owner' : 'renter',
-                  })
-                }
-              />
-            ) : null}
-
-            {isActive ? (
-              <>
-                <AppText variant="body">
-                  This rental is active. Pickup photos remain the historical handover evidence.
-                </AppText>
-                <AppButton
-                  title="Complete rental"
-                  loading={completeMutation.isPending}
-                  onPress={handleComplete}
-                />
-              </>
-            ) : null}
-
-            {isCompleted ? (
-              <AppText variant="body">
-                This rental is completed. Pickup handover evidence is preserved for your records.
-              </AppText>
             ) : null}
           </>
         ) : null}

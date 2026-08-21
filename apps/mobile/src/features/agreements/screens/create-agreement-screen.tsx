@@ -25,17 +25,17 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
     createMutation.mutate(
       { terms: terms.trim() },
       {
-        onSuccess: (agreement) => {
-          Alert.alert('Agreement created', 'The renter can now review and approve the agreement.', [
-            {
-              text: 'View agreement',
-              onPress: () =>
-                navigation.replace('AgreementDetail', {
-                  agreementId: agreement.id,
-                  rentalId,
-                }),
-            },
-          ]);
+        onSuccess: () => {
+          Alert.alert(
+            'Agreement sent',
+            'You already approved the terms. The renter can approve to continue to pickup photos.',
+            [
+              {
+                text: 'Back to rental',
+                onPress: () => navigation.navigate('RentalRequestDetail', { rentalId, perspective: 'owner' }),
+              },
+            ],
+          );
         },
         onError: (error) => Alert.alert('Create failed', error.message),
       },
@@ -46,8 +46,8 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
     <ScrollView contentContainerStyle={styles.container}>
       <AppText variant="title">Create rental agreement</AppText>
       <AppText variant="body">
-        Define the terms for this rental. Both you and the renter must approve before pickup can
-        begin.
+        Define the terms for this rental. You approve automatically; the renter approves once before
+        pickup photos.
       </AppText>
 
       <AppText variant="label">Agreement terms</AppText>

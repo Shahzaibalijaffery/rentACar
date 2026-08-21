@@ -137,7 +137,7 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
       >
         {handover ? (
           <>
-            <AppText variant="title">Pickup handover</AppText>
+            <AppText variant="title">Vehicle pickup photos</AppText>
             <AppText variant="body">Status: {getHandoverStatusLabel(handover.status)}</AppText>
             <AppText variant="body">
               Vehicle: {handover.vehicle.year} {handover.vehicle.make} {handover.vehicle.model}
@@ -160,7 +160,7 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
                   Photos: {handover.photos.length} / minimum {MIN_PICKUP_HANDOVER_PHOTOS}
                 </AppText>
                 <AppButton
-                  title="Add photo"
+                  title="Take photo"
                   loading={uploadMutation.isPending}
                   onPress={handleAddPhoto}
                 />

@@ -1,11 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { AgreementStatus, Prisma, RentalStatus } from '@prisma/client';
+import {
+  AgreementStatus,
+  HandoverStatus,
+  HandoverType,
+  Prisma,
+  RentalStatus,
+} from '@prisma/client';
 import { PrismaService } from '../../common/database/prisma.service';
 
 const ACTIVE_AGREEMENT_STATUSES: AgreementStatus[] = [
   AgreementStatus.DRAFT,
   AgreementStatus.PENDING_APPROVAL,
   AgreementStatus.APPROVED,
+];
+
+const ACTIVE_HANDOVER_STATUSES: HandoverStatus[] = [
+  HandoverStatus.OWNER_PHOTOS_REQUIRED,
+  HandoverStatus.RENTER_APPROVAL_REQUIRED,
+  HandoverStatus.APPROVED,
 ];
 
 const agreementInclude = {
@@ -101,6 +113,8 @@ export class AgreementsRepository {
         data: { status: RentalStatus.AGREEMENT_PENDING },
       });
 
+      const ownerApprovedAt = new Date();
+
       const agreement = await tx.rentalAgreement.create({
         data: {
           rentalId: data.rentalId,
@@ -112,6 +126,7 @@ export class AgreementsRepository {
           terms: data.terms,
           startDate: data.startDate,
           endDate: data.endDate,
+          ownerApprovedAt,
         },
         include: agreementInclude,
       });
@@ -121,6 +136,14 @@ export class AgreementsRepository {
           agreementId: agreement.id,
           actorId: data.actorId,
           action: 'AGREEMENT_CREATED',
+        },
+      });
+
+      await tx.agreementAuditEntry.create({
+        data: {
+          agreementId: agreement.id,
+          actorId: data.actorId,
+          action: 'AGREEMENT_OWNER_APPROVED',
         },
       });
 
@@ -194,6 +217,35 @@ export class AgreementsRepository {
           where: { id: agreement.rentalId },
           data: { status: RentalStatus.PICKUP_PENDING },
         });
+
+        const existingHandover = await tx.handover.findFirst({
+          where: {
+            rentalId: agreement.rentalId,
+            type: HandoverType.PICKUP,
+            status: { in: ACTIVE_HANDOVER_STATUSES },
+          },
+        });
+
+        if (!existingHandover) {
+          const handover = await tx.handover.create({
+            data: {
+              rentalId: agreement.rentalId,
+              ownerId: agreement.ownerId,
+              renterId: agreement.renterId,
+              vehicleId: agreement.vehicleId,
+              type: HandoverType.PICKUP,
+              status: HandoverStatus.OWNER_PHOTOS_REQUIRED,
+            },
+          });
+
+          await tx.handoverAuditEntry.create({
+            data: {
+              handoverId: handover.id,
+              actorId: participantId,
+              action: 'HANDOVER_CREATED',
+            },
+          });
+        }
 
         return fullyApproved;
       }

@@ -95,6 +95,7 @@ export class AgreementsService {
     assertAgreementViewParticipantOnly(view, ownerId);
 
     this.agreementEventsService.emit('AGREEMENT_CREATED', this.toEventPayload(agreement));
+    this.agreementEventsService.emit('AGREEMENT_OWNER_APPROVED', this.toEventPayload(agreement));
 
     return { data: view };
   }
