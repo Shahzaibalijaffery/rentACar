@@ -7,8 +7,7 @@ import { AddVehicleScreen } from '@/features/vehicles/screens/add-vehicle-screen
 import { EditVehicleScreen } from '@/features/vehicles/screens/edit-vehicle-screen';
 import { MyVehiclesScreen } from '@/features/vehicles/screens/my-vehicles-screen';
 import { VehicleDetailsScreen } from '@/features/vehicles/screens/vehicle-details-screen';
-import { MyRentalRequestsScreen } from '@/features/rentals/screens/my-rental-requests-screen';
-import { OwnerRentalRequestsScreen } from '@/features/rentals/screens/owner-rental-requests-screen';
+import { RentalsScreen } from '@/features/rentals/screens/rentals-screen';
 import { RentalRequestDetailScreen } from '@/features/rentals/screens/rental-request-detail-screen';
 import { CreateAgreementScreen } from '@/features/agreements/screens/create-agreement-screen';
 import { AgreementDetailScreen } from '@/features/agreements/screens/agreement-detail-screen';
@@ -25,6 +24,7 @@ const screenOptions = {
   headerTintColor: colors.primary,
   headerTitleStyle: { color: colors.text, fontWeight: '600' as const },
   contentStyle: { backgroundColor: colors.background },
+  statusBarStyle: 'dark' as const,
 };
 
 export function AppNavigator() {
@@ -63,16 +63,7 @@ export function AppNavigator() {
         component={VehicleDetailsScreen}
         options={{ title: 'Vehicle details' }}
       />
-      <Stack.Screen
-        name="MyRentalRequests"
-        component={MyRentalRequestsScreen}
-        options={{ title: 'My rentals' }}
-      />
-      <Stack.Screen
-        name="OwnerRentalRequests"
-        component={OwnerRentalRequestsScreen}
-        options={{ title: 'Incoming requests' }}
-      />
+      <Stack.Screen name="Rentals" component={RentalsScreen} options={{ title: 'Rentals' }} />
       <Stack.Screen
         name="RentalRequestDetail"
         component={RentalRequestDetailScreen}

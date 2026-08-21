@@ -12,7 +12,12 @@ export const BLOCKING_RENTAL_STATUSES: RentalStatus[] = [
 
 /** Explicit transition table — only listed targets are allowed from each source state. */
 export const RENTAL_TRANSITIONS: Record<RentalStatus, RentalStatus[]> = {
-  [RentalStatus.PENDING]: [RentalStatus.ACCEPTED, RentalStatus.REJECTED, RentalStatus.CANCELLED],
+  [RentalStatus.PENDING]: [
+    RentalStatus.PICKUP_PENDING,
+    RentalStatus.ACCEPTED,
+    RentalStatus.REJECTED,
+    RentalStatus.CANCELLED,
+  ],
   [RentalStatus.ACCEPTED]: [RentalStatus.AGREEMENT_PENDING],
   [RentalStatus.REJECTED]: [],
   [RentalStatus.CANCELLED]: [],

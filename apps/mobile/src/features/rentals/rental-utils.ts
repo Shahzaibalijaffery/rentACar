@@ -58,12 +58,12 @@ export function getRentalNextStep(input: {
   if (status === 'PENDING') {
     return perspective === 'owner'
       ? {
-          title: 'Review request',
-          description: 'Accept or reject this rental request.',
+          title: 'Accept request',
+          description: 'Accepting confirms the rental terms and starts vehicle pickup.',
         }
       : {
           title: 'Waiting for owner',
-          description: 'The owner will accept or reject your request.',
+          description: 'If the owner accepts, you go straight to pickup photos.',
         };
   }
 
@@ -71,11 +71,11 @@ export function getRentalNextStep(input: {
     return perspective === 'owner'
       ? {
           title: 'Create agreement',
-          description: 'Set the rental terms. The renter only needs to approve once.',
+          description: 'This request still needs terms. Create them to continue to pickup.',
         }
       : {
           title: 'Waiting for agreement',
-          description: 'The owner will send the rental agreement for your approval.',
+          description: 'The owner still needs to send rental terms for this request.',
         };
   }
 
@@ -124,7 +124,7 @@ export function getRentalNextStep(input: {
     return perspective === 'renter'
       ? {
           title: 'Review pickup photos',
-          description: 'Approve the owner\'s vehicle photos to activate the rental.',
+          description: "Approve the owner's vehicle photos to activate the rental.",
         }
       : {
           title: 'Waiting for renter approval',

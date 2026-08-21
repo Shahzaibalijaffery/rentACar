@@ -6,19 +6,23 @@ import type {
   RentalSummary,
 } from '@rentacar/shared';
 import { apiRequest } from '@/api/client';
+import { agreementKeys } from '@/api/keys/agreement.keys';
+import { handoverKeys } from '@/api/keys/handover.keys';
 import { rentalKeys, rentalsIncomingPath, rentalsMinePath } from '@/api/keys/rental.keys';
 
-export function useMyRentalsQuery(lifecycle: RentalLifecycleFilter = 'all') {
+export function useMyRentalsQuery(lifecycle: RentalLifecycleFilter = 'all', enabled = true) {
   return useQuery({
     queryKey: rentalKeys.mine(lifecycle),
     queryFn: () => apiRequest<RentalSummary[]>(rentalsMinePath(lifecycle)),
+    enabled,
   });
 }
 
-export function useIncomingRentalsQuery(lifecycle: RentalLifecycleFilter = 'all') {
+export function useIncomingRentalsQuery(lifecycle: RentalLifecycleFilter = 'all', enabled = true) {
   return useQuery({
     queryKey: rentalKeys.incoming(lifecycle),
     queryFn: () => apiRequest<RentalSummary[]>(rentalsIncomingPath(lifecycle)),
+    enabled,
   });
 }
 
@@ -46,10 +50,13 @@ export function useAcceptRentalMutation(rentalId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => apiRequest<RentalSummary>(`/rentals/${rentalId}/accept`, { method: 'POST' }),
+    mutationFn: () =>
+      apiRequest<RentalDetailView>(`/rentals/${rentalId}/accept`, { method: 'POST' }),
     onSuccess: (data) => {
       queryClient.setQueryData(rentalKeys.detail(rentalId), data);
       void queryClient.invalidateQueries({ queryKey: rentalKeys.all });
+      void queryClient.invalidateQueries({ queryKey: agreementKeys.all });
+      void queryClient.invalidateQueries({ queryKey: handoverKeys.all });
     },
   });
 }

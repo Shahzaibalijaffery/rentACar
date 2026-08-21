@@ -29,7 +29,7 @@ export function RootNavigator() {
 
   return (
     <NavigationContainer key={accessToken ? 'app' : 'auth'}>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      <RootStack.Navigator screenOptions={{ headerShown: false, statusBarStyle: 'dark' }}>
         {accessToken ? (
           <RootStack.Screen name="App" component={AppNavigator} />
         ) : (

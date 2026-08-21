@@ -19,7 +19,11 @@ All rental and handover state transitions are **enforced by the backend**. The m
 | Immutability | Approved handover evidence is **append-only** — never silently modify historical records |
 | Events | Pickup handover and return handover are **separate** events with distinct state |
 
-Typical rental states (implement as explicit enum + transition table): `invited → agreement_pending → pickup_pending → pickup_approval_pending → active → return_pending → return_approval_pending → completed → rated`.
+Typical rental states (implement as explicit enum + transition table): `pending → pickup_pending → pickup_approval_pending → active → return_pending → return_approval_pending → completed → rated`.
+
+Owner accept auto-creates and fully approves a standard rental agreement (renter consented by requesting; owner consented by accepting). Do not add extra agreement draft/approve round-trips on the happy path. Keep pickup and return photo approval — those are the in-person evidence steps.
+
+`ACCEPTED` and `AGREEMENT_PENDING` remain valid only for in-flight/legacy rentals.
 
 Reject invalid transitions with domain errors, not generic 500s.
 

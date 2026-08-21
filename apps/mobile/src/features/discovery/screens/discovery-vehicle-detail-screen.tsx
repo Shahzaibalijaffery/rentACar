@@ -1,5 +1,6 @@
 import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { DEFAULT_RENTAL_AGREEMENT_TERMS } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { QueryState } from '@/components/query-state';
@@ -25,7 +26,7 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
 
     Alert.alert(
       'Request rental',
-      `Send a rental request for ${vehicle.year} ${vehicle.make} ${vehicle.model}?`,
+      `Send a request for ${vehicle.year} ${vehicle.make} ${vehicle.model}? If the owner accepts, the rental terms apply and pickup photos start next.\n\n${DEFAULT_RENTAL_AGREEMENT_TERMS}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -35,17 +36,21 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
               { vehicleId: vehicle.id },
               {
                 onSuccess: (rental) => {
-                  Alert.alert('Request sent', 'Your rental request has been sent to the owner.', [
-                    {
-                      text: 'View request',
-                      onPress: () =>
-                        navigation.navigate('RentalRequestDetail', {
-                          rentalId: rental.id,
-                          perspective: 'renter',
-                        }),
-                    },
-                    { text: 'OK' },
-                  ]);
+                  Alert.alert(
+                    'Request sent',
+                    'Waiting for the owner to accept. Pickup starts as soon as they do.',
+                    [
+                      {
+                        text: 'View request',
+                        onPress: () =>
+                          navigation.navigate('RentalRequestDetail', {
+                            rentalId: rental.id,
+                            perspective: 'renter',
+                          }),
+                      },
+                      { text: 'OK' },
+                    ],
+                  );
                 },
                 onError: (error) => Alert.alert('Request failed', error.message),
               },

@@ -1,5 +1,6 @@
 export type { ApiErrorBody, ApiResponse, PaginatedMeta, PaginatedResponse } from './api.types';
 export type { AppMode } from './app-mode.types';
+export { DEFAULT_RENTAL_AGREEMENT_TERMS } from './agreement.types';
 export type {
   AgreementAuditAction,
   AgreementAuditEntry,

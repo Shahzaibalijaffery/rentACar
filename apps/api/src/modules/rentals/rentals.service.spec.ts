@@ -215,18 +215,24 @@ describe('RentalsService', () => {
   });
 
   describe('acceptRental', () => {
-    it('allows owner to accept pending rental', async () => {
+    it('allows owner to accept pending rental and start pickup', async () => {
       rentalsRepository.findById.mockResolvedValue(baseRental);
       vehiclesRepository.findById.mockResolvedValue(baseVehicle);
       rentalsRepository.acceptPendingRental.mockResolvedValue({
         ...baseRental,
-        status: RentalStatus.ACCEPTED,
+        status: RentalStatus.PICKUP_PENDING,
+      });
+      rentalsRepository.findRelatedIds.mockResolvedValue({
+        agreementId: 'agreement-1',
+        pickupHandoverId: 'handover-1',
       });
 
       const result = await service.acceptRental(ownerId, rentalId);
 
       expect(rentalsRepository.acceptPendingRental).toHaveBeenCalledWith(rentalId, vehicleId);
-      expect(result.data.status).toBe('ACCEPTED');
+      expect(result.data.status).toBe('PICKUP_PENDING');
+      expect(result.data.agreementId).toBe('agreement-1');
+      expect(result.data.pickupHandoverId).toBe('handover-1');
       expect(rentalEventsService.emit).toHaveBeenCalledWith('RENTAL_ACCEPTED', expect.any(Object));
     });
 
@@ -256,6 +262,16 @@ describe('RentalsService', () => {
 
       await expect(service.acceptRental(ownerId, rentalId)).rejects.toMatchObject({
         errorCode: 'RENTAL_VEHICLE_CONFLICT',
+      });
+    });
+
+    it('rejects accept when an agreement already exists', async () => {
+      rentalsRepository.findById.mockResolvedValue(baseRental);
+      vehiclesRepository.findById.mockResolvedValue(baseVehicle);
+      rentalsRepository.acceptPendingRental.mockRejectedValue(new Error('AGREEMENT_EXISTS'));
+
+      await expect(service.acceptRental(ownerId, rentalId)).rejects.toMatchObject({
+        errorCode: 'AGREEMENT_EXISTS',
       });
     });
 

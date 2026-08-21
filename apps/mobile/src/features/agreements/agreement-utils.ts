@@ -1,4 +1,4 @@
-import type { AgreementStatus } from '@rentacar/shared';
+import { DEFAULT_RENTAL_AGREEMENT_TERMS, type AgreementStatus } from '@rentacar/shared';
 
 export function getAgreementStatusLabel(status: AgreementStatus): string {
   switch (status) {
@@ -33,5 +33,4 @@ export function hasUserApprovedAgreement(
   return false;
 }
 
-export const DEFAULT_AGREEMENT_TERMS =
-  'Both parties agree to use the vehicle responsibly during the rental period, return it in the same general condition, and follow applicable traffic laws. Payment arrangements are handled separately outside this app.';
+export const DEFAULT_AGREEMENT_TERMS = DEFAULT_RENTAL_AGREEMENT_TERMS;

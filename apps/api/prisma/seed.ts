@@ -692,14 +692,18 @@ async function main(): Promise<void> {
     console.log(`  ${user.email} — ${user.fullName} (${user.role})`);
   }
   console.log('\nSeeded rentals:');
-  console.log('  PENDING              — renter1 → owner1 Toyota Corolla');
-  console.log('  ACCEPTED             — renter2 → owner1 Honda Civic');
-  console.log('  AGREEMENT_PENDING    — renter1 → owner2 Kia Sportage');
+  console.log(
+    '  PENDING              — renter1 → owner1 Toyota Corolla (happy path: owner accept → pickup)',
+  );
+  console.log('  ACCEPTED             — renter2 → owner1 Honda Civic (legacy agreement draft)');
+  console.log('  AGREEMENT_PENDING    — renter1 → owner2 Kia Sportage (legacy renter approve)');
   console.log('  PICKUP_PENDING       — renter2 → owner2 Suzuki Wagon R');
   console.log('  PICKUP_APPROVAL_PEND — renter2 → owner2 Toyota Yaris');
   console.log('  ACTIVE               — renter1 → owner2 Toyota Fortuner');
   console.log('  COMPLETED            — renter2 → owner1 Honda City');
-  console.log('\nDiscovery: 7 vehicles around Karachi (1 manually unavailable, 1 actively rented).');
+  console.log(
+    '\nDiscovery: 7 vehicles around Karachi (1 manually unavailable, 1 actively rented).',
+  );
 }
 
 main()

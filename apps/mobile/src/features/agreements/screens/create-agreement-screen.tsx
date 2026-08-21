@@ -32,7 +32,8 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
             [
               {
                 text: 'Back to rental',
-                onPress: () => navigation.navigate('RentalRequestDetail', { rentalId, perspective: 'owner' }),
+                onPress: () =>
+                  navigation.navigate('RentalRequestDetail', { rentalId, perspective: 'owner' }),
               },
             ],
           );
@@ -46,8 +47,8 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
     <ScrollView contentContainerStyle={styles.container}>
       <AppText variant="title">Create rental agreement</AppText>
       <AppText variant="body">
-        Define the terms for this rental. You approve automatically; the renter approves once before
-        pickup photos.
+        This older request still needs terms. You approve automatically; the renter approves once
+        before pickup photos.
       </AppText>
 
       <AppText variant="label">Agreement terms</AppText>

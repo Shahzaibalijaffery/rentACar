@@ -46,7 +46,7 @@ export class RentalsController {
   accept(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
-  ): Promise<ApiResponse<RentalSummary>> {
+  ): Promise<ApiResponse<RentalDetailView>> {
     return this.rentalsService.acceptRental(user.userId, id);
   }
 

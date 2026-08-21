@@ -51,8 +51,8 @@ export function HomeScreen({ navigation }: Props) {
           </AppText>
           <AppText variant="body" style={styles.heroSubtitle}>
             {isOwnerMode
-              ? 'Manage listings, review requests, and track active rentals.'
-              : 'Discover cars nearby, request rentals, and track your trips.'}
+              ? 'Manage listings and keep track of your rentals.'
+              : 'Discover cars nearby and keep track of your rentals.'}
           </AppText>
         </AppCard>
       </QueryState>
@@ -77,23 +77,6 @@ export function HomeScreen({ navigation }: Props) {
               accent={colors.accent}
               onPress={() => navigation.navigate('AddVehicle')}
             />
-            <ActionTile
-              title="Incoming requests"
-              description="Review new rental requests"
-              onPress={() => navigation.navigate('OwnerRentalRequests')}
-            />
-            <ActionTile
-              title="Active rentals"
-              description="Rentals currently in progress"
-              onPress={() => navigation.navigate('OwnerRentalRequests', { lifecycle: 'active' })}
-            />
-            <ActionTile
-              title="Completed rentals"
-              description="Past rental history"
-              onPress={() =>
-                navigation.navigate('OwnerRentalRequests', { lifecycle: 'completed' })
-              }
-            />
           </>
         ) : (
           <>
@@ -109,23 +92,13 @@ export function HomeScreen({ navigation }: Props) {
               accent={colors.accent}
               onPress={() => navigation.navigate('ProfileSearch')}
             />
-            <ActionTile
-              title="My rental requests"
-              description="Track requests you have sent"
-              onPress={() => navigation.navigate('MyRentalRequests')}
-            />
-            <ActionTile
-              title="Active rentals"
-              description="Trips currently in progress"
-              onPress={() => navigation.navigate('MyRentalRequests', { lifecycle: 'active' })}
-            />
-            <ActionTile
-              title="Completed rentals"
-              description="Your rental history"
-              onPress={() => navigation.navigate('MyRentalRequests', { lifecycle: 'completed' })}
-            />
           </>
         )}
+        <ActionTile
+          title="Rentals"
+          description="Requests, active trips, and history"
+          onPress={() => navigation.navigate('Rentals')}
+        />
       </View>
 
       <View style={styles.section}>

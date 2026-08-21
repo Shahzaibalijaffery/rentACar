@@ -188,14 +188,14 @@ export class RentalsService {
     return { data: detail };
   }
 
-  async acceptRental(ownerId: string, rentalId: string): Promise<ApiResponse<RentalSummary>> {
+  async acceptRental(ownerId: string, rentalId: string): Promise<ApiResponse<RentalDetailView>> {
     const rental = await this.getRentalOrThrow(rentalId);
 
     if (rental.ownerId !== ownerId) {
       throw new DomainError('You cannot accept this rental request', 'RENTAL_FORBIDDEN', 403);
     }
 
-    this.assertTransitionAllowed(rental.status, RentalStatus.ACCEPTED);
+    this.assertTransitionAllowed(rental.status, RentalStatus.PICKUP_PENDING);
 
     const vehicle = await this.vehiclesRepository.findById(rental.vehicleId);
     if (!vehicle || !isVehicleActive(vehicle)) {
@@ -218,18 +218,32 @@ export class RentalsService {
       }
       updated = result;
     } catch (error) {
-      if (error instanceof Error && error.message === 'RENTAL_CONFLICT') {
-        throw new DomainError(
-          'Another rental request is already active for this vehicle',
-          'RENTAL_VEHICLE_CONFLICT',
-          409,
-        );
+      if (error instanceof Error) {
+        switch (error.message) {
+          case 'RENTAL_CONFLICT':
+            throw new DomainError(
+              'Another rental request is already active for this vehicle',
+              'RENTAL_VEHICLE_CONFLICT',
+              409,
+            );
+          case 'AGREEMENT_EXISTS':
+            throw new DomainError(
+              'An active agreement already exists for this rental',
+              'AGREEMENT_EXISTS',
+              409,
+            );
+          case 'PARTICIPANT_NOT_FOUND':
+            throw new DomainError('Rental participant not found', 'OWNER_NOT_FOUND', 404);
+          default:
+            break;
+        }
       }
       throw error;
     }
 
-    const summary = toRentalSummary(updated);
-    assertRentalSummaryIsPublicSafe(summary);
+    const related = await this.rentalsRepository.findRelatedIds(rentalId);
+    const detail = toRentalDetailView(updated, related);
+    assertRentalSummaryIsPublicSafe(detail);
 
     this.rentalEventsService.emit('RENTAL_ACCEPTED', {
       rentalId: updated.id,
@@ -239,7 +253,7 @@ export class RentalsService {
       status: updated.status,
     });
 
-    return { data: summary };
+    return { data: detail };
   }
 
   async rejectRental(ownerId: string, rentalId: string): Promise<ApiResponse<RentalSummary>> {

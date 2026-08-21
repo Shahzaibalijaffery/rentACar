@@ -12,7 +12,7 @@ Peer-to-peer car rental: owners list vehicles; renters discover and rent them. A
 ### Core rental flow
 
 ```
-discover vehicle → rental invitation → rental agreement → pickup handover
+discover vehicle → rental request → owner accepts (standard terms apply) → pickup handover
 → owner takes fresh photos → renter approves same photos → rental active
 → return handover → owner takes fresh photos → renter approves → completed
 → mutual ratings

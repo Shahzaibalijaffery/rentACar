@@ -8,6 +8,7 @@ import {
 } from '@prisma/client';
 import type { RentalLifecycleFilter } from '@rentacar/shared';
 import { PrismaService } from '../../common/database/prisma.service';
+import { activateRentalOnOwnerAccept } from '../agreements/agreement-activation';
 import { BLOCKING_RENTAL_STATUSES } from './rental-state.constants';
 import { resolveLifecycleStatuses } from './rental-lifecycle.constants';
 
@@ -105,7 +106,13 @@ export class RentalsRepository {
         where: {
           rentalId,
           type: HandoverType.PICKUP,
-          status: HandoverStatus.APPROVED,
+          status: {
+            in: [
+              HandoverStatus.OWNER_PHOTOS_REQUIRED,
+              HandoverStatus.RENTER_APPROVAL_REQUIRED,
+              HandoverStatus.APPROVED,
+            ],
+          },
         },
         orderBy: { createdAt: 'desc' },
         select: { id: true },
@@ -228,9 +235,10 @@ export class RentalsRepository {
         throw new Error('RENTAL_CONFLICT');
       }
 
-      return tx.rental.update({
+      await activateRentalOnOwnerAccept(tx, rental, rental.ownerId);
+
+      return tx.rental.findUniqueOrThrow({
         where: { id: rentalId },
-        data: { status: RentalStatus.ACCEPTED },
         include: rentalInclude,
       });
     });

@@ -33,6 +33,10 @@ export type CreateRentalAgreementRequest = {
   endDate?: string;
 };
 
+/** Standard terms applied when the owner accepts a rental request. */
+export const DEFAULT_RENTAL_AGREEMENT_TERMS =
+  'Both parties agree to use the vehicle responsibly during the rental period, return it in the same general condition, and follow applicable traffic laws. Payment arrangements are handled separately outside this app.';
+
 export type AgreementAuditAction =
   | 'AGREEMENT_CREATED'
   | 'AGREEMENT_OWNER_APPROVED'

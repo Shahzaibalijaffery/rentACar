@@ -10,10 +10,7 @@ import {
   useRejectRentalMutation,
   useRentalQuery,
 } from '@/api/hooks/use-rentals';
-import {
-  useAgreementByRentalQuery,
-  useApproveAgreementMutation,
-} from '@/api/hooks/use-agreements';
+import { useAgreementByRentalQuery, useApproveAgreementMutation } from '@/api/hooks/use-agreements';
 import { useProfileQuery } from '@/api/hooks/use-auth';
 import { useOpenPickupPhotos } from '@/features/handovers/use-open-pickup-photos';
 import { hasUserApprovedAgreement } from '@/features/agreements/agreement-utils';
@@ -53,11 +50,13 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
     rentalId,
     Boolean(
       rental &&
-        (isAgreementPending ||
-          isPickupPending ||
-          isPickupApprovalPending ||
-          isActive ||
-          isCompleted),
+      (isAccepted ||
+        isAgreementPending ||
+        isPickupPending ||
+        isPickupApprovalPending ||
+        isActive ||
+        isCompleted ||
+        Boolean(rental.agreementId)),
     ),
   );
 
@@ -89,8 +88,28 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
   const handleAccept = () => {
     acceptMutation.mutate(undefined, {
-      onSuccess: () => {
-        Alert.alert('Request accepted', 'Create the rental agreement as the next step.');
+      onSuccess: (accepted) => {
+        Alert.alert(
+          'Request accepted',
+          'Rental terms are confirmed. Photograph the vehicle before handover.',
+          [
+            {
+              text: 'Take pickup photos',
+              onPress: () => {
+                if (accepted.pickupHandoverId) {
+                  navigation.navigate('PickupHandover', {
+                    handoverId: accepted.pickupHandoverId,
+                    rentalId,
+                    perspective: 'owner',
+                  });
+                  return;
+                }
+                openPickupPhotos(navigation, 'owner');
+              },
+            },
+            { text: 'Later', style: 'cancel' },
+          ],
+        );
       },
       onError: (error) => Alert.alert('Accept failed', error.message),
     });

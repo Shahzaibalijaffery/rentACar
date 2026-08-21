@@ -1,5 +1,3 @@
-import type { RentalLifecycleFilter } from '@rentacar/shared';
-
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -16,8 +14,7 @@ export type AppStackParamList = {
   AddVehicle: undefined;
   EditVehicle: { vehicleId: string };
   VehicleDetails: { vehicleId: string };
-  MyRentalRequests: { lifecycle?: RentalLifecycleFilter } | undefined;
-  OwnerRentalRequests: { lifecycle?: RentalLifecycleFilter } | undefined;
+  Rentals: undefined;
   RentalRequestDetail: { rentalId: string; perspective: 'renter' | 'owner' };
   CreateAgreement: { rentalId: string };
   AgreementDetail: { agreementId: string; rentalId: string; perspective?: 'owner' | 'renter' };
