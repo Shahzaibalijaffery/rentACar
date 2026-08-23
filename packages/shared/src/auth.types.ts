@@ -1,3 +1,5 @@
+import type { UserPlanLimits } from './user-plan.limits';
+import type { UserPlan } from './user-plan.types';
 import type { VehiclePublicView } from './vehicle.types';
 
 export type UserStatus = 'PENDING_VERIFICATION' | 'ACTIVE' | 'SUSPENDED';
@@ -10,6 +12,8 @@ export type UserProfile = {
   phone: string;
   profilePhotoUrl: string | null;
   status: UserStatus;
+  plan: UserPlan;
+  planLimits: UserPlanLimits;
   emailVerified: boolean;
   createdAt: string;
 };

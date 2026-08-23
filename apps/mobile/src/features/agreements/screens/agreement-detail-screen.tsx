@@ -31,11 +31,7 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
   const userId = profileQuery.data?.id;
   const perspective =
     routePerspective ??
-    (agreement && userId
-      ? agreement.owner.id === userId
-        ? 'owner'
-        : 'renter'
-      : 'renter');
+    (agreement && userId ? (agreement.owner.id === userId ? 'owner' : 'renter') : 'renter');
   const isOwnerView = perspective === 'owner';
   const isPendingApproval = agreement?.status === 'PENDING_APPROVAL';
   const userAlreadyApproved =

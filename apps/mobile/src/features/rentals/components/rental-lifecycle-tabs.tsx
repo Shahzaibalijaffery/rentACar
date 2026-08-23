@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { RentalLifecycleFilter } from '@rentacar/shared';
+import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { colors, radii, spacing } from '@/theme';
 
@@ -8,10 +9,10 @@ type RentalLifecycleTabsProps = {
   onChange: (value: RentalLifecycleFilter) => void;
 };
 
-const OPTIONS: { value: RentalLifecycleFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: 'Active' },
-  { value: 'completed', label: 'Completed' },
+const OPTIONS: { value: RentalLifecycleFilter; label: string; icon: AppIconName }[] = [
+  { value: 'all', label: 'All', icon: 'list' },
+  { value: 'active', label: 'Active', icon: 'clock' },
+  { value: 'completed', label: 'Completed', icon: 'check' },
 ];
 
 export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProps) {
@@ -27,9 +28,16 @@ export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProp
             onPress={() => onChange(option.value)}
             style={[styles.tab, selected ? styles.tabSelected : null]}
           >
-            <AppText variant="subtitle" style={selected ? styles.tabTextSelected : styles.tabText}>
-              {option.label}
-            </AppText>
+            <View style={styles.tabInner}>
+              <AppIcon
+                name={option.icon}
+                size={14}
+                color={selected ? colors.primary : colors.textSecondary}
+              />
+              <AppText variant="subtitle" style={selected ? styles.tabTextSelected : styles.tabText}>
+                {option.label}
+              </AppText>
+            </View>
           </Pressable>
         );
       })}
@@ -50,6 +58,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm,
     borderRadius: radii.full,
+  },
+  tabInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   tabSelected: {
     backgroundColor: colors.surface,

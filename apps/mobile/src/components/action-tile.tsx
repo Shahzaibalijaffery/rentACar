@@ -1,15 +1,23 @@
 import { Pressable, StyleSheet, View } from 'react-native';
+import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 type ActionTileProps = {
   title: string;
   description: string;
+  icon: AppIconName;
   accent?: string;
   onPress: () => void;
 };
 
-export function ActionTile({ title, description, accent = colors.primary, onPress }: ActionTileProps) {
+export function ActionTile({
+  title,
+  description,
+  icon,
+  accent = colors.primary,
+  onPress,
+}: ActionTileProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -17,7 +25,7 @@ export function ActionTile({ title, description, accent = colors.primary, onPres
       style={({ pressed }) => [styles.tile, pressed ? styles.pressed : null]}
     >
       <View style={[styles.icon, { backgroundColor: colors.primaryMuted }]}>
-        <View style={[styles.iconDot, { backgroundColor: accent }]} />
+        <AppIcon name={icon} size={22} color={accent} />
       </View>
       <View style={styles.copy}>
         <AppText variant="subtitle">{title}</AppText>
@@ -25,9 +33,7 @@ export function ActionTile({ title, description, accent = colors.primary, onPres
           {description}
         </AppText>
       </View>
-      <AppText variant="caption" style={styles.chevron}>
-        ›
-      </AppText>
+      <AppIcon name="chevron-right" size={18} color={colors.textSecondary} />
     </Pressable>
   );
 }
@@ -55,21 +61,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconDot: {
-    width: 10,
-    height: 10,
-    borderRadius: radii.full,
-  },
   copy: {
     flex: 1,
     gap: 2,
   },
   description: {
     color: colors.textSecondary,
-  },
-  chevron: {
-    color: colors.textSecondary,
-    fontSize: 22,
-    lineHeight: 24,
   },
 });

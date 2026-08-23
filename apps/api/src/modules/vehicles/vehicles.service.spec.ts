@@ -1,5 +1,6 @@
 import { VehicleAvailability, VehicleStatus } from '@prisma/client';
 import { DomainError } from '../../common/errors/domain.error';
+import { UserPlanLookup } from '../../common/plans/user-plan.lookup';
 import { StorageService } from '../../common/storage/storage.service';
 import { VehiclesRepository } from './vehicles.repository';
 import { VehiclesService } from './vehicles.service';
@@ -35,6 +36,7 @@ describe('VehiclesService', () => {
   let service: VehiclesService;
   let repository: jest.Mocked<VehiclesRepository>;
   let storageService: jest.Mocked<StorageService>;
+  let userPlanLookup: jest.Mocked<UserPlanLookup>;
 
   beforeEach(() => {
     repository = {
@@ -47,6 +49,7 @@ describe('VehiclesService', () => {
       findPhoto: jest.fn(),
       deletePhoto: jest.fn(),
       countPhotos: jest.fn(),
+      countActiveByOwner: jest.fn(),
     };
 
     storageService = {
@@ -54,7 +57,17 @@ describe('VehiclesService', () => {
       deleteObject: jest.fn(),
     };
 
-    service = new VehiclesService(repository, storageService);
+    userPlanLookup = {
+      getLimitsForUser: jest.fn().mockResolvedValue({
+        maxListedVehicles: 2,
+        maxVehiclePhotos: 5,
+        maxHandoverPhotos: 5,
+      }),
+    } as unknown as jest.Mocked<UserPlanLookup>;
+
+    repository.countActiveByOwner.mockResolvedValue(0);
+
+    service = new VehiclesService(repository, storageService, userPlanLookup);
   });
 
   describe('createVehicle', () => {
@@ -93,6 +106,22 @@ describe('VehiclesService', () => {
           longitude: 67.0,
         }),
       ).rejects.toThrow(DomainError);
+    });
+
+    it('rejects listing when the plan vehicle cap is reached', async () => {
+      repository.countActiveByOwner.mockResolvedValue(2);
+
+      await expect(
+        service.createVehicle(ownerId, {
+          make: 'Toyota',
+          model: 'Corolla',
+          year: 2020,
+          color: 'White',
+          latitude: 24.86,
+          longitude: 67.0,
+        }),
+      ).rejects.toMatchObject({ errorCode: 'VEHICLE_PLAN_LIMIT' });
+      expect(repository.create).not.toHaveBeenCalled();
     });
 
     it('rejects invalid coordinates', async () => {
@@ -211,6 +240,16 @@ describe('VehiclesService', () => {
       expect(storageService.saveObject).toHaveBeenCalled();
       expect(repository.addPhoto).toHaveBeenCalled();
       expect(result.data.photos).toHaveLength(1);
+    });
+
+    it('rejects photo upload when the plan photo cap is reached', async () => {
+      repository.findById.mockResolvedValue(baseVehicle);
+      repository.countPhotos.mockResolvedValue(5);
+
+      await expect(service.addPhoto(ownerId, vehicleId, file)).rejects.toMatchObject({
+        errorCode: 'PHOTO_LIMIT_REACHED',
+      });
+      expect(storageService.saveObject).not.toHaveBeenCalled();
     });
 
     it('rejects photo upload from non-owner', async () => {

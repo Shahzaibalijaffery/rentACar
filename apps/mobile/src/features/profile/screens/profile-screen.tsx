@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { getPlanLimits, getUserPlanLabel, resolveUserPlan } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
 import { AppCard } from '@/components/app-card';
+import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppModeSwitcher } from '@/components/app-mode-switcher';
 import { AppText } from '@/components/app-text';
 import { FormField } from '@/components/form-field';
 import { ProfileAvatar } from '@/components/profile-avatar';
+import { PlanBadge } from '@/components/plan-badge';
 import { QueryState } from '@/components/query-state';
 import { ScreenLayout } from '@/components/screen-layout';
 import { normalizeUploadMimeType } from '@/utils/image-url';
@@ -99,6 +102,7 @@ export function ProfileScreen(_props: Props) {
                 editLoading={uploadPhotoMutation.isPending}
               />
               <AppText variant="heading">{profile.fullName}</AppText>
+              <PlanBadge plan={resolveUserPlan(profile.plan)} />
               <AppText variant="caption" style={styles.email}>
                 {profile.email}
               </AppText>
@@ -115,6 +119,7 @@ export function ProfileScreen(_props: Props) {
             <AppCard>
               <FormField
                 label="Full name"
+                icon="user"
                 placeholder="Full name"
                 value={displayName}
                 onChangeText={setFullName}
@@ -122,46 +127,78 @@ export function ProfileScreen(_props: Props) {
               />
               <AppButton
                 title="Save name"
+                icon="check"
                 loading={updateProfileMutation.isPending}
                 onPress={handleSaveName}
               />
             </AppCard>
 
             <AppCard muted>
-              <View style={styles.row}>
-                <AppText variant="label">CNIC</AppText>
-                <AppText variant="body">{profile.cnic}</AppText>
-              </View>
+              <ProfileInfoRow icon="id" label="CNIC" value={profile.cnic} />
               <AppText variant="caption" style={styles.note}>
                 Private — only shared with rental participants in agreements.
               </AppText>
-              <View style={styles.row}>
-                <AppText variant="label">Phone</AppText>
-                <AppText variant="body">{profile.phone}</AppText>
-              </View>
+              <ProfileInfoRow icon="phone" label="Phone" value={profile.phone} />
               <AppText variant="caption" style={styles.note}>
                 Shared with the other party only after you accept or are accepted for a rental.
               </AppText>
             </AppCard>
 
             <AppCard muted>
-              <View style={styles.row}>
-                <AppText variant="label">Status</AppText>
-                <AppText variant="body">{profile.status}</AppText>
-              </View>
-              <View style={styles.row}>
-                <AppText variant="label">Email verified</AppText>
-                <AppText variant="body">{profile.emailVerified ? 'Yes' : 'No'}</AppText>
-              </View>
-              <View style={styles.row}>
-                <AppText variant="label">Member since</AppText>
-                <AppText variant="body">{new Date(profile.createdAt).toLocaleDateString()}</AppText>
-              </View>
+              <ProfileInfoRow icon="badge" label="Plan" value={getUserPlanLabel(profile.plan)} />
+              <ProfileInfoRow
+                icon="car"
+                label="Listed vehicles"
+                value={`Up to ${getPlanLimits(profile.plan).maxListedVehicles}`}
+              />
+              <ProfileInfoRow
+                icon="camera"
+                label="Photos per listing"
+                value={`Up to ${getPlanLimits(profile.plan).maxVehiclePhotos}`}
+              />
+              <ProfileInfoRow
+                icon="photo"
+                label="Rental evidence photos"
+                value={`Up to ${getPlanLimits(profile.plan).maxHandoverPhotos}`}
+              />
+              <ProfileInfoRow icon="shield" label="Status" value={profile.status} />
+              <ProfileInfoRow
+                icon="mail"
+                label="Email verified"
+                value={profile.emailVerified ? 'Yes' : 'No'}
+              />
+              <ProfileInfoRow
+                icon="calendar"
+                label="Member since"
+                value={new Date(profile.createdAt).toLocaleDateString()}
+              />
             </AppCard>
           </>
         ) : null}
       </QueryState>
     </ScreenLayout>
+  );
+}
+
+function ProfileInfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: AppIconName;
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={styles.infoRow}>
+      <View style={styles.infoIcon}>
+        <AppIcon name={icon} size={16} color={colors.primary} />
+      </View>
+      <View style={styles.infoCopy}>
+        <AppText variant="label">{label}</AppText>
+        <AppText variant="body">{value}</AppText>
+      </View>
+    </View>
   );
 }
 
@@ -172,7 +209,22 @@ const styles = StyleSheet.create({
   email: {
     color: colors.textSecondary,
   },
-  row: {
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  infoIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  infoCopy: {
+    flex: 1,
     gap: spacing.xs,
   },
   note: {

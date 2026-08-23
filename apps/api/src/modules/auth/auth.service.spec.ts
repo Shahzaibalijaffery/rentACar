@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { UserStatus } from '@prisma/client';
+import { UserPlan, UserStatus } from '@prisma/client';
 import { PasswordService } from '../../common/auth/password.service';
 import { EmailService } from '../../common/email/email.service';
 import { PrismaService } from '../../common/database/prisma.service';
@@ -17,6 +17,7 @@ const baseUser = {
   phone: '+923001234567',
   profilePhotoUrl: null,
   status: UserStatus.PENDING_VERIFICATION,
+  plan: UserPlan.FREE,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };

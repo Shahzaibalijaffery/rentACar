@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { ApiResponse, HandoverView } from '@rentacar/shared';
 import { DomainError } from '../../common/errors/domain.error';
+import { UserPlanLookup } from '../../common/plans/user-plan.lookup';
 import {
   ALLOWED_IMAGE_MIME_TYPES,
   buildStorageKey,
@@ -9,11 +10,7 @@ import {
 import { StorageService } from '../../common/storage/storage.service';
 import { RentalsRepository } from '../rentals/rentals.repository';
 import { HandoverEventsService } from './handover-events.service';
-import {
-  canTransitionHandover,
-  MAX_PICKUP_HANDOVER_PHOTOS,
-  MIN_PICKUP_HANDOVER_PHOTOS,
-} from './handover.constants';
+import { canTransitionHandover, MIN_PICKUP_HANDOVER_PHOTOS } from './handover.constants';
 import { toHandoverView } from './handover.mapper';
 import type { HandoverRecord } from './handovers.repository';
 import { HandoversRepository } from './handovers.repository';
@@ -26,6 +23,7 @@ export class HandoversService {
     private readonly rentalsRepository: RentalsRepository,
     private readonly storageService: StorageService,
     private readonly handoverEventsService: HandoverEventsService,
+    private readonly userPlanLookup: UserPlanLookup,
   ) {}
 
   async createPickupHandover(
@@ -111,9 +109,15 @@ export class HandoversService {
 
     this.validateUploadedImage(file);
 
+    const limits = await this.userPlanLookup.getLimitsForUser(ownerId);
     const photoCount = await this.handoversRepository.countPhotos(handoverId);
-    if (photoCount >= MAX_PICKUP_HANDOVER_PHOTOS) {
-      throw new DomainError('Maximum handover photos limit reached', 'PHOTO_LIMIT_REACHED', 409);
+    if (photoCount >= limits.maxHandoverPhotos) {
+      throw new DomainError(
+        `Your plan allows ${limits.maxHandoverPhotos} rental evidence photos`,
+        'PHOTO_LIMIT_REACHED',
+        409,
+        { limit: limits.maxHandoverPhotos, current: photoCount },
+      );
     }
 
     const storageKey = buildStorageKey(`handovers/${handoverId}`, file.mimetype);

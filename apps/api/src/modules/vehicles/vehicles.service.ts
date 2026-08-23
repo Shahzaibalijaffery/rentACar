@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { ApiResponse, VehicleOwnerView, VehiclePublicView } from '@rentacar/shared';
 import { DomainError } from '../../common/errors/domain.error';
+import { UserPlanLookup } from '../../common/plans/user-plan.lookup';
 import {
   ALLOWED_IMAGE_MIME_TYPES,
   MAX_IMAGE_SIZE_BYTES,
@@ -20,13 +21,12 @@ import {
   UpdateVehicleDto,
 } from './dto/vehicle.dto';
 
-const MAX_PHOTOS_PER_VEHICLE = 8;
-
 @Injectable()
 export class VehiclesService {
   constructor(
     private readonly vehiclesRepository: VehiclesRepository,
     private readonly storageService: StorageService,
+    private readonly userPlanLookup: UserPlanLookup,
   ) {}
 
   async createVehicle(
@@ -35,6 +35,17 @@ export class VehiclesService {
   ): Promise<ApiResponse<VehicleOwnerView>> {
     const year = validateVehicleYear(dto.year);
     const { latitude, longitude } = validateCoordinates(dto.latitude, dto.longitude);
+    const limits = await this.userPlanLookup.getLimitsForUser(ownerId);
+    const listedCount = await this.vehiclesRepository.countActiveByOwner(ownerId);
+
+    if (listedCount >= limits.maxListedVehicles) {
+      throw new DomainError(
+        `Your plan allows ${limits.maxListedVehicles} listed vehicles`,
+        'VEHICLE_PLAN_LIMIT',
+        409,
+        { limit: limits.maxListedVehicles, current: listedCount },
+      );
+    }
 
     const vehicle = await this.vehiclesRepository.create({
       ownerId,
@@ -156,9 +167,15 @@ export class VehiclesService {
 
     this.validateUploadedImage(file);
 
+    const limits = await this.userPlanLookup.getLimitsForUser(ownerId);
     const photoCount = await this.vehiclesRepository.countPhotos(vehicleId);
-    if (photoCount >= MAX_PHOTOS_PER_VEHICLE) {
-      throw new DomainError('Maximum photos limit reached', 'PHOTO_LIMIT_REACHED', 409);
+    if (photoCount >= limits.maxVehiclePhotos) {
+      throw new DomainError(
+        `Your plan allows ${limits.maxVehiclePhotos} photos per vehicle`,
+        'PHOTO_LIMIT_REACHED',
+        409,
+        { limit: limits.maxVehiclePhotos, current: photoCount },
+      );
     }
 
     const storageKey = buildStorageKey(`vehicles/${vehicleId}`, file.mimetype);

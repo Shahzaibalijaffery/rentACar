@@ -1,5 +1,11 @@
 import { User, UserStatus } from '@prisma/client';
-import type { AgreementParticipant, UserProfile, UserPublicProfile } from '@rentacar/shared';
+import {
+  getPlanLimits,
+  resolveUserPlan,
+  type AgreementParticipant,
+  type UserProfile,
+  type UserPublicProfile,
+} from '@rentacar/shared';
 
 export function toUserProfile(user: User): UserProfile {
   return {
@@ -10,6 +16,8 @@ export function toUserProfile(user: User): UserProfile {
     phone: user.phone,
     profilePhotoUrl: user.profilePhotoUrl,
     status: user.status,
+    plan: resolveUserPlan(user.plan),
+    planLimits: getPlanLimits(user.plan),
     emailVerified: user.emailVerifiedAt !== null,
     createdAt: user.createdAt.toISOString(),
   };

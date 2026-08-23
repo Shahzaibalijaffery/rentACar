@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
+import { EmptyState } from '@/components/empty-state';
 import { useDiscoveryInfiniteQuery } from '@/api/hooks/use-discovery';
 import { VehicleDiscoveryCard } from '@/features/discovery/components/vehicle-discovery-card';
 import { useDeviceLocation } from '@/features/discovery/hooks/use-device-location';
@@ -144,17 +145,20 @@ export function DiscoveryScreen({ navigation }: Props) {
               ))}
             </View>
             <AppInput
+              icon="search"
               placeholder="Filter by make"
               value={makeFilter}
               onChangeText={setMakeFilter}
             />
             <AppInput
+              icon="car"
               placeholder="Filter by model"
               value={modelFilter}
               onChangeText={setModelFilter}
             />
             <AppButton
               title="Refresh"
+              icon="refresh"
               variant="secondary"
               onPress={() => void discoveryQuery.refetch()}
             />
@@ -188,10 +192,11 @@ export function DiscoveryScreen({ navigation }: Props) {
                 </AppText>
               }
               ListEmptyComponent={
-                <AppText variant="body" style={styles.empty}>
-                  No available vehicles found nearby. Try increasing the radius or adjusting
-                  filters.
-                </AppText>
+                <EmptyState
+                  icon="compass"
+                  title="No vehicles nearby"
+                  message="No available vehicles found nearby. Try increasing the radius or adjusting filters."
+                />
               }
               renderItem={({ item }) => (
                 <VehicleDiscoveryCard
@@ -256,11 +261,6 @@ const styles = StyleSheet.create({
   meta: {
     color: colors.textSecondary,
     marginBottom: spacing.sm,
-  },
-  empty: {
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.lg,
   },
   centered: {
     alignItems: 'center',

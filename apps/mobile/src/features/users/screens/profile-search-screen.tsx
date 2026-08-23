@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
+import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { UserProfileSearchResult } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
@@ -40,7 +41,7 @@ export function ProfileSearchScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAwareScroll contentContainerStyle={styles.container}>
       <AppText variant="title">Search by CNIC</AppText>
       <AppText variant="body">
         Find another user&apos;s profile and browse their listed vehicles. Enter their CNIC to
@@ -48,12 +49,18 @@ export function ProfileSearchScreen({ navigation }: Props) {
       </AppText>
 
       <AppInput
+        icon="id"
         placeholder="35201-1234567-1"
         value={cnic}
         onChangeText={setCnic}
         keyboardType="number-pad"
       />
-      <AppButton title="Search profile" loading={searchMutation.isPending} onPress={handleSearch} />
+      <AppButton
+        title="Search profile"
+        icon="search"
+        loading={searchMutation.isPending}
+        onPress={handleSearch}
+      />
 
       {searchResult ? (
         <View style={styles.resultSection}>
@@ -86,7 +93,7 @@ export function ProfileSearchScreen({ navigation }: Props) {
       ) : null}
 
       <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
-    </ScrollView>
+    </KeyboardAwareScroll>
   );
 }
 

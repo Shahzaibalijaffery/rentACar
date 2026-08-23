@@ -1,13 +1,13 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import type { AppMode } from '@rentacar/shared';
-import { Pressable } from 'react-native';
+import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { useAppModeStore } from '@/stores/app-mode-store';
 import { colors, radii, spacing } from '@/theme';
 
-const MODE_OPTIONS: { mode: AppMode; label: string }[] = [
-  { mode: 'renter', label: 'Renter' },
-  { mode: 'owner', label: 'Owner' },
+const MODE_OPTIONS: { mode: AppMode; label: string; icon: AppIconName }[] = [
+  { mode: 'renter', label: 'Renter', icon: 'user' },
+  { mode: 'owner', label: 'Owner', icon: 'car' },
 ];
 
 type Props = {
@@ -32,12 +32,19 @@ export function AppModeSwitcher({ compact = false }: Props) {
               onPress={() => setActiveMode(option.mode)}
               style={[styles.segment, selected ? styles.segmentSelected : null]}
             >
-              <AppText
-                variant="subtitle"
-                style={[styles.segmentText, selected ? styles.segmentTextSelected : null]}
-              >
-                {option.label}
-              </AppText>
+              <View style={styles.segmentInner}>
+                <AppIcon
+                  name={option.icon}
+                  size={16}
+                  color={selected ? colors.textOnPrimary : colors.textSecondary}
+                />
+                <AppText
+                  variant="subtitle"
+                  style={[styles.segmentText, selected ? styles.segmentTextSelected : null]}
+                >
+                  {option.label}
+                </AppText>
+              </View>
             </Pressable>
           );
         })}
@@ -64,18 +71,18 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radii.full,
   },
+  segmentInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   segmentSelected: {
-    backgroundColor: colors.surface,
-    shadowColor: colors.text,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: colors.primary,
   },
   segmentText: {
     color: colors.textSecondary,
   },
   segmentTextSelected: {
-    color: colors.primary,
+    color: colors.textOnPrimary,
   },
 });

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
+import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
@@ -49,7 +50,7 @@ export function EditVehicleScreen({ navigation, route }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAwareScroll contentContainerStyle={styles.container}>
       <AppText variant="title">Edit vehicle</AppText>
       <QueryState
         isLoading={vehicleQuery.isLoading}
@@ -68,7 +69,7 @@ export function EditVehicleScreen({ navigation, route }: Props) {
         ) : null}
       </QueryState>
       <AppButton title="Cancel" variant="secondary" onPress={() => navigation.goBack()} />
-    </ScrollView>
+    </KeyboardAwareScroll>
   );
 }
 

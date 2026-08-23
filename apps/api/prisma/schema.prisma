@@ -13,6 +13,13 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum UserPlan {
+  FREE
+  LITE
+  PRO
+  BUSINESS
+}
+
 enum VehicleAvailability {
   AVAILABLE
   UNAVAILABLE
@@ -74,6 +81,7 @@ model User {
   phone           String     @unique
   profilePhotoUrl String?
   status          UserStatus @default(PENDING_VERIFICATION)
+  plan            UserPlan   @default(FREE)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 

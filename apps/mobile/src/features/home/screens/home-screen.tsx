@@ -6,6 +6,7 @@ import { AppButton } from '@/components/app-button';
 import { AppCard } from '@/components/app-card';
 import { AppModeSwitcher } from '@/components/app-mode-switcher';
 import { AppText } from '@/components/app-text';
+import { PlanBadge } from '@/components/plan-badge';
 import { QueryState } from '@/components/query-state';
 import { ScreenLayout } from '@/components/screen-layout';
 import { useLogoutMutation, useProfileQuery } from '@/api/hooks/use-auth';
@@ -49,6 +50,7 @@ export function HomeScreen({ navigation }: Props) {
           <AppText variant="title" style={styles.heroTitle}>
             Hello, {profileQuery.data?.fullName ?? 'there'}
           </AppText>
+          {profileQuery.data ? <PlanBadge plan={profileQuery.data.plan} /> : null}
           <AppText variant="body" style={styles.heroSubtitle}>
             {isOwnerMode
               ? 'Manage listings and keep track of your rentals.'
@@ -68,12 +70,14 @@ export function HomeScreen({ navigation }: Props) {
             <ActionTile
               title="My vehicles"
               description="View and manage your listed cars"
+              icon="car"
               accent={colors.primary}
               onPress={() => navigation.navigate('MyVehicles')}
             />
             <ActionTile
               title="Add a vehicle"
               description="List a new car for rent"
+              icon="plus"
               accent={colors.accent}
               onPress={() => navigation.navigate('AddVehicle')}
             />
@@ -83,12 +87,14 @@ export function HomeScreen({ navigation }: Props) {
             <ActionTile
               title="Discover vehicles"
               description="Browse available cars near you"
+              icon="compass"
               accent={colors.primary}
               onPress={() => navigation.navigate('Discovery')}
             />
             <ActionTile
               title="Search by CNIC"
               description="Find an owner and their listings"
+              icon="id"
               accent={colors.accent}
               onPress={() => navigation.navigate('ProfileSearch')}
             />
@@ -97,6 +103,7 @@ export function HomeScreen({ navigation }: Props) {
         <ActionTile
           title="Rentals"
           description="Requests, active trips, and history"
+          icon="calendar"
           onPress={() => navigation.navigate('Rentals')}
         />
       </View>
@@ -108,12 +115,14 @@ export function HomeScreen({ navigation }: Props) {
         <ActionTile
           title="My profile"
           description="Update name, photo, and switch profile"
+          icon="user"
           onPress={() => navigation.navigate('Profile')}
         />
       </View>
 
       <AppButton
         title="Log out"
+        icon="logout"
         variant="ghost"
         loading={logoutMutation.isPending}
         onPress={handleLogout}
@@ -124,19 +133,19 @@ export function HomeScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   hero: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primaryDark,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
   },
   heroTitle: {
-    color: colors.textOnPrimary,
+    color: colors.text,
   },
   heroEyebrow: {
-    color: colors.primaryMuted,
+    color: colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   heroSubtitle: {
-    color: colors.primaryMuted,
+    color: colors.textSecondary,
   },
   section: {
     gap: spacing.sm,

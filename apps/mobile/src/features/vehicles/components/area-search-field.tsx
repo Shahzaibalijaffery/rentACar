@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import type { AreaSearchResult } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
 import { AppCard } from '@/components/app-card';
+import { AppIcon } from '@/components/app-icon';
 import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
 import { reverseGeocodeArea, useAreaSearchQuery } from '@/api/hooks/use-geocoding';
@@ -155,9 +149,12 @@ export function AreaSearchField({
               style={[styles.resultRow, index === results.length - 1 ? styles.resultRowLast : null]}
               onPress={() => handleSelect(item)}
             >
-              <AppText variant="body" style={styles.resultTitle}>
-                {item.areaLabel}
-              </AppText>
+              <View style={styles.resultTitleRow}>
+                <AppIcon name="pin" size={16} color={colors.primary} />
+                <AppText variant="body" style={styles.resultTitle}>
+                  {item.areaLabel}
+                </AppText>
+              </View>
               <AppText variant="caption" style={styles.resultSubtitle} numberOfLines={2}>
                 {item.label}
               </AppText>
@@ -177,6 +174,7 @@ export function AreaSearchField({
       </AppText>
 
       <AppInput
+        icon="pin"
         placeholder="Search area (e.g. Clifton, Karachi)"
         value={query}
         onChangeText={handleQueryChange}
@@ -188,6 +186,7 @@ export function AreaSearchField({
 
       <AppButton
         title="I'm at the vehicle — use this location"
+        icon="pin"
         variant="secondary"
         size="sm"
         loading={gpsLoading}
@@ -255,8 +254,14 @@ const styles = StyleSheet.create({
   resultRowLast: {
     borderBottomWidth: 0,
   },
+  resultTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   resultTitle: {
     fontWeight: '600',
+    flex: 1,
   },
   resultSubtitle: {
     color: colors.textSecondary,

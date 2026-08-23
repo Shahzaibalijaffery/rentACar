@@ -1,4 +1,7 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  createNativeStackNavigator,
+  type NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
 import { DiscoveryScreen } from '@/features/discovery/screens/discovery-screen';
 import { DiscoveryVehicleDetailScreen } from '@/features/discovery/screens/discovery-vehicle-detail-screen';
 import { HomeScreen } from '@/features/home/screens/home-screen';
@@ -13,18 +16,17 @@ import { CreateAgreementScreen } from '@/features/agreements/screens/create-agre
 import { AgreementDetailScreen } from '@/features/agreements/screens/agreement-detail-screen';
 import { PickupHandoverScreen } from '@/features/handovers/screens/pickup-handover-screen';
 import { ProfileSearchScreen } from '@/features/users/screens/profile-search-screen';
+import { CompactHeader } from '@/components/compact-header';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors } from '@/theme';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
-const screenOptions = {
-  headerStyle: { backgroundColor: colors.surface },
-  headerShadowVisible: false,
+const screenOptions: NativeStackNavigationOptions = {
+  header: (props) => <CompactHeader {...props} />,
   headerTintColor: colors.primary,
-  headerTitleStyle: { color: colors.text, fontWeight: '600' as const },
   contentStyle: { backgroundColor: colors.background },
-  statusBarStyle: 'dark' as const,
+  statusBarStyle: 'dark',
 };
 
 export function AppNavigator() {

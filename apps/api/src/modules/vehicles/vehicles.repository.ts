@@ -156,4 +156,13 @@ export class VehiclesRepository {
   countPhotos(vehicleId: string): Promise<number> {
     return this.prisma.vehiclePhoto.count({ where: { vehicleId } });
   }
+
+  countActiveByOwner(ownerId: string): Promise<number> {
+    return this.prisma.vehicle.count({
+      where: {
+        ownerId,
+        status: VehicleStatus.ACTIVE,
+      },
+    });
+  }
 }

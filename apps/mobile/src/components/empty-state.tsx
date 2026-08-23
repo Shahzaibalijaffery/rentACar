@@ -1,19 +1,19 @@
 import { StyleSheet, View } from 'react-native';
+import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { colors, spacing } from '@/theme';
 
 type EmptyStateProps = {
   title: string;
   message: string;
+  icon?: AppIconName;
 };
 
-export function EmptyState({ title, message }: EmptyStateProps) {
+export function EmptyState({ title, message, icon = 'car' }: EmptyStateProps) {
   return (
     <View style={styles.container}>
       <View style={styles.icon}>
-        <AppText variant="heading" style={styles.iconText}>
-          ∅
-        </AppText>
+        <AppIcon name={icon} size={26} color={colors.primary} />
       </View>
       <AppText variant="heading">{title}</AppText>
       <AppText variant="body" style={styles.message}>
@@ -35,13 +35,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.primaryMuted,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
-  },
-  iconText: {
-    color: colors.textSecondary,
   },
   message: {
     color: colors.textSecondary,

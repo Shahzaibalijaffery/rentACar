@@ -1,8 +1,12 @@
-import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { getPlanLimits } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
+import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
+import { EmptyState } from '@/components/empty-state';
 import { QueryState } from '@/components/query-state';
+import { useProfileQuery } from '@/api/hooks/use-auth';
 import { useMyVehiclesQuery } from '@/api/hooks/use-vehicles';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, radii, spacing } from '@/theme';
@@ -11,10 +15,30 @@ type Props = NativeStackScreenProps<AppStackParamList, 'MyVehicles'>;
 
 export function MyVehiclesScreen({ navigation }: Props) {
   const vehiclesQuery = useMyVehiclesQuery();
+  const profileQuery = useProfileQuery();
+  const limits = getPlanLimits(profileQuery.data?.plan);
+  const listedCount = vehiclesQuery.data?.length ?? 0;
+  const atListingLimit = listedCount >= limits.maxListedVehicles;
 
   return (
     <View style={styles.container}>
-      <AppButton title="Add vehicle" onPress={() => navigation.navigate('AddVehicle')} />
+      <AppText variant="caption" style={styles.limitHint}>
+        {listedCount} of {limits.maxListedVehicles} vehicles on your plan
+      </AppText>
+      <AppButton
+        title="Add vehicle"
+        icon="plus"
+        onPress={() => {
+          if (atListingLimit) {
+            Alert.alert(
+              'Plan limit',
+              `Your plan allows ${limits.maxListedVehicles} listed vehicles. Archive one or upgrade to add more.`,
+            );
+            return;
+          }
+          navigation.navigate('AddVehicle');
+        }}
+      />
 
       <QueryState
         isLoading={vehiclesQuery.isLoading}
@@ -26,9 +50,11 @@ export function MyVehiclesScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
-            <AppText variant="body" style={styles.empty}>
-              You have not listed any vehicles yet.
-            </AppText>
+            <EmptyState
+              icon="car"
+              title="No vehicles yet"
+              message="You have not listed any vehicles yet."
+            />
           }
           renderItem={({ item }) => {
             const coverPhoto = item.photos[0];
@@ -42,6 +68,7 @@ export function MyVehiclesScreen({ navigation }: Props) {
                   <View>
                     <Image source={{ uri: coverPhoto.url }} style={styles.photo} />
                     <View style={styles.badge}>
+                      <AppIcon name="camera" size={12} color={colors.textOnPrimary} />
                       <AppText variant="caption" style={styles.badgeText}>
                         {item.photos.length === 1 ? '1 photo' : `${item.photos.length} photos`}
                       </AppText>
@@ -49,6 +76,7 @@ export function MyVehiclesScreen({ navigation }: Props) {
                   </View>
                 ) : (
                   <View style={styles.photoPlaceholder}>
+                    <AppIcon name="camera" size={26} color={colors.textSecondary} />
                     <AppText variant="caption" style={styles.placeholderText}>
                       No photo
                     </AppText>
@@ -62,9 +90,12 @@ export function MyVehiclesScreen({ navigation }: Props) {
                     {item.color} · {item.availability}
                   </AppText>
                   {item.areaLabel ? (
-                    <AppText variant="caption" style={styles.meta}>
-                      Area: {item.areaLabel}
-                    </AppText>
+                    <View style={styles.areaRow}>
+                      <AppIcon name="pin" size={13} color={colors.textSecondary} />
+                      <AppText variant="caption" style={styles.meta}>
+                        {item.areaLabel}
+                      </AppText>
+                    </View>
                   ) : null}
                 </View>
               </Pressable>
@@ -82,6 +113,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     padding: spacing.lg,
     gap: spacing.md,
+  },
+  limitHint: {
+    color: colors.textSecondary,
   },
   list: {
     gap: spacing.sm,
@@ -104,6 +138,7 @@ const styles = StyleSheet.create({
     height: 160,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.sm,
     backgroundColor: colors.surfaceMuted,
   },
   placeholderText: {
@@ -113,7 +148,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.sm,
     bottom: spacing.sm,
-    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(28, 22, 18, 0.72)',
     borderRadius: radii.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
@@ -131,9 +169,9 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
-  empty: {
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.lg,
+  areaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 });

@@ -4,6 +4,7 @@ import {
   HandoverType,
   PrismaClient,
   RentalStatus,
+  UserPlan,
   UserStatus,
   VehicleAvailability,
   VehicleStatus,
@@ -28,7 +29,14 @@ type SeedUserKey = 'owner1' | 'owner2' | 'renter1' | 'renter2';
 
 const SEED_USERS: Record<
   SeedUserKey,
-  { email: string; fullName: string; cnic: string; phone: string; role: 'owner' | 'renter' }
+  {
+    email: string;
+    fullName: string;
+    cnic: string;
+    phone: string;
+    role: 'owner' | 'renter';
+    plan: UserPlan;
+  }
 > = {
   owner1: {
     email: 'owner1@seed.rentacar.local',
@@ -36,6 +44,7 @@ const SEED_USERS: Record<
     cnic: '35201-1234567-1',
     phone: '+923001111111',
     role: 'owner',
+    plan: UserPlan.BUSINESS,
   },
   owner2: {
     email: 'owner2@seed.rentacar.local',
@@ -43,6 +52,7 @@ const SEED_USERS: Record<
     cnic: '35201-2345678-2',
     phone: '+923002222222',
     role: 'owner',
+    plan: UserPlan.PRO,
   },
   renter1: {
     email: 'renter1@seed.rentacar.local',
@@ -50,6 +60,7 @@ const SEED_USERS: Record<
     cnic: '35202-3456789-3',
     phone: '+923003333333',
     role: 'renter',
+    plan: UserPlan.FREE,
   },
   renter2: {
     email: 'renter2@seed.rentacar.local',
@@ -57,6 +68,7 @@ const SEED_USERS: Record<
     cnic: '35202-4567890-4',
     phone: '+923004444444',
     role: 'renter',
+    plan: UserPlan.PRO,
   },
 };
 
@@ -132,6 +144,7 @@ async function createSeedUsers(passwordHash: string): Promise<Record<SeedUserKey
             cnic: user.cnic,
             phone: user.phone,
             status: UserStatus.ACTIVE,
+            plan: user.plan,
           },
           select: { id: true },
         });

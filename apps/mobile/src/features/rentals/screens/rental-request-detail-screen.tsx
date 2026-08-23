@@ -77,7 +77,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
     rentalId,
     Boolean(
       rental &&
-        (isAccepted || isPickupPending || isPickupApprovalPending || isActive || isCompleted),
+      (isAccepted || isPickupPending || isPickupApprovalPending || isActive || isCompleted),
     ),
   );
 

@@ -1,4 +1,5 @@
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
+import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
@@ -44,7 +45,7 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAwareScroll contentContainerStyle={styles.container}>
       <AppText variant="title">Create rental agreement</AppText>
       <AppText variant="body">
         This older request still needs terms. You approve automatically; the renter approves once
@@ -67,7 +68,7 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
         onPress={handleCreate}
       />
       <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
-    </ScrollView>
+    </KeyboardAwareScroll>
   );
 }
 

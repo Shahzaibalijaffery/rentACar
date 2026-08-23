@@ -87,7 +87,9 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
             <PhotoCover photos={vehicle.photos} emptyLabel="No vehicle photos yet" />
 
             {isOwnVehicle ? (
-              <AppText variant="body">This is your vehicle. Switch to owner mode to manage it.</AppText>
+              <AppText variant="body">
+                This is your vehicle. Switch to owner mode to manage it.
+              </AppText>
             ) : canRequestRental ? (
               <AppButton
                 title="Request rental"

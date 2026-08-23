@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
+import { ScreenLayout } from '@/components/screen-layout';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
@@ -46,18 +47,29 @@ export function VerifyEmailScreen({ route, navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenLayout>
       <AppText variant="title">Verify email</AppText>
       <AppText variant="caption" style={styles.subtitle}>
         Enter the verification code sent to {email || 'your email'}.
       </AppText>
 
-      <AppInput placeholder="Verification code" value={token} onChangeText={setToken} />
+      <AppInput
+        icon="mail"
+        placeholder="Verification code"
+        value={token}
+        onChangeText={setToken}
+      />
 
-      <AppButton title="Verify email" loading={verifyMutation.isPending} onPress={handleVerify} />
+      <AppButton
+        title="Verify email"
+        icon="check"
+        loading={verifyMutation.isPending}
+        onPress={handleVerify}
+      />
 
       <AppButton
         title="Resend verification email"
+        icon="mail"
         variant="secondary"
         loading={resendMutation.isPending}
         onPress={handleResend}
@@ -68,17 +80,11 @@ export function VerifyEmailScreen({ route, navigation }: Props) {
         variant="secondary"
         onPress={() => navigation.navigate('Login')}
       />
-    </View>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
   subtitle: {
     color: colors.textSecondary,
     marginBottom: spacing.sm,

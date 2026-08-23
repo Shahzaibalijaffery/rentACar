@@ -1,5 +1,7 @@
-import { ScrollView, ScrollViewProps, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, type ScrollViewProps, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { colors, spacing } from '@/theme';
 
 type ScreenLayoutProps = ScrollViewProps & {
@@ -17,27 +19,27 @@ export function ScreenLayout({
   style,
   ...scrollProps
 }: ScreenLayoutProps) {
+  const keyboardHeight = useKeyboardHeight();
   const paddingStyle = padded ? styles.padded : undefined;
+  const bottomEdges = keyboardHeight > 0 ? [] : (['bottom'] as const);
 
   if (!scroll) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <SafeAreaView style={styles.safe} edges={bottomEdges}>
         <View style={[styles.content, paddingStyle, contentStyle]}>{children}</View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView style={styles.safe} edges={bottomEdges}>
+      <KeyboardAwareScroll
         contentContainerStyle={[styles.scrollContent, paddingStyle, contentStyle]}
-        style={[styles.scroll, style]}
+        style={style}
         {...scrollProps}
       >
         {children}
-      </ScrollView>
+      </KeyboardAwareScroll>
     </SafeAreaView>
   );
 }
@@ -47,13 +49,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  scroll: {
-    flex: 1,
-  },
   scrollContent: {
     flexGrow: 1,
     gap: spacing.md,
-    paddingBottom: spacing.xl,
   },
   content: {
     flex: 1,

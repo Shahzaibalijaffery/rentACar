@@ -20,7 +20,10 @@ export function CnicProfileLookup({ participantLabel }: Props) {
   const handleLookup = () => {
     const trimmedCnic = cnic.trim();
     if (!trimmedCnic) {
-      Alert.alert('CNIC required', `Enter the ${participantLabel.toLowerCase()}'s CNIC to verify their profile.`);
+      Alert.alert(
+        'CNIC required',
+        `Enter the ${participantLabel.toLowerCase()}'s CNIC to verify their profile.`,
+      );
       return;
     }
 

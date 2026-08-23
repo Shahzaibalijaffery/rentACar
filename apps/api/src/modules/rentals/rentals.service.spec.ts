@@ -1,4 +1,4 @@
-import { RentalStatus, UserStatus, VehicleAvailability, VehicleStatus } from '@prisma/client';
+import { RentalStatus, UserPlan, UserStatus, VehicleAvailability, VehicleStatus } from '@prisma/client';
 import { UsersRepository } from '../users/users.repository';
 import { VehiclesRepository } from '../vehicles/vehicles.repository';
 import { RentalEventsService } from './rental-events.service';
@@ -41,6 +41,7 @@ const baseOwner = {
   phone: '+923001234567',
   profilePhotoUrl: null,
   status: UserStatus.ACTIVE,
+  plan: UserPlan.FREE,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

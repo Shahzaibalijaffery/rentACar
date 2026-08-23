@@ -1,4 +1,5 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { colors, radii, spacing } from '@/theme';
 
@@ -24,6 +25,7 @@ export function QueryState({ isLoading, isError, errorMessage, children }: Query
   if (isError) {
     return (
       <View style={styles.errorBox}>
+        <AppIcon name="alert" size={22} color={colors.error} />
         <AppText variant="heading" style={styles.errorTitle}>
           Something went wrong
         </AppText>

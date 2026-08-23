@@ -48,6 +48,7 @@ export function RegisterScreen({ navigation }: Props) {
       <AppCard>
         <FormField
           label="Full name"
+          icon="user"
           placeholder="Your full name"
           value={fullName}
           onChangeText={setFullName}
@@ -55,6 +56,7 @@ export function RegisterScreen({ navigation }: Props) {
         />
         <FormField
           label="Email"
+          icon="mail"
           placeholder="you@example.com"
           keyboardType="email-address"
           autoComplete="email"
@@ -63,6 +65,7 @@ export function RegisterScreen({ navigation }: Props) {
         />
         <FormField
           label="CNIC"
+          icon="id"
           placeholder="35201-1234567-1"
           keyboardType="number-pad"
           value={cnic}
@@ -71,6 +74,7 @@ export function RegisterScreen({ navigation }: Props) {
         />
         <FormField
           label="Phone"
+          icon="phone"
           placeholder="03001234567"
           keyboardType="phone-pad"
           value={phone}
@@ -79,6 +83,7 @@ export function RegisterScreen({ navigation }: Props) {
         />
         <FormField
           label="Password"
+          icon="lock"
           placeholder="At least 8 characters"
           secureTextEntry
           autoComplete="password-new"
@@ -88,6 +93,7 @@ export function RegisterScreen({ navigation }: Props) {
 
         <AppButton
           title="Create account"
+          icon="plus"
           loading={registerMutation.isPending}
           onPress={handleRegister}
         />

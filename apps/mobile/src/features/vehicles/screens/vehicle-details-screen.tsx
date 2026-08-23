@@ -1,6 +1,7 @@
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { getPlanLimits } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { PhotoCover } from '@/components/photo-cover';
@@ -12,6 +13,7 @@ import {
   useUploadVehiclePhotoMutation,
   useVehicleQuery,
 } from '@/api/hooks/use-vehicles';
+import { useProfileQuery } from '@/api/hooks/use-auth';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 
@@ -25,8 +27,12 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
   const deletePhotoMutation = useDeleteVehiclePhotoMutation(vehicleId);
   const archiveMutation = useArchiveVehicleMutation();
 
+  const profileQuery = useProfileQuery();
   const vehicle = vehicleQuery.data;
   const isArchived = vehicle?.status === 'ARCHIVED';
+  const limits = getPlanLimits(profileQuery.data?.plan);
+  const photoCount = vehicle?.photos.length ?? 0;
+  const atPhotoLimit = photoCount >= limits.maxVehiclePhotos;
 
   const toggleAvailability = () => {
     if (!vehicle) return;
@@ -38,6 +44,14 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
   };
 
   const handleAddPhoto = async () => {
+    if (atPhotoLimit) {
+      Alert.alert(
+        'Plan limit',
+        `Your plan allows ${limits.maxVehiclePhotos} photos per vehicle.`,
+      );
+      return;
+    }
+
     const result = await launchImageLibrary({
       mediaType: 'photo',
       selectionLimit: 1,
@@ -135,15 +149,19 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
             ) : null}
 
             <AppText variant="label">Photos</AppText>
+            <AppText variant="caption" style={styles.coords}>
+              {photoCount} of {limits.maxVehiclePhotos} photos on your plan
+            </AppText>
             <PhotoCover
               photos={vehicle.photos}
               emptyLabel="No vehicle photos yet"
               onRemovePhoto={isArchived ? undefined : handleDeletePhoto}
             />
 
-            {!isArchived ? (
+            {!isArchived && !atPhotoLimit ? (
               <AppButton
                 title="Add photo"
+                icon="camera"
                 loading={uploadPhotoMutation.isPending}
                 onPress={() => {
                   void handleAddPhoto();

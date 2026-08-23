@@ -5,6 +5,7 @@ import {
   VehicleAvailability,
   VehicleStatus,
 } from '@prisma/client';
+import { UserPlanLookup } from '../../common/plans/user-plan.lookup';
 import { RentalsRepository } from '../rentals/rentals.repository';
 import { StorageService } from '../../common/storage/storage.service';
 import { HandoverEventsService } from './handover-events.service';
@@ -78,6 +79,7 @@ describe('HandoversService', () => {
   let rentalsRepository: jest.Mocked<RentalsRepository>;
   let storageService: jest.Mocked<StorageService>;
   let handoverEventsService: jest.Mocked<HandoverEventsService>;
+  let userPlanLookup: jest.Mocked<UserPlanLookup>;
 
   beforeEach(() => {
     handoversRepository = {
@@ -105,11 +107,20 @@ describe('HandoversService', () => {
       emit: jest.fn(),
     };
 
+    userPlanLookup = {
+      getLimitsForUser: jest.fn().mockResolvedValue({
+        maxListedVehicles: 2,
+        maxVehiclePhotos: 5,
+        maxHandoverPhotos: 5,
+      }),
+    } as unknown as jest.Mocked<UserPlanLookup>;
+
     service = new HandoversService(
       handoversRepository,
       rentalsRepository,
       storageService,
       handoverEventsService,
+      userPlanLookup,
     );
   });
 
@@ -181,6 +192,16 @@ describe('HandoversService', () => {
 
       expect(storageService.saveObject).toHaveBeenCalled();
       expect(result.data.photos).toHaveLength(1);
+    });
+
+    it('rejects upload when the plan evidence cap is reached', async () => {
+      handoversRepository.findById.mockResolvedValue(baseHandover);
+      handoversRepository.countPhotos.mockResolvedValue(5);
+
+      await expect(service.uploadPhoto(ownerId, handoverId, file)).rejects.toMatchObject({
+        errorCode: 'PHOTO_LIMIT_REACHED',
+      });
+      expect(storageService.saveObject).not.toHaveBeenCalled();
     });
 
     it('rejects renter photo upload', async () => {

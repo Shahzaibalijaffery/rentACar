@@ -72,7 +72,11 @@ export function RentalsScreen({ navigation }: Props) {
         errorMessage={rentalsQuery.error?.message}
       >
         {rentalsQuery.data && rentalsQuery.data.length === 0 ? (
-          <EmptyState title={empty.title} message={empty.message} />
+          <EmptyState
+            title={empty.title}
+            message={empty.message}
+            icon={lifecycle === 'completed' ? 'check' : lifecycle === 'active' ? 'clock' : 'car'}
+          />
         ) : (
           <FlatList
             data={rentalsQuery.data ?? []}

@@ -1,6 +1,7 @@
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { getPlanLimits } from '@rentacar/shared';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { QueryState } from '@/components/query-state';
@@ -17,6 +18,7 @@ import {
   MIN_PICKUP_HANDOVER_PHOTOS,
 } from '@/features/handovers/handover-utils';
 import { formatRentalDate } from '@/features/rentals/rental-utils';
+import { useProfileQuery } from '@/api/hooks/use-auth';
 import { CnicProfileLookup } from '@/features/users/components/cnic-profile-lookup';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
@@ -31,10 +33,14 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
   const submitMutation = useSubmitHandoverMutation(handoverId, rentalId);
   const approveMutation = useApproveHandoverMutation(handoverId, rentalId);
 
+  const profileQuery = useProfileQuery();
   const handover = handoverQuery.data;
+  const limits = getPlanLimits(profileQuery.data?.plan);
   const isOwnerView = perspective === 'owner';
   const canEditPhotos = isOwnerView && handover?.status === 'OWNER_PHOTOS_REQUIRED';
-  const canSubmit = canEditPhotos && (handover?.photos.length ?? 0) >= MIN_PICKUP_HANDOVER_PHOTOS;
+  const photoCount = handover?.photos.length ?? 0;
+  const atEvidenceLimit = photoCount >= limits.maxHandoverPhotos;
+  const canSubmit = canEditPhotos && photoCount >= MIN_PICKUP_HANDOVER_PHOTOS;
   const canApprove = !isOwnerView && handover?.status === 'RENTER_APPROVAL_REQUIRED';
   const isApproved = handover?.status === 'APPROVED';
 
@@ -61,6 +67,14 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
   };
 
   const handleAddPhoto = () => {
+    if (atEvidenceLimit) {
+      Alert.alert(
+        'Plan limit',
+        `Your plan allows ${limits.maxHandoverPhotos} rental evidence photos.`,
+      );
+      return;
+    }
+
     Alert.alert('Add photo', 'Choose a source for the vehicle condition photo.', [
       { text: 'Camera', onPress: () => void pickPhoto(true) },
       { text: 'Gallery', onPress: () => void pickPhoto(false) },
@@ -160,13 +174,17 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
             {canEditPhotos ? (
               <>
                 <AppText variant="body">
-                  Photos: {handover.photos.length} / minimum {MIN_PICKUP_HANDOVER_PHOTOS}
+                  Photos: {photoCount} / minimum {MIN_PICKUP_HANDOVER_PHOTOS} · max{' '}
+                  {limits.maxHandoverPhotos}
                 </AppText>
-                <AppButton
-                  title="Take photo"
-                  loading={uploadMutation.isPending}
-                  onPress={handleAddPhoto}
-                />
+                {!atEvidenceLimit ? (
+                  <AppButton
+                    title="Take photo"
+                    icon="camera"
+                    loading={uploadMutation.isPending}
+                    onPress={handleAddPhoto}
+                  />
+                ) : null}
                 <AppButton
                   title="Submit photo set"
                   loading={submitMutation.isPending}

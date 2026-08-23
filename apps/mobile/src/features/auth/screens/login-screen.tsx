@@ -3,6 +3,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppCard } from '@/components/app-card';
+import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { FormField } from '@/components/form-field';
 import { ScreenLayout } from '@/components/screen-layout';
@@ -31,6 +32,9 @@ export function LoginScreen({ navigation }: Props) {
   return (
     <ScreenLayout>
       <View style={styles.header}>
+        <View style={styles.brandMark}>
+          <AppIcon name="car" size={28} color={colors.primary} />
+        </View>
         <AppText variant="display" style={styles.brand}>
           RentACar
         </AppText>
@@ -47,6 +51,7 @@ export function LoginScreen({ navigation }: Props) {
 
         <FormField
           label="Email"
+          icon="mail"
           placeholder="you@example.com"
           keyboardType="email-address"
           autoComplete="email"
@@ -55,6 +60,7 @@ export function LoginScreen({ navigation }: Props) {
         />
         <FormField
           label="Password"
+          icon="lock"
           placeholder="Your password"
           secureTextEntry
           autoComplete="password"
@@ -62,11 +68,17 @@ export function LoginScreen({ navigation }: Props) {
           onChangeText={setPassword}
         />
 
-        <AppButton title="Sign in" loading={loginMutation.isPending} onPress={handleLogin} />
+        <AppButton
+          title="Sign in"
+          icon="key"
+          loading={loginMutation.isPending}
+          onPress={handleLogin}
+        />
       </AppCard>
 
       <AppButton
         title="Create an account"
+        icon="plus"
         variant="secondary"
         onPress={() => navigation.navigate('Register')}
       />
@@ -78,6 +90,14 @@ const styles = StyleSheet.create({
   header: {
     gap: spacing.sm,
     marginBottom: spacing.sm,
+  },
+  brandMark: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: colors.primaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brand: {
     color: colors.primary,

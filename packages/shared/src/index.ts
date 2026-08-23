@@ -1,5 +1,16 @@
 export type { ApiErrorBody, ApiResponse, PaginatedMeta, PaginatedResponse } from './api.types';
 export type { AppMode } from './app-mode.types';
+export { getPlanLimits, USER_PLAN_LIMITS } from './user-plan.limits';
+export type { UserPlanLimits } from './user-plan.limits';
+export {
+  DEFAULT_USER_PLAN,
+  getUserPlanLabel,
+  hasMinimumPlan,
+  isUserPlan,
+  resolveUserPlan,
+  USER_PLANS,
+} from './user-plan.types';
+export type { UserPlan } from './user-plan.types';
 export { DEFAULT_RENTAL_AGREEMENT_TERMS } from './agreement.types';
 export type {
   AgreementAuditAction,

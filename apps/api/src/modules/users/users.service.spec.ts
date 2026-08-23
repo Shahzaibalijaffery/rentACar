@@ -1,4 +1,4 @@
-import { UserStatus } from '@prisma/client';
+import { UserPlan, UserStatus } from '@prisma/client';
 import { DomainError } from '../../common/errors/domain.error';
 import { StorageService } from '../../common/storage/storage.service';
 import { VehiclesRepository } from '../vehicles/vehicles.repository';
@@ -15,6 +15,7 @@ const ownerUser = {
   phone: '+923001111111',
   profilePhotoUrl: 'https://cdn.example/owner.jpg',
   status: UserStatus.ACTIVE,
+  plan: UserPlan.FREE,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };

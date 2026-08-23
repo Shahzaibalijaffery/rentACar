@@ -1,9 +1,11 @@
 import { ActivityIndicator, Pressable, PressableProps, StyleSheet } from 'react-native';
+import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 type AppButtonProps = PressableProps & {
   title: string;
+  icon?: AppIconName;
   loading?: boolean;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'md' | 'sm';
@@ -11,6 +13,7 @@ type AppButtonProps = PressableProps & {
 
 export function AppButton({
   title,
+  icon,
   loading = false,
   variant = 'primary',
   size = 'md',
@@ -19,6 +22,12 @@ export function AppButton({
   ...props
 }: AppButtonProps) {
   const isDisabled = disabled ?? loading;
+  const iconColor =
+    variant === 'primary'
+      ? colors.textOnPrimary
+      : variant === 'danger'
+        ? colors.error
+        : colors.primary;
 
   return (
     <Pressable
@@ -37,9 +46,12 @@ export function AppButton({
       {loading ? (
         <ActivityIndicator color={variant === 'primary' ? colors.textOnPrimary : colors.primary} />
       ) : (
-        <AppText variant="body" style={[styles.text, textStyles[variant]]}>
-          {title}
-        </AppText>
+        <>
+          {icon ? <AppIcon name={icon} size={size === 'sm' ? 16 : 18} color={iconColor} /> : null}
+          <AppText variant="body" style={[styles.text, textStyles[variant]]}>
+            {title}
+          </AppText>
+        </>
       )}
     </Pressable>
   );
@@ -86,9 +98,11 @@ const textStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
   md: {
