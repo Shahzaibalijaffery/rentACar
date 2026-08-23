@@ -1,5 +1,6 @@
 import type { UserPlanLimits } from './user-plan.limits';
 import type { UserPlan } from './user-plan.types';
+import type { RatingSummary } from './rating.types';
 import type { VehiclePublicView } from './vehicle.types';
 
 export type UserStatus = 'PENDING_VERIFICATION' | 'ACTIVE' | 'SUSPENDED';
@@ -30,6 +31,7 @@ export type LookupUserByCnicRequest = {
 
 export type UserProfileSearchResult = {
   user: UserPublicProfile;
+  renterRating: RatingSummary;
   vehicles: VehiclePublicView[];
 };
 

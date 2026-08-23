@@ -1,8 +1,9 @@
 import { Vehicle, VehiclePhoto, VehicleStatus } from '@prisma/client';
-import type {
-  VehicleOwnerView,
-  VehiclePhoto as SharedVehiclePhoto,
-  VehiclePublicView,
+import {
+  toRatingSummary,
+  type VehicleOwnerView,
+  type VehiclePhoto as SharedVehiclePhoto,
+  type VehiclePublicView,
 } from '@rentacar/shared';
 
 type VehicleWithPhotos = Vehicle & { photos: VehiclePhoto[] };
@@ -37,6 +38,7 @@ export function toVehicleOwnerView(vehicle: VehicleWithPhotos): VehicleOwnerView
     longitude: vehicle.longitude,
     areaLabel: vehicle.areaLabel,
     photos: vehicle.photos.map(toPhoto).sort((a, b) => a.sortOrder - b.sortOrder),
+    rating: toRatingSummary(vehicle.ratingAverage, vehicle.ratingCount),
     createdAt: vehicle.createdAt.toISOString(),
     updatedAt: vehicle.updatedAt.toISOString(),
   };
@@ -52,6 +54,7 @@ export function toVehiclePublicView(vehicle: VehicleWithPhotosAndOwner): Vehicle
     availability: vehicle.availability,
     areaLabel: vehicle.areaLabel,
     photos: vehicle.photos.map(toPhoto).sort((a, b) => a.sortOrder - b.sortOrder),
+    rating: toRatingSummary(vehicle.ratingAverage, vehicle.ratingCount),
     owner: {
       id: vehicle.owner.id,
       fullName: vehicle.owner.fullName,

@@ -1,3 +1,5 @@
+import type { RatingSummary } from './rating.types';
+
 export type VehicleAvailability = 'AVAILABLE' | 'UNAVAILABLE';
 export type VehicleStatus = 'ACTIVE' | 'ARCHIVED';
 
@@ -20,6 +22,7 @@ export type VehicleOwnerView = {
   longitude: number;
   areaLabel: string | null;
   photos: VehiclePhoto[];
+  rating: RatingSummary;
   createdAt: string;
   updatedAt: string;
 };
@@ -33,6 +36,7 @@ export type VehiclePublicView = {
   availability: VehicleAvailability;
   areaLabel: string | null;
   photos: VehiclePhoto[];
+  rating: RatingSummary;
   owner: {
     id: string;
     fullName: string;

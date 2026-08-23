@@ -2,6 +2,7 @@ import { Image, Pressable, StyleSheet, View } from 'react-native';
 import type { VehiclePublicView } from '@rentacar/shared';
 import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
+import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
 import { colors, spacing } from '@/theme';
 
 type ProfileVehicleCardProps = {
@@ -39,6 +40,7 @@ export function ProfileVehicleCard({ vehicle, onPress }: ProfileVehicleCardProps
         <AppText variant="caption" style={styles.meta}>
           {vehicle.color} · {vehicle.availability === 'AVAILABLE' ? 'Available' : 'Unavailable'}
         </AppText>
+        <RatingSummaryText summary={vehicle.rating} />
         {vehicle.areaLabel ? (
           <View style={styles.areaRow}>
             <AppIcon name="pin" size={13} color={colors.textSecondary} />

@@ -1,4 +1,4 @@
-import type { VehicleDiscoveryItem, VehiclePhoto } from '@rentacar/shared';
+import { toRatingSummary, type VehicleDiscoveryItem, type VehiclePhoto } from '@rentacar/shared';
 import { formatDistanceLabel } from '../../common/utils/location.util';
 
 type RawPhoto = {
@@ -35,6 +35,8 @@ export type RawDiscoveryVehicle = {
   longitude?: number;
   email?: string;
   cnic?: string;
+  ratingAverage?: number | null;
+  ratingCount?: number | null;
 };
 
 function extractId(value: { $oid: string } | string | undefined, fallback?: string): string {
@@ -70,6 +72,7 @@ export function toVehicleDiscoveryItem(raw: RawDiscoveryVehicle): VehicleDiscove
     availability: raw.availability,
     areaLabel: raw.areaLabel,
     photos: (raw.photos ?? []).map(toPhoto).sort((a, b) => a.sortOrder - b.sortOrder),
+    rating: toRatingSummary(raw.ratingAverage, raw.ratingCount),
     distanceMeters,
     distanceLabel: formatDistanceLabel(distanceMeters),
     owner: {

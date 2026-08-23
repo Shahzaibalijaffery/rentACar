@@ -54,7 +54,7 @@ export const RENTAL_TRANSITIONS: Record<RentalStatus, RentalStatus[]> = {
   [RentalStatus.ACTIVE]: [RentalStatus.COMPLETED, RentalStatus.CANCELLED],
   [RentalStatus.RETURN_PENDING]: [],
   [RentalStatus.RETURN_APPROVAL_PENDING]: [],
-  [RentalStatus.COMPLETED]: [],
+  [RentalStatus.COMPLETED]: [RentalStatus.RATED],
   [RentalStatus.RATED]: [],
 };
 

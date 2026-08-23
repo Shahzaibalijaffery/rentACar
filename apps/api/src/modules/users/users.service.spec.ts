@@ -16,6 +16,8 @@ const ownerUser = {
   profilePhotoUrl: 'https://cdn.example/owner.jpg',
   status: UserStatus.ACTIVE,
   plan: UserPlan.FREE,
+  renterRatingAverage: null,
+  renterRatingCount: 0,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };
@@ -175,6 +177,7 @@ describe('UsersService', () => {
         fullName: ownerUser.fullName,
         profilePhotoUrl: ownerUser.profilePhotoUrl,
       });
+      expect(result.data.renterRating).toEqual({ averageStars: null, totalCount: 0 });
       expect(result.data.vehicles).toHaveLength(1);
       expect(result.data.vehicles[0]?.make).toBe('Toyota');
     });

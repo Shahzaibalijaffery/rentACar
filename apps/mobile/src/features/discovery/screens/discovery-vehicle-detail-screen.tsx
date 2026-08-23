@@ -8,6 +8,9 @@ import { QueryState } from '@/components/query-state';
 import { useProfileQuery } from '@/api/hooks/use-auth';
 import { useCreateRentalMutation } from '@/api/hooks/use-rentals';
 import { usePublicVehicleQuery } from '@/api/hooks/use-discovery';
+import { useVehicleRatingsQuery } from '@/api/hooks/use-ratings';
+import { RatingReviewList } from '@/features/ratings/components/rating-review-list';
+import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 
@@ -16,6 +19,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'DiscoveryVehicleDetail'>
 export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
   const { vehicleId, distanceLabel } = route.params;
   const vehicleQuery = usePublicVehicleQuery(vehicleId);
+  const ratingsQuery = useVehicleRatingsQuery(vehicleId);
   const profileQuery = useProfileQuery();
   const createRentalMutation = useCreateRentalMutation();
 
@@ -82,6 +86,7 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
             {distanceLabel ? <AppText variant="body">{distanceLabel}</AppText> : null}
             {vehicle.areaLabel ? <AppText variant="body">Area: {vehicle.areaLabel}</AppText> : null}
             <AppText variant="body">Owner: {vehicle.owner.fullName}</AppText>
+            <RatingSummaryText summary={vehicle.rating} />
 
             <AppText variant="label">Photos</AppText>
             <PhotoCover photos={vehicle.photos} emptyLabel="No vehicle photos yet" />
@@ -99,6 +104,14 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
             ) : (
               <AppText variant="body">This vehicle is not available for rental requests.</AppText>
             )}
+
+            {ratingsQuery.data ? (
+              <RatingReviewList
+                title="Ratings"
+                summary={ratingsQuery.data.summary}
+                reviews={ratingsQuery.data.reviews}
+              />
+            ) : null}
           </>
         ) : null}
       </QueryState>

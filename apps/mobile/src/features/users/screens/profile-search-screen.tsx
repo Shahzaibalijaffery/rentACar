@@ -8,6 +8,8 @@ import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { useSearchUserByCnicMutation } from '@/api/hooks/use-users';
+import { useRenterRatingsQuery } from '@/api/hooks/use-ratings';
+import { RatingReviewList } from '@/features/ratings/components/rating-review-list';
 import { ProfileVehicleCard } from '@/features/users/components/profile-vehicle-card';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, radii, spacing } from '@/theme';
@@ -18,6 +20,10 @@ export function ProfileSearchScreen({ navigation }: Props) {
   const [cnic, setCnic] = useState('');
   const [searchResult, setSearchResult] = useState<UserProfileSearchResult | null>(null);
   const searchMutation = useSearchUserByCnicMutation();
+  const renterRatingsQuery = useRenterRatingsQuery(
+    searchResult?.user.id ?? '',
+    Boolean(searchResult),
+  );
 
   const handleSearch = () => {
     const trimmedCnic = cnic.trim();
@@ -72,6 +78,14 @@ export function ProfileSearchScreen({ navigation }: Props) {
             />
             <AppText variant="title">{searchResult.user.fullName}</AppText>
           </View>
+
+          {renterRatingsQuery.data ? (
+            <RatingReviewList
+              title="Ratings"
+              summary={renterRatingsQuery.data.summary}
+              reviews={renterRatingsQuery.data.reviews}
+            />
+          ) : null}
 
           <AppText variant="label">Listed vehicles</AppText>
           {searchResult.vehicles.length === 0 ? (

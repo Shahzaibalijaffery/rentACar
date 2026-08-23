@@ -1,4 +1,5 @@
 import type { UserPublicProfile } from './auth.types';
+import type { RatingSummary } from './rating.types';
 import type { VehicleAvailability, VehiclePhoto } from './vehicle.types';
 
 export type VehicleDiscoveryItem = {
@@ -10,6 +11,7 @@ export type VehicleDiscoveryItem = {
   availability: VehicleAvailability;
   areaLabel: string | null;
   photos: VehiclePhoto[];
+  rating: RatingSummary;
   distanceMeters: number;
   distanceLabel: string;
   owner: UserPublicProfile;

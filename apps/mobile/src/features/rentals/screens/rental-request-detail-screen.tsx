@@ -22,6 +22,8 @@ import {
   getRentalStatusLabel,
 } from '@/features/rentals/rental-utils';
 import { PhotoCover } from '@/components/photo-cover';
+import { useRentalRatingsQuery } from '@/api/hooks/use-ratings';
+import { RateRentalCard } from '@/features/ratings/components/rate-rental-card';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 
@@ -45,6 +47,8 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   const isPickupApprovalPending = rental?.status === 'PICKUP_APPROVAL_PENDING';
   const isActive = rental?.status === 'ACTIVE';
   const isCompleted = rental?.status === 'COMPLETED';
+  const isRated = rental?.status === 'RATED';
+  const isFinished = isCompleted || isRated;
   const isOwnerView = perspective === 'owner';
   const canCancelAfterAccept =
     isAccepted || isAgreementPending || isPickupPending || isPickupApprovalPending || isActive;
@@ -58,7 +62,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
         isPickupPending ||
         isPickupApprovalPending ||
         isActive ||
-        isCompleted ||
+        isFinished ||
         Boolean(rental.agreementId)),
     ),
   );
@@ -77,9 +81,12 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
     rentalId,
     Boolean(
       rental &&
-      (isAccepted || isPickupPending || isPickupApprovalPending || isActive || isCompleted),
+      (isAccepted || isPickupPending || isPickupApprovalPending || isActive || isFinished),
     ),
   );
+
+  const ratingsQuery = useRentalRatingsQuery(rentalId, isFinished);
+  const ratings = ratingsQuery.data;
 
   const nextStep = rental
     ? getRentalNextStep({
@@ -89,6 +96,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
         userApprovedAgreement,
         agreementFullyApproved: agreement?.status === 'APPROVED',
         handoverStatus: handover?.status,
+        hasSubmittedRating: Boolean(ratings?.myRating),
       })
     : null;
 
@@ -199,7 +207,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
           onPress: () => {
             completeMutation.mutate(undefined, {
               onSuccess: () => {
-                Alert.alert('Rental completed', 'This rental has been marked as completed.');
+                Alert.alert('Rental completed', 'You can now rate the renter. Tap the stars below.');
               },
               onError: (error) => Alert.alert('Completion failed', error.message),
             });
@@ -289,7 +297,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
               />
             ) : null}
 
-            {(isPickupApprovalPending || isActive || isCompleted) && handover ? (
+            {(isPickupApprovalPending || isActive || isFinished) && handover ? (
               <AppButton
                 title={
                   isPickupApprovalPending && !isOwnerView
@@ -320,8 +328,12 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
             <AppText variant="body">Requested: {formatRentalDate(rental.createdAt)}</AppText>
             <AppText variant="body">Start date: {formatRentalDate(rental.startDate)}</AppText>
             <AppText variant="body">End date: {formatRentalDate(rental.endDate)}</AppText>
-            {isCompleted && rental.completedAt ? (
+            {isFinished && rental.completedAt ? (
               <AppText variant="body">Completed: {formatRentalDate(rental.completedAt)}</AppText>
+            ) : null}
+
+            {isFinished && ratings ? (
+              <RateRentalCard rentalId={rentalId} perspective={perspective} ratings={ratings} />
             ) : null}
 
             {agreement ? (

@@ -51,6 +51,7 @@ export function getRentalNextStep(input: {
   userApprovedAgreement: boolean;
   agreementFullyApproved: boolean;
   handoverStatus?: HandoverStatus;
+  hasSubmittedRating?: boolean;
 }): RentalNextStep | null {
   const { status, perspective, hasAgreement, userApprovedAgreement, agreementFullyApproved } =
     input;
@@ -145,9 +146,28 @@ export function getRentalNextStep(input: {
   }
 
   if (status === 'COMPLETED') {
+    if (input.hasSubmittedRating) {
+      return {
+        title: 'Rating sent',
+        description: 'You are done. The other person can still add their rating.',
+      };
+    }
+
+    return perspective === 'owner'
+      ? {
+          title: 'Rate the renter',
+          description: 'Tap the stars below. This shows on their profile.',
+        }
+      : {
+          title: 'Rate this car',
+          description: 'Tap the stars below. This shows on the car.',
+        };
+  }
+
+  if (status === 'RATED') {
     return {
-      title: 'Rental completed',
-      description: 'Pickup evidence is saved. Ratings may be available soon.',
+      title: 'All done',
+      description: 'This rental is finished.',
     };
   }
 

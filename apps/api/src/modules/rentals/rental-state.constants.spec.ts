@@ -34,6 +34,11 @@ describe('rental state transitions', () => {
     expect(canTransitionRental(RentalStatus.COMPLETED, RentalStatus.CANCELLED)).toBe(false);
   });
 
+  it('moves a completed rental to rated after both parties submit', () => {
+    expect(canTransitionRental(RentalStatus.COMPLETED, RentalStatus.RATED)).toBe(true);
+    expect(canTransitionRental(RentalStatus.RATED, RentalStatus.COMPLETED)).toBe(false);
+  });
+
   it('rejects skipping pickup photos', () => {
     expect(canTransitionRental(RentalStatus.PENDING, RentalStatus.ACTIVE)).toBe(false);
     expect(canTransitionRental(RentalStatus.PICKUP_PENDING, RentalStatus.ACTIVE)).toBe(false);

@@ -14,6 +14,9 @@ import {
   useVehicleQuery,
 } from '@/api/hooks/use-vehicles';
 import { useProfileQuery } from '@/api/hooks/use-auth';
+import { useVehicleRatingsQuery } from '@/api/hooks/use-ratings';
+import { RatingReviewList } from '@/features/ratings/components/rating-review-list';
+import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 
@@ -22,6 +25,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'VehicleDetails'>;
 export function VehicleDetailsScreen({ navigation, route }: Props) {
   const { vehicleId } = route.params;
   const vehicleQuery = useVehicleQuery(vehicleId);
+  const ratingsQuery = useVehicleRatingsQuery(vehicleId);
   const availabilityMutation = useUpdateAvailabilityMutation(vehicleId);
   const uploadPhotoMutation = useUploadVehiclePhotoMutation(vehicleId);
   const deletePhotoMutation = useDeleteVehiclePhotoMutation(vehicleId);
@@ -126,6 +130,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
             <AppText variant="body">Status: {vehicle.status}</AppText>
             <AppText variant="body">Availability: {vehicle.availability}</AppText>
             {vehicle.areaLabel ? <AppText variant="body">Area: {vehicle.areaLabel}</AppText> : null}
+            <RatingSummaryText summary={vehicle.rating} />
             <AppText variant="caption" style={styles.coords}>
               Location: {vehicle.latitude}, {vehicle.longitude}
             </AppText>
@@ -175,6 +180,14 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
                 variant="secondary"
                 loading={archiveMutation.isPending}
                 onPress={handleArchive}
+              />
+            ) : null}
+
+            {ratingsQuery.data ? (
+              <RatingReviewList
+                title="Ratings"
+                summary={ratingsQuery.data.summary}
+                reviews={ratingsQuery.data.reviews}
               />
             ) : null}
           </>

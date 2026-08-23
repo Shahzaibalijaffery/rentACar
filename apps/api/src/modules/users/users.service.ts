@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  AgreementParticipant,
-  ApiResponse,
-  UserProfile,
-  UserProfileSearchResult,
+import {
+  toRatingSummary,
+  type AgreementParticipant,
+  type ApiResponse,
+  type UserProfile,
+  type UserProfileSearchResult,
 } from '@rentacar/shared';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { DomainError } from '../../common/errors/domain.error';
@@ -76,6 +77,7 @@ export class UsersService {
     return {
       data: {
         user: toUserPublicProfile(targetUser),
+        renterRating: toRatingSummary(targetUser.renterRatingAverage, targetUser.renterRatingCount),
         vehicles: vehicles.map(toVehiclePublicView),
       },
     };

@@ -25,6 +25,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Star,
 } from 'lucide-react-native';
 import { colors } from '@/theme';
 
@@ -53,6 +54,7 @@ export const APP_ICON_NAMES = [
   'search',
   'shield',
   'sparkle',
+  'star',
   'user',
 ] as const;
 
@@ -83,6 +85,7 @@ const ICONS: Record<AppIconName, LucideIcon> = {
   search: Search,
   shield: ShieldCheck,
   sparkle: Sparkles,
+  star: Star,
   user: CircleUser,
 };
 

@@ -154,6 +154,8 @@ export class DiscoveryRepository {
           color: 1,
           availability: 1,
           areaLabel: 1,
+          ratingAverage: 1,
+          ratingCount: 1,
           distanceMeters: 1,
           photos: {
             $map: {

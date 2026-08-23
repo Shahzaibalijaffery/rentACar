@@ -45,4 +45,19 @@ describe('rental utils', () => {
       description: 'Arrange pickup by phone, then start handover photos when you meet.',
     });
   });
+
+  it('asks both parties to rate after the rental is completed', () => {
+    expect(
+      getRentalNextStep({
+        status: 'COMPLETED',
+        perspective: 'renter',
+        hasAgreement: true,
+        userApprovedAgreement: true,
+        agreementFullyApproved: true,
+      }),
+    ).toEqual({
+      title: 'Rate this car',
+      description: 'Tap the stars below. This shows on the car.',
+    });
+  });
 });

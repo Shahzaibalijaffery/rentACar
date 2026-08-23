@@ -52,6 +52,21 @@ export type {
   RentalSummary,
   RentalVehicleSummary,
 } from './rental.types';
+export {
+  EMPTY_RATING_SUMMARY,
+  RATING_COMMENT_MAX_LENGTH,
+  RATING_MAX_STARS,
+  RATING_MIN_STARS,
+  toRatingSummary,
+} from './rating.types';
+export type {
+  CreateRatingRequest,
+  PublicRatingListView,
+  RatingPublicView,
+  RatingSummary,
+  RatingTarget,
+  RentalRatingsView,
+} from './rating.types';
 export type {
   UpdateProfileRequest,
   VehicleAvailability,

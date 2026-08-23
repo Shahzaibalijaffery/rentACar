@@ -19,7 +19,7 @@ export function resolveLifecycleStatuses(
     case 'active':
       return ACTIVE_RENTAL_STATUSES;
     case 'completed':
-      return [RentalStatus.COMPLETED];
+      return [RentalStatus.COMPLETED, RentalStatus.RATED];
     default:
       return undefined;
   }

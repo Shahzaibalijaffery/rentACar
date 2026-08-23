@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/empty-state';
 import { QueryState } from '@/components/query-state';
 import { useProfileQuery } from '@/api/hooks/use-auth';
 import { useMyVehiclesQuery } from '@/api/hooks/use-vehicles';
+import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, radii, spacing } from '@/theme';
 
@@ -89,6 +90,7 @@ export function MyVehiclesScreen({ navigation }: Props) {
                   <AppText variant="caption" style={styles.meta}>
                     {item.color} · {item.availability}
                   </AppText>
+                  <RatingSummaryText summary={item.rating} />
                   {item.areaLabel ? (
                     <View style={styles.areaRow}>
                       <AppIcon name="pin" size={13} color={colors.textSecondary} />

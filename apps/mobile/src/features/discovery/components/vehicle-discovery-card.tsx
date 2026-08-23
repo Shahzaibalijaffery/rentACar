@@ -2,6 +2,7 @@ import { Image, Pressable, StyleSheet, View } from 'react-native';
 import type { VehicleDiscoveryItem } from '@rentacar/shared';
 import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
+import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 type VehicleDiscoveryCardProps = {
@@ -45,6 +46,7 @@ export function VehicleDiscoveryCard({ vehicle, onPress }: VehicleDiscoveryCardP
         <AppText variant="caption" style={styles.meta}>
           {vehicle.color} · {vehicle.distanceLabel}
         </AppText>
+        <RatingSummaryText summary={vehicle.rating} />
         {vehicle.areaLabel ? (
           <View style={styles.metaRow}>
             <AppIcon name="pin" size={13} color={colors.textSecondary} />

@@ -64,6 +64,11 @@ enum HandoverStatus {
   CANCELLED
 }
 
+enum RatingTarget {
+  VEHICLE
+  RENTER
+}
+
 /// Internal metadata (schema version, bootstrap flags). Not a product domain model.
 model AppMeta {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
@@ -98,6 +103,11 @@ model User {
   handoverPhotosUploaded  HandoverPhoto[]
   handoverApprovals       HandoverApproval[]
   handoverAuditEntries    HandoverAuditEntry[]
+  ratingsGiven            Rating[]                 @relation("RatingRater")
+  ratingsReceived         Rating[]                 @relation("RatingRatee")
+  /// Average of owner→renter ratings. Null when the user has not been rated as a renter.
+  renterRatingAverage     Float?
+  renterRatingCount       Int                      @default(0)
 }
 
 model EmailVerificationToken {
@@ -148,9 +158,14 @@ model Vehicle {
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
 
+  /// Average of renter→vehicle ratings. Null when the listing has no reviews.
+  ratingAverage Float?
+  ratingCount   Int     @default(0)
+
   owner   User           @relation(fields: [ownerId], references: [id])
   photos  VehiclePhoto[]
   rentals Rental[]
+  ratings Rating[]
 
   @@index([ownerId])
   @@index([ownerId, status])
@@ -193,6 +208,7 @@ model Rental {
   vehicle   Vehicle           @relation(fields: [vehicleId], references: [id])
   agreements RentalAgreement[]
   handovers  Handover[]
+  ratings    Rating[]
 
   @@index([renterId])
   @@index([ownerId])
@@ -335,4 +351,26 @@ model HandoverAuditEntry {
   @@index([createdAt])
 }
 
-// Rating, etc. are added incrementally with their feature modules.
+model Rating {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  rentalId  String       @db.ObjectId
+  vehicleId String       @db.ObjectId
+  raterId   String       @db.ObjectId
+  rateeId   String       @db.ObjectId
+  target    RatingTarget
+  stars     Int
+  comment   String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  rental  Rental  @relation(fields: [rentalId], references: [id])
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  rater   User    @relation("RatingRater", fields: [raterId], references: [id])
+  ratee   User    @relation("RatingRatee", fields: [rateeId], references: [id])
+
+  @@unique([rentalId, raterId])
+  @@index([vehicleId, target])
+  @@index([rateeId, target])
+  @@index([rentalId])
+  @@index([createdAt])
+}

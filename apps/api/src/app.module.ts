@@ -17,6 +17,7 @@ import { RentalsModule } from './modules/rentals/rentals.module';
 import { AgreementsModule } from './modules/agreements/agreements.module';
 import { GeocodingModule } from './modules/geocoding/geocoding.module';
 import { HandoversModule } from './modules/handovers/handovers.module';
+import { RatingsModule } from './modules/ratings/ratings.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { HandoversModule } from './modules/handovers/handovers.module';
     AgreementsModule,
     GeocodingModule,
     HandoversModule,
+    RatingsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
