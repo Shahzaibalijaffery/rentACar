@@ -118,19 +118,22 @@ export class PushService {
     try {
       // Lazy require so unit tests do not need the native firebase package graph.
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const admin = require('firebase-admin') as {
-        apps: unknown[];
+      const adminApp = require('firebase-admin/app') as {
+        getApps: () => unknown[];
         initializeApp: (options: { credential: unknown }) => void;
-        credential: { cert: (value: unknown) => unknown };
-        messaging: () => FirebaseMessaging;
+        cert: (value: object) => unknown;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const adminMessaging = require('firebase-admin/messaging') as {
+        getMessaging: () => FirebaseMessaging;
       };
 
-      if (admin.apps.length === 0) {
-        admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw) as object) });
+      if (adminApp.getApps().length === 0) {
+        adminApp.initializeApp({ credential: adminApp.cert(JSON.parse(raw) as object) });
       }
 
       this.logger.log('FCM enabled for Android push');
-      return admin.messaging();
+      return adminMessaging.getMessaging();
     } catch (error) {
       this.logger.warn(
         `FCM init failed: ${error instanceof Error ? error.message : 'invalid service account JSON'}`,

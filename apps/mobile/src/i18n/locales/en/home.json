@@ -19,6 +19,8 @@
   "searchCnicHint": "Find an owner and their listings",
   "rentals": "Rentals",
   "rentalsHint": "Requests, active trips, and history",
+  "notifications": "Notifications",
+  "notificationsHint": "Rental updates and requests",
   "myProfile": "My profile",
   "myProfileHint": "Update name, photo, and switch profile",
   "logOut": "Log out",

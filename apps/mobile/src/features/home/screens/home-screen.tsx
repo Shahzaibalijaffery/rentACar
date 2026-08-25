@@ -108,6 +108,12 @@ export function HomeScreen({ navigation }: Props) {
           icon="calendar"
           onPress={() => navigation.navigate('Rentals')}
         />
+        <ActionTile
+          title={t('notifications')}
+          description={t('notificationsHint')}
+          icon="bell"
+          onPress={() => navigation.navigate('Notifications')}
+        />
       </View>
 
       <View style={styles.section}>

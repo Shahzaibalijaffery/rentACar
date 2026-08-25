@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DevicePlatform } from '@prisma/client';
 import type {
   NotificationType,
@@ -26,6 +26,8 @@ const MAX_PAGE_SIZE = 50;
 
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+
   constructor(
     private readonly notificationsRepository: NotificationsRepository,
     private readonly realtimeService: RealtimeService,
@@ -125,7 +127,10 @@ export class NotificationsService {
         const connected = this.realtimeService.isConnected(userId);
         this.realtimeService.emitToUser(userId, 'notification', event);
 
-        if (plan.persistType && !connected) {
+        if (plan.persistType) {
+          this.logger.log(
+            `Notify ${userId} type=${plan.persistType} rental=${plan.rentalId ?? '-'} connected=${connected}`,
+          );
           await this.pushService.sendToUser(userId, {
             type: plan.persistType,
             ...optionalIds(plan),

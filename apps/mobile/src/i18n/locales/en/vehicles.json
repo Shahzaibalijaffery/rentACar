@@ -20,7 +20,7 @@
   "status": "Status: {{status}}",
   "availability": "Availability: {{value}}",
   "area": "Area: {{area}}",
-  "location": "Location: {{lat}}, {{lng}}",
+  "location": "Location: {{lat}}, {{lon}}",
   "photos": "Photos",
   "photoPlanHint": "{{count}} of {{limit}} photos on your plan",
   "photoPlanLimit": "Your plan allows {{limit}} photos per vehicle.",
@@ -67,7 +67,7 @@
   "areaSelectHeading": "Select an area",
   "useCurrentLocation": "I'm at the vehicle — use this location",
   "selectedArea": "Selected area",
-  "approxCoords": "Approx. {{lat}}, {{lng}}",
+  "approxCoords": "Approx. {{lat}}, {{lon}}",
   "locationNeeded": "Location needed",
   "locationNeededBody": "Allow location access to set the vehicle area.",
   "locationError": "Location error"

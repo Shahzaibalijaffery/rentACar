@@ -201,7 +201,7 @@ export function AreaSearchField({
           <AppText variant="label">{t('selectedArea')}</AppText>
           <AppText variant="body">{selectedAreaLabel}</AppText>
           <AppText variant="caption" style={styles.coords}>
-            {t('approxCoords', { lat: latitude, lng: longitude })}
+            {t('approxCoords', { lat: latitude, lon: longitude })}
           </AppText>
         </AppCard>
       ) : null}

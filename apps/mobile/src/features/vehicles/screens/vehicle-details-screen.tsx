@@ -140,7 +140,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
             ) : null}
             <RatingSummaryText summary={vehicle.rating} />
             <AppText variant="caption" style={styles.coords}>
-              {t('location', { lat: vehicle.latitude, lng: vehicle.longitude })}
+              {t('location', { lat: vehicle.latitude, lon: vehicle.longitude })}
             </AppText>
 
             {!isArchived ? (

@@ -9,7 +9,7 @@ export class RentalEventsService {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   emit(event: RentalEventType, payload: RentalEventPayload): void {
-    this.logger.debug(`Rental event: ${event} rentalId=${payload.rentalId}`);
+    this.logger.log(`Rental event: ${event} rentalId=${payload.rentalId}`);
     void this.notificationsService.handleRentalEvent(event, payload).catch((error: unknown) => {
       this.logger.error(
         `Failed to dispatch ${event} for rental ${payload.rentalId}`,

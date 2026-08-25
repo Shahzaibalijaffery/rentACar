@@ -20,7 +20,7 @@
   "status": "حالت: {{status}}",
   "availability": "دستیابی: {{value}}",
   "area": "علاقہ: {{area}}",
-  "location": "مقام: {{lat}}، {{lng}}",
+  "location": "مقام: {{lat}}، {{lon}}",
   "photos": "تصاویر",
   "photoPlanHint": "آپ کے پلان پر {{limit}} میں سے {{count}} تصاویر",
   "photoPlanLimit": "آپ کے پلان میں ہر گاڑی پر {{limit}} تصاویر ہو سکتی ہیں۔",
@@ -67,7 +67,7 @@
   "areaSelectHeading": "علاقہ منتخب کریں",
   "useCurrentLocation": "میں گاڑی کے پاس ہوں — یہ مقام استعمال کریں",
   "selectedArea": "منتخب علاقہ",
-  "approxCoords": "تقریباً {{lat}}، {{lng}}",
+  "approxCoords": "تقریباً {{lat}}، {{lon}}",
   "locationNeeded": "مقام درکار ہے",
   "locationNeededBody": "گاڑی کا علاقہ سیٹ کرنے کے لیے مقام کی اجازت دیں۔",
   "locationError": "مقام کی خرابی"
