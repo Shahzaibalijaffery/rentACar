@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
+import { useTranslation } from 'react-i18next';
 import { useResendVerificationMutation, useVerifyEmailMutation } from '@/api/hooks/use-auth';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
@@ -12,6 +13,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyEmail'>;
 
 export function VerifyEmailScreen({ route, navigation }: Props) {
+  const { t } = useTranslation('auth');
   const verifyMutation = useVerifyEmailMutation();
   const resendMutation = useResendVerificationMutation();
   const [token, setToken] = useState('');
@@ -20,55 +22,55 @@ export function VerifyEmailScreen({ route, navigation }: Props) {
   const handleVerify = () => {
     verifyMutation.mutate(token.trim(), {
       onSuccess: () => {
-        Alert.alert('Email verified', 'You can now sign in.', [
-          { text: 'OK', onPress: () => navigation.navigate('Login') },
+        Alert.alert(t('emailVerified'), t('emailVerifiedBody'), [
+          { text: t('common:ok'), onPress: () => navigation.navigate('Login') },
         ]);
       },
       onError: (error) => {
-        Alert.alert('Verification failed', error.message);
+        Alert.alert(t('verificationFailed'), error.message);
       },
     });
   };
 
   const handleResend = () => {
     if (!email) {
-      Alert.alert('Email required', 'Go back to registration or login and provide your email.');
+      Alert.alert(t('emailRequired'), t('emailRequiredBody'));
       return;
     }
 
     resendMutation.mutate(email, {
       onSuccess: (data) => {
-        Alert.alert('Verification email', data.message);
+        Alert.alert(t('verificationEmail'), data.message);
       },
       onError: (error) => {
-        Alert.alert('Could not resend', error.message);
+        Alert.alert(t('couldNotResend'), error.message);
       },
     });
   };
 
   return (
     <ScreenLayout>
-      <AppText variant="title">Verify email</AppText>
+      <AppText variant="title">{t('verifyEmail')}</AppText>
       <AppText variant="caption" style={styles.subtitle}>
-        Enter the verification code sent to {email || 'your email'}.
+        {t('verifyEmailHint', { email: email || t('yourEmail') })}
       </AppText>
 
       <AppInput
         icon="mail"
-        placeholder="Verification code"
+        placeholder={t('verificationCode')}
         value={token}
         onChangeText={setToken}
       />
 
       <AppButton
-        title="Verify email"
+        title={t('verifyEmail')}
         icon="check"
         loading={verifyMutation.isPending}
         onPress={handleVerify}
       />
 
       <AppButton
-        title="Resend verification email"
+        title={t('resendEmail')}
         icon="mail"
         variant="secondary"
         loading={resendMutation.isPending}
@@ -76,7 +78,7 @@ export function VerifyEmailScreen({ route, navigation }: Props) {
       />
 
       <AppButton
-        title="Back to sign in"
+        title={t('backToSignIn')}
         variant="secondary"
         onPress={() => navigation.navigate('Login')}
       />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
@@ -11,6 +12,8 @@ import {
   toVehiclePayload,
   validateVehicleForm,
   vehicleToFormValues,
+  VEHICLE_YEAR_MAX,
+  VEHICLE_YEAR_MIN,
   type VehicleFormValues,
 } from '@/features/vehicles/vehicle-form-utils';
 import type { AppStackParamList } from '@/navigation/types';
@@ -19,6 +22,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'EditVehicle'>;
 
 export function EditVehicleScreen({ navigation, route }: Props) {
+  const { t } = useTranslation('vehicles');
   const { vehicleId } = route.params;
   const vehicleQuery = useVehicleQuery(vehicleId);
   const updateMutation = useUpdateVehicleMutation(vehicleId);
@@ -35,23 +39,26 @@ export function EditVehicleScreen({ navigation, route }: Props) {
 
     const error = validateVehicleForm(values);
     if (error) {
-      Alert.alert('Validation', error);
+      Alert.alert(
+        t('validation'),
+        t(`formErrors.${error}`, { min: VEHICLE_YEAR_MIN, max: VEHICLE_YEAR_MAX }),
+      );
       return;
     }
 
     updateMutation.mutate(toVehiclePayload(values), {
       onSuccess: () => {
-        Alert.alert('Saved', 'Vehicle updated', [
-          { text: 'OK', onPress: () => navigation.goBack() },
+        Alert.alert(t('saved'), t('savedBody'), [
+          { text: t('common:ok'), onPress: () => navigation.goBack() },
         ]);
       },
-      onError: (err) => Alert.alert('Update failed', err.message),
+      onError: (err) => Alert.alert(t('updateFailed'), err.message),
     });
   };
 
   return (
     <KeyboardAwareScroll contentContainerStyle={styles.container}>
-      <AppText variant="title">Edit vehicle</AppText>
+      <AppText variant="title">{t('editVehicle')}</AppText>
       <QueryState
         isLoading={vehicleQuery.isLoading}
         isError={vehicleQuery.isError}
@@ -61,14 +68,14 @@ export function EditVehicleScreen({ navigation, route }: Props) {
           <>
             <VehicleFormFields values={values} onChange={setValues} />
             <AppButton
-              title="Save changes"
+              title={t('saveChanges')}
               loading={updateMutation.isPending}
               onPress={handleSubmit}
             />
           </>
         ) : null}
       </QueryState>
-      <AppButton title="Cancel" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('common:cancel')} variant="secondary" onPress={() => navigation.goBack()} />
     </KeyboardAwareScroll>
   );
 }

@@ -18,6 +18,7 @@ import { AgreementsModule } from './modules/agreements/agreements.module';
 import { GeocodingModule } from './modules/geocoding/geocoding.module';
 import { HandoversModule } from './modules/handovers/handovers.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -25,7 +26,13 @@ import { RatingsModule } from './modules/ratings/ratings.module';
     PrismaModule,
     EmailModule,
     StorageModule,
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 100,
+        skipIf: (context) => context.getType() !== 'http',
+      },
+    ]),
     JwtModule.register({}),
     HealthModule,
     AuthModule,
@@ -37,6 +44,7 @@ import { RatingsModule } from './modules/ratings/ratings.module';
     GeocodingModule,
     HandoversModule,
     RatingsModule,
+    NotificationsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

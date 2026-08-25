@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { RentalSummary } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { StatusBadge } from '@/components/status-badge';
@@ -13,10 +14,9 @@ type RentalListItemProps = {
 };
 
 export function RentalListItem({ rental, perspective, onPress }: RentalListItemProps) {
-  const counterparty =
-    perspective === 'renter'
-      ? { label: 'Owner', name: rental.owner.fullName }
-      : { label: 'Renter', name: rental.renter.fullName };
+  const { t } = useTranslation('rentals');
+  const role = perspective === 'renter' ? t('common:owner') : t('common:renter');
+  const name = perspective === 'renter' ? rental.owner.fullName : rental.renter.fullName;
 
   return (
     <Pressable
@@ -35,20 +35,20 @@ export function RentalListItem({ rental, perspective, onPress }: RentalListItemP
       <View style={styles.metaRow}>
         <AppIcon name="user" size={14} color={colors.textSecondary} />
         <AppText variant="body" style={styles.meta}>
-          {counterparty.label}: {counterparty.name}
+          {t('counterparty', { role, name })}
         </AppText>
       </View>
       <View style={styles.metaRow}>
         <AppIcon name="clock" size={14} color={colors.textSecondary} />
         <AppText variant="caption" style={styles.meta}>
-          Requested {formatRentalDate(rental.createdAt)}
+          {t('requested', { date: formatRentalDate(rental.createdAt) })}
         </AppText>
       </View>
       {rental.completedAt ? (
         <View style={styles.metaRow}>
           <AppIcon name="check" size={14} color={colors.textSecondary} />
           <AppText variant="caption" style={styles.meta}>
-            Completed {formatRentalDate(rental.completedAt)}
+            {t('completedOn', { date: formatRentalDate(rental.completedAt) })}
           </AppText>
         </View>
       ) : null}

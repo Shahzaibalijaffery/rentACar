@@ -1,0 +1,33 @@
+{
+  "title": "میرا پروفائل",
+  "activeProfile": "فعال پروفائل",
+  "activeProfileHint": "ہوم اسکرین کے لیے کرایہ دار یا مالک موڈ بدلیں۔",
+  "fullName": "پورا نام",
+  "saveName": "نام محفوظ کریں",
+  "nameEmpty": "نام خالی نہیں ہو سکتا",
+  "validation": "تفصیل چیک کریں",
+  "saved": "محفوظ ہو گیا",
+  "savedBody": "پروفائل اپ ڈیٹ ہو گیا",
+  "updateFailed": "اپ ڈیٹ نہیں ہو سکا",
+  "photoError": "تصویر کی خرابی",
+  "photoErrorBody": "منتخب تصویر نہیں پڑھی جا سکی",
+  "uploadFailed": "اپ لوڈ نہیں ہو سکی",
+  "cnic": "شناختی کارڈ",
+  "cnicNote": "نجی — صرف معاہدے میں کرایہ کے فریقین کو دکھے گا۔",
+  "phone": "فون",
+  "phoneNote": "صرف درخواست منظور ہونے کے بعد دوسرے فریق کو دکھے گا۔",
+  "plan": "پلان",
+  "listedVehicles": "درج گاڑیاں",
+  "photosPerListing": "ہر گاڑی کی تصاویر",
+  "evidencePhotos": "کرایہ کی ثبوتی تصاویر",
+  "upTo": "{{count}} تک",
+  "status": "حالت",
+  "emailVerified": "ای میل تصدیق",
+  "memberSince": "رکنیت سے",
+  "plans": {
+    "FREE": "اسٹارٹر",
+    "LITE": "لائٹ",
+    "PRO": "پرو",
+    "BUSINESS": "بزنس"
+  }
+}

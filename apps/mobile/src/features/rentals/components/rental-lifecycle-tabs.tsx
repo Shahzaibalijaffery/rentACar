@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { RentalLifecycleFilter } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { colors, radii, spacing } from '@/theme';
@@ -9,13 +10,15 @@ type RentalLifecycleTabsProps = {
   onChange: (value: RentalLifecycleFilter) => void;
 };
 
-const OPTIONS: { value: RentalLifecycleFilter; label: string; icon: AppIconName }[] = [
-  { value: 'all', label: 'All', icon: 'list' },
-  { value: 'active', label: 'Active', icon: 'clock' },
-  { value: 'completed', label: 'Completed', icon: 'check' },
+const OPTIONS: { value: RentalLifecycleFilter; labelKey: 'all' | 'active' | 'completed'; icon: AppIconName }[] = [
+  { value: 'all', labelKey: 'all', icon: 'list' },
+  { value: 'active', labelKey: 'active', icon: 'clock' },
+  { value: 'completed', labelKey: 'completed', icon: 'check' },
 ];
 
 export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProps) {
+  const { t } = useTranslation('rentals');
+
   return (
     <View style={styles.track}>
       {OPTIONS.map((option) => {
@@ -35,7 +38,7 @@ export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProp
                 color={selected ? colors.primary : colors.textSecondary}
               />
               <AppText variant="subtitle" style={selected ? styles.tabTextSelected : styles.tabText}>
-                {option.label}
+                {t(`tabs.${option.labelKey}`)}
               </AppText>
             </View>
           </Pressable>

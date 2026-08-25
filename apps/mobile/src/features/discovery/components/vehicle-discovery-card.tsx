@@ -1,5 +1,6 @@
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import type { VehicleDiscoveryItem } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
@@ -11,6 +12,7 @@ type VehicleDiscoveryCardProps = {
 };
 
 export function VehicleDiscoveryCard({ vehicle, onPress }: VehicleDiscoveryCardProps) {
+  const { t } = useTranslation('discovery');
   const coverPhoto = vehicle.photos[0];
 
   return (
@@ -25,7 +27,7 @@ export function VehicleDiscoveryCard({ vehicle, onPress }: VehicleDiscoveryCardP
             <View style={styles.badge}>
               <AppIcon name="camera" size={12} color={colors.textOnPrimary} />
               <AppText variant="caption" style={styles.badgeText}>
-                {vehicle.photos.length === 1 ? '1 photo' : `${vehicle.photos.length} photos`}
+                {t('photoCount', { count: vehicle.photos.length })}
               </AppText>
             </View>
           ) : null}
@@ -34,7 +36,7 @@ export function VehicleDiscoveryCard({ vehicle, onPress }: VehicleDiscoveryCardP
         <View style={styles.photoPlaceholder}>
           <AppIcon name="camera" size={28} color={colors.textSecondary} />
           <AppText variant="caption" style={styles.placeholderText}>
-            No photo
+            {t('noPhoto')}
           </AppText>
         </View>
       )}
@@ -63,7 +65,7 @@ export function VehicleDiscoveryCard({ vehicle, onPress }: VehicleDiscoveryCardP
             </AppText>
           </View>
           <AppText variant="caption" style={styles.cta}>
-            View details
+            {t('viewDetails')}
           </AppText>
         </View>
       </View>

@@ -11,6 +11,10 @@ build/
 .env.local
 .env.*.local
 
+# Firebase Admin service account (never commit)
+*firebase-adminsdk*.json
+apps/api/firebase-service-account.json
+
 # Logs
 logs/
 *.log

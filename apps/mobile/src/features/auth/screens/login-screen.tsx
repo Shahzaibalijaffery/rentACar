@@ -7,6 +7,8 @@ import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { FormField } from '@/components/form-field';
 import { ScreenLayout } from '@/components/screen-layout';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { useLoginMutation } from '@/api/hooks/use-auth';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
@@ -14,6 +16,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
+  const { t } = useTranslation('auth');
   const loginMutation = useLoginMutation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +26,7 @@ export function LoginScreen({ navigation }: Props) {
       { email, password },
       {
         onError: (error) => {
-          Alert.alert('Sign in failed', error.message);
+          Alert.alert(t('signInFailed'), error.message);
         },
       },
     );
@@ -36,32 +39,32 @@ export function LoginScreen({ navigation }: Props) {
           <AppIcon name="car" size={28} color={colors.primary} />
         </View>
         <AppText variant="display" style={styles.brand}>
-          RentACar
+          {t('common:appName')}
         </AppText>
         <AppText variant="body" style={styles.subtitle}>
-          Peer-to-peer car rental, simplified.
+          {t('tagline')}
         </AppText>
       </View>
 
       <AppCard>
-        <AppText variant="heading">Welcome back</AppText>
+        <AppText variant="heading">{t('welcomeBack')}</AppText>
         <AppText variant="caption" style={styles.cardHint}>
-          Sign in to continue as a renter or owner.
+          {t('signInHint')}
         </AppText>
 
         <FormField
-          label="Email"
+          label={t('email')}
           icon="mail"
-          placeholder="you@example.com"
+          placeholder={t('emailPlaceholder')}
           keyboardType="email-address"
           autoComplete="email"
           value={email}
           onChangeText={setEmail}
         />
         <FormField
-          label="Password"
+          label={t('password')}
           icon="lock"
-          placeholder="Your password"
+          placeholder={t('passwordPlaceholder')}
           secureTextEntry
           autoComplete="password"
           value={password}
@@ -69,7 +72,7 @@ export function LoginScreen({ navigation }: Props) {
         />
 
         <AppButton
-          title="Sign in"
+          title={t('signIn')}
           icon="key"
           loading={loginMutation.isPending}
           onPress={handleLogin}
@@ -77,11 +80,12 @@ export function LoginScreen({ navigation }: Props) {
       </AppCard>
 
       <AppButton
-        title="Create an account"
+        title={t('createAccount')}
         icon="plus"
         variant="secondary"
         onPress={() => navigation.navigate('Register')}
       />
+      <LanguageSwitcher />
     </ScreenLayout>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
@@ -16,6 +17,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'Discovery'>;
 const RADIUS_OPTIONS = [5, 10, 25];
 
 export function DiscoveryScreen({ navigation }: Props) {
+  const { t } = useTranslation('discovery');
   const {
     location,
     permissionState,
@@ -87,13 +89,13 @@ export function DiscoveryScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <AppText variant="caption" style={styles.hint}>
-        Find available vehicles near you. Exact owner locations are never shown publicly.
+        {t('hint')}
       </AppText>
 
       {isLocationLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator color={colors.primary} />
-          <AppText variant="caption">Getting your location…</AppText>
+          <AppText variant="caption">{t('gettingLocation')}</AppText>
         </View>
       ) : null}
 
@@ -105,25 +107,22 @@ export function DiscoveryScreen({ navigation }: Props) {
 
       {showLocationFallback ? (
         <View style={styles.fallback}>
-          <AppText variant="body">
-            Location helps show nearby vehicles. You can still search by entering approximate
-            coordinates.
-          </AppText>
+          <AppText variant="body">{t('locationFallback')}</AppText>
           <AppInput
-            placeholder="Latitude"
+            placeholder={t('latitude')}
             keyboardType="decimal-pad"
             value={manualLatitude}
             onChangeText={setManualLatitude}
           />
           <AppInput
-            placeholder="Longitude"
+            placeholder={t('longitude')}
             keyboardType="decimal-pad"
             value={manualLongitude}
             onChangeText={setManualLongitude}
           />
-          <AppButton title="Search this area" onPress={handleManualSearch} />
+          <AppButton title={t('searchArea')} onPress={handleManualSearch} />
           <AppButton
-            title="Try location again"
+            title={t('tryLocation')}
             variant="secondary"
             onPress={() => void requestLocation()}
           />
@@ -133,12 +132,12 @@ export function DiscoveryScreen({ navigation }: Props) {
       {location ? (
         <>
           <View style={styles.filters}>
-            <AppText variant="label">Radius</AppText>
+            <AppText variant="label">{t('radius')}</AppText>
             <View style={styles.radiusRow}>
               {RADIUS_OPTIONS.map((option) => (
                 <AppButton
                   key={option}
-                  title={`${option} km`}
+                  title={t('km', { count: option })}
                   variant={radiusKm === option ? 'primary' : 'secondary'}
                   onPress={() => setRadiusKm(option)}
                 />
@@ -146,18 +145,18 @@ export function DiscoveryScreen({ navigation }: Props) {
             </View>
             <AppInput
               icon="search"
-              placeholder="Filter by make"
+              placeholder={t('filterMake')}
               value={makeFilter}
               onChangeText={setMakeFilter}
             />
             <AppInput
               icon="car"
-              placeholder="Filter by model"
+              placeholder={t('filterModel')}
               value={modelFilter}
               onChangeText={setModelFilter}
             />
             <AppButton
-              title="Refresh"
+              title={t('common:refresh')}
               icon="refresh"
               variant="secondary"
               onPress={() => void discoveryQuery.refetch()}
@@ -188,14 +187,14 @@ export function DiscoveryScreen({ navigation }: Props) {
               }
               ListHeaderComponent={
                 <AppText variant="caption" style={styles.meta}>
-                  {total} vehicle{total === 1 ? '' : 's'} within {radiusKm} km
+                  {t('nearbyCount', { count: total, radius: radiusKm })}
                 </AppText>
               }
               ListEmptyComponent={
                 <EmptyState
                   icon="compass"
-                  title="No vehicles nearby"
-                  message="No available vehicles found nearby. Try increasing the radius or adjusting filters."
+                  title={t('emptyNearbyTitle')}
+                  message={t('emptyNearbyBody')}
                 />
               }
               renderItem={({ item }) => (

@@ -95,6 +95,7 @@ export class RentalsService {
       ownerId: rental.ownerId,
       vehicleId: rental.vehicleId,
       status: rental.status,
+      actorId: renterId,
     });
 
     return { data: summary };
@@ -182,6 +183,7 @@ export class RentalsService {
       ownerId: updated.ownerId,
       vehicleId: updated.vehicleId,
       status: updated.status,
+      actorId: userId,
       completedById: userId,
       ...(updated.completedAt ? { completedAt: updated.completedAt.toISOString() } : {}),
     });
@@ -252,6 +254,7 @@ export class RentalsService {
       ownerId: updated.ownerId,
       vehicleId: updated.vehicleId,
       status: updated.status,
+      actorId: ownerId,
     });
 
     return { data: detail };
@@ -276,6 +279,7 @@ export class RentalsService {
       ownerId: updated.ownerId,
       vehicleId: updated.vehicleId,
       status: updated.status,
+      actorId: ownerId,
     });
 
     return { data: summary };
@@ -321,6 +325,7 @@ export class RentalsService {
       ownerId: updated.ownerId,
       vehicleId: updated.vehicleId,
       status: updated.status,
+      actorId: userId,
     });
 
     return { data: summary };

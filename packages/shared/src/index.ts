@@ -75,3 +75,13 @@ export type {
   VehiclePublicView,
   VehicleStatus,
 } from './vehicle.types';
+export { NOTIFICATION_TYPES, isNotificationType } from './notification.types';
+export type {
+  DevicePlatform,
+  NotificationType,
+  NotificationUnreadCount,
+  NotificationView,
+  RealtimeEvent,
+  RealtimeEventType,
+  RegisterDeviceTokenRequest,
+} from './notification.types';

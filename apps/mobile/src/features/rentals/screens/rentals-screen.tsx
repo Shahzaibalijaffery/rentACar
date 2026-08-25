@@ -2,6 +2,7 @@ import { useLayoutEffect, useState } from 'react';
 import { FlatList, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RentalLifecycleFilter } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/empty-state';
 import { QueryState } from '@/components/query-state';
 import { ScreenLayout } from '@/components/screen-layout';
@@ -14,53 +15,34 @@ import { spacing } from '@/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Rentals'>;
 
-function emptyCopy(
-  perspective: 'owner' | 'renter',
-  lifecycle: RentalLifecycleFilter,
-): { title: string; message: string } {
-  if (lifecycle === 'active') {
-    return {
-      title: 'No active rentals',
-      message:
-        perspective === 'owner'
-          ? 'Active rentals on your vehicles will show up here.'
-          : 'When a rental is in progress, it will show up here.',
-    };
-  }
-
-  if (lifecycle === 'completed') {
-    return {
-      title: 'No completed rentals',
-      message:
-        perspective === 'owner'
-          ? 'Completed trips on your vehicles will appear here.'
-          : 'Finished trips will appear in this list.',
-    };
-  }
-
-  return perspective === 'owner'
-    ? {
-        title: 'No rentals yet',
-        message: 'When renters request your vehicles, they will appear here.',
-      }
-    : {
-        title: 'No rentals yet',
-        message: 'Discover vehicles and send your first rental request.',
-      };
-}
-
 export function RentalsScreen({ navigation }: Props) {
+  const { t } = useTranslation('rentals');
   const isOwnerMode = useAppModeStore((state) => state.activeMode) === 'owner';
   const perspective = isOwnerMode ? 'owner' : 'renter';
   const [lifecycle, setLifecycle] = useState<RentalLifecycleFilter>('all');
   const mineQuery = useMyRentalsQuery(lifecycle, !isOwnerMode);
   const incomingQuery = useIncomingRentalsQuery(lifecycle, isOwnerMode);
   const rentalsQuery = isOwnerMode ? incomingQuery : mineQuery;
-  const empty = emptyCopy(perspective, lifecycle);
+  const empty =
+    lifecycle === 'active'
+      ? {
+          title: t('emptyActiveTitle'),
+          message: perspective === 'owner' ? t('emptyActiveOwner') : t('emptyActiveRenter'),
+        }
+      : lifecycle === 'completed'
+        ? {
+            title: t('emptyCompletedTitle'),
+            message:
+              perspective === 'owner' ? t('emptyCompletedOwner') : t('emptyCompletedRenter'),
+          }
+        : {
+            title: t('emptyAllTitle'),
+            message: perspective === 'owner' ? t('emptyAllOwner') : t('emptyAllRenter'),
+          };
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: 'Rentals' });
-  }, [navigation]);
+    navigation.setOptions({ title: t('title') });
+  }, [navigation, t]);
 
   return (
     <ScreenLayout scroll={false} contentStyle={styles.content}>

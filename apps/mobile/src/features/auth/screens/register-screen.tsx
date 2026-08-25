@@ -6,6 +6,7 @@ import { AppCard } from '@/components/app-card';
 import { AppText } from '@/components/app-text';
 import { FormField } from '@/components/form-field';
 import { ScreenLayout } from '@/components/screen-layout';
+import { useTranslation } from 'react-i18next';
 import { useRegisterMutation } from '@/api/hooks/use-auth';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
@@ -13,6 +14,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
 export function RegisterScreen({ navigation }: Props) {
+  const { t } = useTranslation('auth');
   const registerMutation = useRegisterMutation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,12 +27,12 @@ export function RegisterScreen({ navigation }: Props) {
       { email, password, fullName, cnic, phone },
       {
         onSuccess: () => {
-          Alert.alert('Account created', 'You can sign in now.', [
-            { text: 'OK', onPress: () => navigation.navigate('Login') },
+          Alert.alert(t('accountCreated'), t('accountCreatedBody'), [
+            { text: t('common:ok'), onPress: () => navigation.navigate('Login') },
           ]);
         },
         onError: (error) => {
-          Alert.alert('Registration failed', error.message);
+          Alert.alert(t('registrationFailed'), error.message);
         },
       },
     );
@@ -39,52 +41,52 @@ export function RegisterScreen({ navigation }: Props) {
   return (
     <ScreenLayout>
       <View style={styles.header}>
-        <AppText variant="title">Create your account</AppText>
+        <AppText variant="title">{t('createAccountTitle')}</AppText>
         <AppText variant="body" style={styles.subtitle}>
-          One account works for both renting and listing vehicles.
+          {t('createAccountHint')}
         </AppText>
       </View>
 
       <AppCard>
         <FormField
-          label="Full name"
+          label={t('fullName')}
           icon="user"
-          placeholder="Your full name"
+          placeholder={t('fullNamePlaceholder')}
           value={fullName}
           onChangeText={setFullName}
           autoCapitalize="words"
         />
         <FormField
-          label="Email"
+          label={t('email')}
           icon="mail"
-          placeholder="you@example.com"
+          placeholder={t('emailPlaceholder')}
           keyboardType="email-address"
           autoComplete="email"
           value={email}
           onChangeText={setEmail}
         />
         <FormField
-          label="CNIC"
+          label={t('cnic')}
           icon="id"
-          placeholder="35201-1234567-1"
+          placeholder={t('cnicPlaceholder')}
           keyboardType="number-pad"
           value={cnic}
           onChangeText={setCnic}
-          hint="Used to verify identity during rentals."
+          hint={t('cnicHint')}
         />
         <FormField
-          label="Phone"
+          label={t('phone')}
           icon="phone"
-          placeholder="03001234567"
+          placeholder={t('phonePlaceholder')}
           keyboardType="phone-pad"
           value={phone}
           onChangeText={setPhone}
-          hint="Shared with the other party only after a request is accepted."
+          hint={t('phoneHint')}
         />
         <FormField
-          label="Password"
+          label={t('password')}
           icon="lock"
-          placeholder="At least 8 characters"
+          placeholder={t('passwordNewPlaceholder')}
           secureTextEntry
           autoComplete="password-new"
           value={password}
@@ -92,7 +94,7 @@ export function RegisterScreen({ navigation }: Props) {
         />
 
         <AppButton
-          title="Create account"
+          title={t('createAccountCta')}
           icon="plus"
           loading={registerMutation.isPending}
           onPress={handleRegister}
@@ -100,7 +102,7 @@ export function RegisterScreen({ navigation }: Props) {
       </AppCard>
 
       <AppButton
-        title="Already have an account? Sign in"
+        title={t('alreadyHaveAccount')}
         variant="ghost"
         onPress={() => navigation.navigate('Login')}
       />

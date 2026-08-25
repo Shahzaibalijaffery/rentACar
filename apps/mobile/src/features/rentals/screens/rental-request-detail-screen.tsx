@@ -1,5 +1,6 @@
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { QueryState } from '@/components/query-state';
@@ -30,6 +31,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'RentalRequestDetail'>;
 
 export function RentalRequestDetailScreen({ navigation, route }: Props) {
+  const { t } = useTranslation('rentals');
   const { rentalId, perspective } = route.params;
   const rentalQuery = useRentalQuery(rentalId);
   const profileQuery = useProfileQuery();
@@ -103,27 +105,24 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   const handleAccept = () => {
     acceptMutation.mutate(undefined, {
       onSuccess: () => {
-        Alert.alert(
-          'Request accepted',
-          'You can now call the renter to arrange pickup. Start handover photos when you meet.',
-        );
+        Alert.alert(t('acceptedTitle'), t('acceptedBody'));
       },
-      onError: (error) => Alert.alert('Accept failed', error.message),
+      onError: (error) => Alert.alert(t('acceptFailed'), error.message),
     });
   };
 
   const handleReject = () => {
-    Alert.alert('Reject request', 'Are you sure you want to reject this rental request?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('rejectTitle'), t('rejectBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
       {
-        text: 'Reject',
+        text: t('rejectRequest'),
         style: 'destructive',
         onPress: () => {
           rejectMutation.mutate(undefined, {
             onSuccess: () => {
-              Alert.alert('Request rejected', 'The rental request has been rejected.');
+              Alert.alert(t('rejectedTitle'), t('rejectedBody'));
             },
-            onError: (error) => Alert.alert('Reject failed', error.message),
+            onError: (error) => Alert.alert(t('rejectFailed'), error.message),
           });
         },
       },
@@ -131,65 +130,55 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   };
 
   const handleCancel = () => {
-    const title = isPending ? 'Cancel request' : 'Cancel rental';
-    const message = isPending
-      ? 'Are you sure you want to cancel this rental request?'
-      : 'Are you sure you want to cancel this rental? The other party will no longer be able to continue.';
-
-    Alert.alert(title, message, [
-      { text: 'Keep it', style: 'cancel' },
-      {
-        text: isPending ? 'Cancel request' : 'Cancel rental',
-        style: 'destructive',
-        onPress: () => {
-          cancelMutation.mutate(undefined, {
-            onSuccess: () => {
-              Alert.alert(
-                isPending ? 'Request cancelled' : 'Rental cancelled',
-                isPending
-                  ? 'Your rental request has been cancelled.'
-                  : 'This rental has been cancelled.',
-              );
-            },
-            onError: (error) => Alert.alert('Cancel failed', error.message),
-          });
+    Alert.alert(
+      isPending ? t('cancelRequestTitle') : t('cancelRentalTitle'),
+      isPending ? t('cancelRequestBody') : t('cancelRentalBody'),
+      [
+        { text: t('common:keep'), style: 'cancel' },
+        {
+          text: isPending ? t('cancelRequest') : t('cancelRental'),
+          style: 'destructive',
+          onPress: () => {
+            cancelMutation.mutate(undefined, {
+              onSuccess: () => {
+                Alert.alert(
+                  isPending ? t('cancelledRequestTitle') : t('cancelledRentalTitle'),
+                  isPending ? t('cancelledRequestBody') : t('cancelledRentalBody'),
+                );
+              },
+              onError: (error) => Alert.alert(t('cancelFailed'), error.message),
+            });
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleApproveAgreement = () => {
-    Alert.alert('Approve agreement', 'Confirm that you approve this rental agreement.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('approveAgreementTitle'), t('approveAgreementBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
       {
-        text: 'Approve',
+        text: t('common:approve'),
         onPress: () => {
           approveAgreementMutation.mutate(undefined, {
             onSuccess: (updated) => {
               if (updated.status === 'APPROVED') {
                 if (isOwnerView) {
-                  Alert.alert(
-                    'Agreement approved',
-                    'Pickup is ready. Take photos of the vehicle condition next.',
-                    [
-                      {
-                        text: 'Take pickup photos',
-                        onPress: () => openPickupPhotos(navigation, 'owner'),
-                      },
-                      { text: 'Later', style: 'cancel' },
-                    ],
-                  );
+                  Alert.alert(t('agreementApprovedTitle'), t('agreementApprovedOwner'), [
+                    {
+                      text: t('takePickupPhotos'),
+                      onPress: () => openPickupPhotos(navigation, 'owner'),
+                    },
+                    { text: t('common:later'), style: 'cancel' },
+                  ]);
                 } else {
-                  Alert.alert(
-                    'Agreement approved',
-                    'The owner will photograph the vehicle before pickup.',
-                  );
+                  Alert.alert(t('agreementApprovedTitle'), t('agreementApprovedRenter'));
                 }
               } else {
-                Alert.alert('Approval recorded', 'Waiting for the other party to approve.');
+                Alert.alert(t('approvalRecorded'), t('approvalRecordedBody'));
               }
             },
-            onError: (error) => Alert.alert('Approval failed', error.message),
+            onError: (error) => Alert.alert(t('approvalFailed'), error.message),
           });
         },
       },
@@ -197,24 +186,20 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   };
 
   const handleComplete = () => {
-    Alert.alert(
-      'Complete rental',
-      'Confirm that the vehicle has been returned and this rental should be marked complete.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Complete rental',
-          onPress: () => {
-            completeMutation.mutate(undefined, {
-              onSuccess: () => {
-                Alert.alert('Rental completed', 'You can now rate the renter. Tap the stars below.');
-              },
-              onError: (error) => Alert.alert('Completion failed', error.message),
-            });
-          },
+    Alert.alert(t('completeTitle'), t('completeBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
+      {
+        text: t('completeRental'),
+        onPress: () => {
+          completeMutation.mutate(undefined, {
+            onSuccess: () => {
+              Alert.alert(t('completedTitle'), t('completedBody'));
+            },
+            onError: (error) => Alert.alert(t('completeFailed'), error.message),
+          });
         },
-      ],
-    );
+      },
+    ]);
   };
 
   return (
@@ -229,13 +214,15 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
             <AppText variant="title">
               {rental.vehicle.year} {rental.vehicle.make} {rental.vehicle.model}
             </AppText>
-            <PhotoCover photos={rental.vehicle.photos} emptyLabel="No vehicle photos" />
-            <AppText variant="body">Status: {getRentalStatusLabel(rental.status)}</AppText>
+            <PhotoCover photos={rental.vehicle.photos} emptyLabel={t('noVehiclePhotos')} />
+            <AppText variant="body">
+              {t('statusLabel', { status: getRentalStatusLabel(rental.status) })}
+            </AppText>
 
             {nextStep ? <RentalNextStepCard step={nextStep} /> : null}
 
             <RentalRequestProfileCard
-              label={isOwnerView ? 'Renter' : 'Owner'}
+              label={isOwnerView ? t('common:renter') : t('common:owner')}
               profile={isOwnerView ? rental.renterProfile : rental.ownerProfile}
               phone={isOwnerView ? rental.contact?.renterPhone : rental.contact?.ownerPhone}
             />
@@ -243,12 +230,12 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
             {isOwnerView && isPending ? (
               <View style={styles.actions}>
                 <AppButton
-                  title="Accept request"
+                  title={t('acceptRequest')}
                   loading={acceptMutation.isPending}
                   onPress={handleAccept}
                 />
                 <AppButton
-                  title="Reject request"
+                  title={t('rejectRequest')}
                   variant="secondary"
                   loading={rejectMutation.isPending}
                   onPress={handleReject}
@@ -258,7 +245,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
             {!isOwnerView && isPending ? (
               <AppButton
-                title="Cancel request"
+                title={t('cancelRequest')}
                 variant="secondary"
                 loading={cancelMutation.isPending}
                 onPress={handleCancel}
@@ -267,7 +254,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
             {canCancelAfterAccept ? (
               <AppButton
-                title="Cancel rental"
+                title={t('cancelRental')}
                 variant="secondary"
                 loading={cancelMutation.isPending}
                 onPress={handleCancel}
@@ -276,14 +263,14 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
             {isOwnerView && isAccepted && !agreement ? (
               <AppButton
-                title="Create agreement"
+                title={t('createAgreement')}
                 onPress={() => navigation.navigate('CreateAgreement', { rentalId })}
               />
             ) : null}
 
             {canApproveAgreement ? (
               <AppButton
-                title="Approve agreement"
+                title={t('approveAgreement')}
                 loading={approveAgreementMutation.isPending}
                 onPress={handleApproveAgreement}
               />
@@ -291,7 +278,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
             {isOwnerView && (isAccepted || isPickupPending) ? (
               <AppButton
-                title="Start pickup handover"
+                title={t('startPickup')}
                 loading={isOpening}
                 onPress={() => openPickupPhotos(navigation, 'owner')}
               />
@@ -300,9 +287,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
             {(isPickupApprovalPending || isActive || isFinished) && handover ? (
               <AppButton
                 title={
-                  isPickupApprovalPending && !isOwnerView
-                    ? 'Review & approve pickup photos'
-                    : 'View pickup photos'
+                  isPickupApprovalPending && !isOwnerView ? t('reviewPickup') : t('viewPickup')
                 }
                 onPress={() => openPickupPhotos(navigation, perspective)}
               />
@@ -310,26 +295,36 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
             {isActive && isOwnerView ? (
               <AppButton
-                title="Complete rental"
+                title={t('completeRental')}
                 loading={completeMutation.isPending}
                 onPress={handleComplete}
               />
             ) : null}
 
-            <AppText variant="label">Details</AppText>
-            <AppText variant="body">Color: {rental.vehicle.color}</AppText>
+            <AppText variant="label">{t('common:details')}</AppText>
+            <AppText variant="body">{t('color', { color: rental.vehicle.color })}</AppText>
             {rental.vehicle.areaLabel ? (
-              <AppText variant="body">Area: {rental.vehicle.areaLabel}</AppText>
+              <AppText variant="body">{t('area', { area: rental.vehicle.areaLabel })}</AppText>
             ) : null}
             <AppText variant="body">
-              {isOwnerView ? 'Renter' : 'Owner'}:{' '}
-              {isOwnerView ? rental.renter.fullName : rental.owner.fullName}
+              {t('counterparty', {
+                role: isOwnerView ? t('common:renter') : t('common:owner'),
+                name: isOwnerView ? rental.renter.fullName : rental.owner.fullName,
+              })}
             </AppText>
-            <AppText variant="body">Requested: {formatRentalDate(rental.createdAt)}</AppText>
-            <AppText variant="body">Start date: {formatRentalDate(rental.startDate)}</AppText>
-            <AppText variant="body">End date: {formatRentalDate(rental.endDate)}</AppText>
+            <AppText variant="body">
+              {t('requestedOn', { date: formatRentalDate(rental.createdAt) })}
+            </AppText>
+            <AppText variant="body">
+              {t('startDate', { date: formatRentalDate(rental.startDate) })}
+            </AppText>
+            <AppText variant="body">
+              {t('endDate', { date: formatRentalDate(rental.endDate) })}
+            </AppText>
             {isFinished && rental.completedAt ? (
-              <AppText variant="body">Completed: {formatRentalDate(rental.completedAt)}</AppText>
+              <AppText variant="body">
+                {t('completedDate', { date: formatRentalDate(rental.completedAt) })}
+              </AppText>
             ) : null}
 
             {isFinished && ratings ? (
@@ -338,7 +333,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
 
             {agreement ? (
               <AppButton
-                title="View full agreement"
+                title={t('viewAgreement')}
                 variant="secondary"
                 onPress={() =>
                   navigation.navigate('AgreementDetail', {
@@ -353,7 +348,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
         ) : null}
       </QueryState>
 
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('common:back')} variant="secondary" onPress={() => navigation.goBack()} />
     </ScrollView>
   );
 }

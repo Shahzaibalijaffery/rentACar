@@ -1,5 +1,6 @@
-import { StyleSheet, View } from 'react-native';
-import { getUserPlanLabel, resolveUserPlan, type UserPlan } from '@rentacar/shared';
+import { I18nManager, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { resolveUserPlan, type UserPlan } from '@rentacar/shared';
 import { AppText } from '@/components/app-text';
 import { colors, radii, spacing } from '@/theme';
 
@@ -16,6 +17,7 @@ const planColors: Record<UserPlan, { bg: string; text: string }> = {
 };
 
 export function PlanBadge({ plan, onPrimary = false }: PlanBadgeProps) {
+  const { t } = useTranslation('profile');
   const resolved = resolveUserPlan(plan);
   const palette = onPrimary
     ? { bg: 'rgba(255, 255, 255, 0.22)', text: colors.textOnPrimary }
@@ -23,8 +25,11 @@ export function PlanBadge({ plan, onPrimary = false }: PlanBadgeProps) {
 
   return (
     <View style={[styles.badge, { backgroundColor: palette.bg }]}>
-      <AppText variant="label" style={[styles.label, { color: palette.text }]}>
-        {getUserPlanLabel(resolved)}
+      <AppText
+        variant="label"
+        style={[styles.label, I18nManager.isRTL ? styles.labelRtl : null, { color: palette.text }]}
+      >
+        {t(`plans.${resolved}`)}
       </AppText>
     </View>
   );
@@ -40,5 +45,9 @@ const styles = StyleSheet.create({
   label: {
     textTransform: 'uppercase',
     letterSpacing: 0.4,
+  },
+  labelRtl: {
+    textTransform: 'none',
+    letterSpacing: 0,
   },
 });

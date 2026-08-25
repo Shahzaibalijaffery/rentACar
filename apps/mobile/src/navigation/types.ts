@@ -6,6 +6,7 @@ export type AuthStackParamList = {
 
 export type AppStackParamList = {
   Home: undefined;
+  Notifications: undefined;
   ProfileSearch: undefined;
   Discovery: undefined;
   DiscoveryVehicleDetail: { vehicleId: string; distanceLabel?: string };

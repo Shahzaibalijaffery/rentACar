@@ -1,5 +1,5 @@
-const MIN_YEAR = 1980;
-const MAX_YEAR = new Date().getFullYear() + 1;
+export const VEHICLE_YEAR_MIN = 1980;
+export const VEHICLE_YEAR_MAX = new Date().getFullYear() + 1;
 
 export type VehicleFormValues = {
   make: string;
@@ -11,28 +11,36 @@ export type VehicleFormValues = {
   areaLabel: string;
 };
 
-export function validateVehicleForm(values: VehicleFormValues): string | null {
-  if (!values.make.trim()) return 'Make is required';
-  if (!values.model.trim()) return 'Model is required';
-  if (!values.color.trim()) return 'Color is required';
+export type VehicleFormErrorCode =
+  | 'makeRequired'
+  | 'modelRequired'
+  | 'colorRequired'
+  | 'areaRequired'
+  | 'yearRange'
+  | 'areaSelect';
+
+export function validateVehicleForm(values: VehicleFormValues): VehicleFormErrorCode | null {
+  if (!values.make.trim()) return 'makeRequired';
+  if (!values.model.trim()) return 'modelRequired';
+  if (!values.color.trim()) return 'colorRequired';
 
   if (!values.areaLabel.trim()) {
-    return 'Search and select the area where the vehicle is usually kept';
+    return 'areaRequired';
   }
 
   const year = Number(values.year);
-  if (!Number.isInteger(year) || year < MIN_YEAR || year > MAX_YEAR) {
-    return `Year must be between ${MIN_YEAR} and ${MAX_YEAR}`;
+  if (!Number.isInteger(year) || year < VEHICLE_YEAR_MIN || year > VEHICLE_YEAR_MAX) {
+    return 'yearRange';
   }
 
   const latitude = Number(values.latitude);
   if (Number.isNaN(latitude) || latitude < -90 || latitude > 90) {
-    return 'Select an area from search results or use the vehicle location button';
+    return 'areaSelect';
   }
 
   const longitude = Number(values.longitude);
   if (Number.isNaN(longitude) || longitude < -180 || longitude > 180) {
-    return 'Select an area from search results or use the vehicle location button';
+    return 'areaSelect';
   }
 
   return null;

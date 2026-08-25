@@ -9,6 +9,7 @@ import type {
 import { apiRequest } from '@/api/client';
 import { apiUploadFile } from '@/api/upload';
 import { authKeys } from '@/api/keys/auth.keys';
+import { notificationKeys } from '@/api/keys/notification.keys';
 import { getRefreshToken } from '@/services/secure-storage';
 import {
   clearStoredSession,
@@ -16,6 +17,7 @@ import {
   restoreSessionFromStorage as restoreStoredSession,
 } from '@/services/session-service';
 import { useAuthStore } from '@/stores/auth-store';
+import { stopAndroidPush } from '@/features/notifications/android-push';
 
 type RegisterInput = {
   email: string;
@@ -135,8 +137,10 @@ export function useLogoutMutation() {
       }
     },
     onSettled: async () => {
+      await stopAndroidPush();
       await clearStoredSession();
       queryClient.removeQueries({ queryKey: authKeys.all });
+      queryClient.removeQueries({ queryKey: notificationKeys.all });
     },
   });
 }

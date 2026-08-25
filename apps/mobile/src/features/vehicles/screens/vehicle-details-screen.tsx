@@ -2,6 +2,7 @@ import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getPlanLimits } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { PhotoCover } from '@/components/photo-cover';
@@ -23,6 +24,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'VehicleDetails'>;
 
 export function VehicleDetailsScreen({ navigation, route }: Props) {
+  const { t } = useTranslation('vehicles');
   const { vehicleId } = route.params;
   const vehicleQuery = useVehicleQuery(vehicleId);
   const ratingsQuery = useVehicleRatingsQuery(vehicleId);
@@ -43,16 +45,13 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
 
     const next = vehicle.availability === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
     availabilityMutation.mutate(next, {
-      onError: (error) => Alert.alert('Could not update availability', error.message),
+      onError: (error) => Alert.alert(t('availabilityFailed'), error.message),
     });
   };
 
   const handleAddPhoto = async () => {
     if (atPhotoLimit) {
-      Alert.alert(
-        'Plan limit',
-        `Your plan allows ${limits.maxVehiclePhotos} photos per vehicle.`,
-      );
+      Alert.alert(t('planLimitTitle'), t('photoPlanLimit', { limit: limits.maxVehiclePhotos }));
       return;
     }
 
@@ -74,20 +73,20 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
         name: asset.fileName ?? 'vehicle.jpg',
       },
       {
-        onError: (error) => Alert.alert('Upload failed', error.message),
+        onError: (error) => Alert.alert(t('uploadFailed'), error.message),
       },
     );
   };
 
   const handleDeletePhoto = (photoId: string) => {
-    Alert.alert('Remove photo', 'Delete this vehicle photo?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('removePhoto'), t('removePhotoBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common:delete'),
         style: 'destructive',
         onPress: () => {
           deletePhotoMutation.mutate(photoId, {
-            onError: (error) => Alert.alert('Delete failed', error.message),
+            onError: (error) => Alert.alert(t('deleteFailed'), error.message),
           });
         },
       },
@@ -95,19 +94,19 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
   };
 
   const handleArchive = () => {
-    Alert.alert('Archive vehicle', 'This hides the vehicle from listings. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('archiveTitle'), t('archiveBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
       {
-        text: 'Archive',
+        text: t('archiveVehicle'),
         style: 'destructive',
         onPress: () => {
           archiveMutation.mutate(vehicleId, {
             onSuccess: () => {
-              Alert.alert('Archived', 'Vehicle archived successfully', [
-                { text: 'OK', onPress: () => navigation.navigate('MyVehicles') },
+              Alert.alert(t('archivedTitle'), t('archivedBody'), [
+                { text: t('common:ok'), onPress: () => navigation.navigate('MyVehicles') },
               ]);
             },
-            onError: (error) => Alert.alert('Archive failed', error.message),
+            onError: (error) => Alert.alert(t('archiveFailed'), error.message),
           });
         },
       },
@@ -126,46 +125,57 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
             <AppText variant="title">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </AppText>
-            <AppText variant="body">Color: {vehicle.color}</AppText>
-            <AppText variant="body">Status: {vehicle.status}</AppText>
-            <AppText variant="body">Availability: {vehicle.availability}</AppText>
-            {vehicle.areaLabel ? <AppText variant="body">Area: {vehicle.areaLabel}</AppText> : null}
+            <AppText variant="body">{t('color', { color: vehicle.color })}</AppText>
+            <AppText variant="body">{t('status', { status: vehicle.status })}</AppText>
+            <AppText variant="body">
+              {t('availability', {
+                value:
+                  vehicle.availability === 'AVAILABLE'
+                    ? t('common:available')
+                    : t('common:unavailable'),
+              })}
+            </AppText>
+            {vehicle.areaLabel ? (
+              <AppText variant="body">{t('area', { area: vehicle.areaLabel })}</AppText>
+            ) : null}
             <RatingSummaryText summary={vehicle.rating} />
             <AppText variant="caption" style={styles.coords}>
-              Location: {vehicle.latitude}, {vehicle.longitude}
+              {t('location', { lat: vehicle.latitude, lng: vehicle.longitude })}
             </AppText>
 
             {!isArchived ? (
               <>
                 <AppButton
                   title={
-                    vehicle.availability === 'AVAILABLE' ? 'Mark unavailable' : 'Mark available'
+                    vehicle.availability === 'AVAILABLE'
+                      ? t('markUnavailable')
+                      : t('markAvailable')
                   }
                   variant="secondary"
                   loading={availabilityMutation.isPending}
                   onPress={toggleAvailability}
                 />
                 <AppButton
-                  title="Edit details"
+                  title={t('editDetails')}
                   variant="secondary"
                   onPress={() => navigation.navigate('EditVehicle', { vehicleId })}
                 />
               </>
             ) : null}
 
-            <AppText variant="label">Photos</AppText>
+            <AppText variant="label">{t('photos')}</AppText>
             <AppText variant="caption" style={styles.coords}>
-              {photoCount} of {limits.maxVehiclePhotos} photos on your plan
+              {t('photoPlanHint', { count: photoCount, limit: limits.maxVehiclePhotos })}
             </AppText>
             <PhotoCover
               photos={vehicle.photos}
-              emptyLabel="No vehicle photos yet"
+              emptyLabel={t('noPhotos')}
               onRemovePhoto={isArchived ? undefined : handleDeletePhoto}
             />
 
             {!isArchived && !atPhotoLimit ? (
               <AppButton
-                title="Add photo"
+                title={t('addPhoto')}
                 icon="camera"
                 loading={uploadPhotoMutation.isPending}
                 onPress={() => {
@@ -176,7 +186,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
 
             {!isArchived ? (
               <AppButton
-                title="Archive vehicle"
+                title={t('archiveVehicle')}
                 variant="secondary"
                 loading={archiveMutation.isPending}
                 onPress={handleArchive}
@@ -185,7 +195,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
 
             {ratingsQuery.data ? (
               <RatingReviewList
-                title="Ratings"
+                title={t('ratings:title')}
                 summary={ratingsQuery.data.summary}
                 reviews={ratingsQuery.data.reviews}
               />
@@ -194,7 +204,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
         ) : null}
       </QueryState>
 
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('common:back')} variant="secondary" onPress={() => navigation.goBack()} />
     </ScrollView>
   );
 }

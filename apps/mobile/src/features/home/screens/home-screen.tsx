@@ -9,6 +9,8 @@ import { AppText } from '@/components/app-text';
 import { PlanBadge } from '@/components/plan-badge';
 import { QueryState } from '@/components/query-state';
 import { ScreenLayout } from '@/components/screen-layout';
+import { NotificationBellButton } from '@/features/notifications/components/notification-bell-button';
+import { useTranslation } from 'react-i18next';
 import { useLogoutMutation, useProfileQuery } from '@/api/hooks/use-auth';
 import type { AppStackParamList } from '@/navigation/types';
 import { useAppModeStore } from '@/stores/app-mode-store';
@@ -17,6 +19,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props) {
+  const { t } = useTranslation('home');
   const profileQuery = useProfileQuery();
   const logoutMutation = useLogoutMutation();
   const activeMode = useAppModeStore((state) => state.activeMode);
@@ -24,14 +27,15 @@ export function HomeScreen({ navigation }: Props) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: isOwnerMode ? 'Owner hub' : 'Renter hub',
+      title: isOwnerMode ? t('ownerHub') : t('renterHub'),
+      headerRight: () => <NotificationBellButton />,
     });
-  }, [navigation, isOwnerMode]);
+  }, [navigation, isOwnerMode, t]);
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onError: (error) => {
-        Alert.alert('Logout failed', error.message);
+        Alert.alert(t('logoutFailed'), error.message);
       },
     });
   };
@@ -45,16 +49,14 @@ export function HomeScreen({ navigation }: Props) {
       >
         <AppCard style={styles.hero}>
           <AppText variant="caption" style={styles.heroEyebrow}>
-            {isOwnerMode ? 'Owner profile' : 'Renter profile'}
+            {isOwnerMode ? t('ownerProfile') : t('renterProfile')}
           </AppText>
           <AppText variant="title" style={styles.heroTitle}>
-            Hello, {profileQuery.data?.fullName ?? 'there'}
+            {t('hello', { name: profileQuery.data?.fullName ?? t('helloFallback') })}
           </AppText>
           {profileQuery.data ? <PlanBadge plan={profileQuery.data.plan} /> : null}
           <AppText variant="body" style={styles.heroSubtitle}>
-            {isOwnerMode
-              ? 'Manage listings and keep track of your rentals.'
-              : 'Discover cars nearby and keep track of your rentals.'}
+            {isOwnerMode ? t('ownerSubtitle') : t('renterSubtitle')}
           </AppText>
         </AppCard>
       </QueryState>
@@ -63,20 +65,20 @@ export function HomeScreen({ navigation }: Props) {
 
       <View style={styles.section}>
         <AppText variant="label" style={styles.sectionLabel}>
-          Quick actions
+          {t('quickActions')}
         </AppText>
         {isOwnerMode ? (
           <>
             <ActionTile
-              title="My vehicles"
-              description="View and manage your listed cars"
+              title={t('myVehicles')}
+              description={t('myVehiclesHint')}
               icon="car"
               accent={colors.primary}
               onPress={() => navigation.navigate('MyVehicles')}
             />
             <ActionTile
-              title="Add a vehicle"
-              description="List a new car for rent"
+              title={t('addVehicle')}
+              description={t('addVehicleHint')}
               icon="plus"
               accent={colors.accent}
               onPress={() => navigation.navigate('AddVehicle')}
@@ -85,15 +87,15 @@ export function HomeScreen({ navigation }: Props) {
         ) : (
           <>
             <ActionTile
-              title="Discover vehicles"
-              description="Browse available cars near you"
+              title={t('discover')}
+              description={t('discoverHint')}
               icon="compass"
               accent={colors.primary}
               onPress={() => navigation.navigate('Discovery')}
             />
             <ActionTile
-              title="Search by CNIC"
-              description="Find an owner and their listings"
+              title={t('searchCnic')}
+              description={t('searchCnicHint')}
               icon="id"
               accent={colors.accent}
               onPress={() => navigation.navigate('ProfileSearch')}
@@ -101,8 +103,8 @@ export function HomeScreen({ navigation }: Props) {
           </>
         )}
         <ActionTile
-          title="Rentals"
-          description="Requests, active trips, and history"
+          title={t('rentals')}
+          description={t('rentalsHint')}
           icon="calendar"
           onPress={() => navigation.navigate('Rentals')}
         />
@@ -110,18 +112,18 @@ export function HomeScreen({ navigation }: Props) {
 
       <View style={styles.section}>
         <AppText variant="label" style={styles.sectionLabel}>
-          Account
+          {t('account')}
         </AppText>
         <ActionTile
-          title="My profile"
-          description="Update name, photo, and switch profile"
+          title={t('myProfile')}
+          description={t('myProfileHint')}
           icon="user"
           onPress={() => navigation.navigate('Profile')}
         />
       </View>
 
       <AppButton
-        title="Log out"
+        title={t('logOut')}
         icon="logout"
         variant="ghost"
         loading={logoutMutation.isPending}

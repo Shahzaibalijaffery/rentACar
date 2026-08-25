@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { UserProfileSearchResult } from '@rentacar/shared';
@@ -17,6 +18,7 @@ import { colors, radii, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'ProfileSearch'>;
 
 export function ProfileSearchScreen({ navigation }: Props) {
+  const { t } = useTranslation('users');
   const [cnic, setCnic] = useState('');
   const [searchResult, setSearchResult] = useState<UserProfileSearchResult | null>(null);
   const searchMutation = useSearchUserByCnicMutation();
@@ -28,7 +30,7 @@ export function ProfileSearchScreen({ navigation }: Props) {
   const handleSearch = () => {
     const trimmedCnic = cnic.trim();
     if (!trimmedCnic) {
-      Alert.alert('CNIC required', 'Enter a CNIC number to search for a profile.');
+      Alert.alert(t('cnicRequired'), t('cnicRequiredBody'));
       return;
     }
 
@@ -40,7 +42,7 @@ export function ProfileSearchScreen({ navigation }: Props) {
         },
         onError: (error) => {
           setSearchResult(null);
-          Alert.alert('Profile not found', error.message);
+          Alert.alert(t('notFound'), error.message);
         },
       },
     );
@@ -48,11 +50,8 @@ export function ProfileSearchScreen({ navigation }: Props) {
 
   return (
     <KeyboardAwareScroll contentContainerStyle={styles.container}>
-      <AppText variant="title">Search by CNIC</AppText>
-      <AppText variant="body">
-        Find another user&apos;s profile and browse their listed vehicles. Enter their CNIC to
-        search.
-      </AppText>
+      <AppText variant="title">{t('searchTitle')}</AppText>
+      <AppText variant="body">{t('searchHint')}</AppText>
 
       <AppInput
         icon="id"
@@ -62,7 +61,7 @@ export function ProfileSearchScreen({ navigation }: Props) {
         keyboardType="number-pad"
       />
       <AppButton
-        title="Search profile"
+        title={t('searchCta')}
         icon="search"
         loading={searchMutation.isPending}
         onPress={handleSearch}
@@ -81,15 +80,15 @@ export function ProfileSearchScreen({ navigation }: Props) {
 
           {renterRatingsQuery.data ? (
             <RatingReviewList
-              title="Ratings"
+              title={t('ratings:title')}
               summary={renterRatingsQuery.data.summary}
               reviews={renterRatingsQuery.data.reviews}
             />
           ) : null}
 
-          <AppText variant="label">Listed vehicles</AppText>
+          <AppText variant="label">{t('listedVehicles')}</AppText>
           {searchResult.vehicles.length === 0 ? (
-            <AppText variant="body">This user has no active vehicle listings.</AppText>
+            <AppText variant="body">{t('noVehicles')}</AppText>
           ) : (
             searchResult.vehicles.map((vehicle) => (
               <ProfileVehicleCard
@@ -106,7 +105,7 @@ export function ProfileSearchScreen({ navigation }: Props) {
         </View>
       ) : null}
 
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('common:back')} variant="secondary" onPress={() => navigation.goBack()} />
     </KeyboardAwareScroll>
   );
 }

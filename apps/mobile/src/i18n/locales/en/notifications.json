@@ -1,0 +1,22 @@
+{
+  "title": "Notifications",
+  "emptyTitle": "No notifications yet",
+  "emptyBody": "Rental updates will show up here.",
+  "markAllRead": "Mark all read",
+  "bellA11y": "Notifications",
+  "bellA11yUnread": "Notifications, {{count}} unread",
+  "types": {
+    "RENTAL_CREATED": "New rental request",
+    "RENTAL_ACCEPTED": "Your request was accepted",
+    "RENTAL_REJECTED": "Your request was rejected",
+    "RENTAL_CANCELLED": "A rental was cancelled",
+    "RENTAL_COMPLETED": "A rental was completed",
+    "AGREEMENT_CREATED": "Agreement ready to review",
+    "AGREEMENT_APPROVAL_NEEDED": "Agreement needs your approval",
+    "AGREEMENT_FULLY_APPROVED": "Agreement approved",
+    "AGREEMENT_CANCELLED": "Agreement cancelled",
+    "HANDOVER_PHOTOS_READY": "Pickup photos are ready",
+    "HANDOVER_APPROVED": "Pickup photos were approved",
+    "RENTAL_BECAME_ACTIVE": "Rental is now active"
+  }
+}

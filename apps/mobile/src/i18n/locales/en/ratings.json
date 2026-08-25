@@ -1,0 +1,18 @@
+{
+  "title": "Ratings",
+  "howWasRenter": "How was the renter?",
+  "howWasCar": "How was this car?",
+  "hintRenter": "Tap the stars. This rating shows on the renter’s profile.",
+  "hintCar": "Tap the stars. This rating shows on the car.",
+  "chooseStars": "Choose stars",
+  "chooseStarsBody": "Tap 1 to 5 stars, then send.",
+  "saved": "Saved",
+  "savedBody": "Thanks. Your rating was sent.",
+  "sendFailed": "Could not send rating",
+  "alreadySent": "You already sent a rating.",
+  "commentPlaceholder": "Write a short comment (optional)",
+  "send": "Send rating",
+  "none": "No ratings yet",
+  "count_one": "{{average}} · {{count}} rating",
+  "count_other": "{{average}} · {{count}} ratings"
+}

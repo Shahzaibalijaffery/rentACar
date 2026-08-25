@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import {
   BadgeCheck,
   CalendarDays,
+  Bell,
   Camera,
   CarFront,
   Check,
@@ -32,6 +33,7 @@ import { colors } from '@/theme';
 export const APP_ICON_NAMES = [
   'alert',
   'badge',
+  'bell',
   'calendar',
   'camera',
   'car',
@@ -63,6 +65,7 @@ export type AppIconName = (typeof APP_ICON_NAMES)[number];
 const ICONS: Record<AppIconName, LucideIcon> = {
   alert: CircleAlert,
   badge: BadgeCheck,
+  bell: Bell,
   calendar: CalendarDays,
   camera: Camera,
   car: CarFront,

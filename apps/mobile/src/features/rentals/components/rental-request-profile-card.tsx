@@ -1,5 +1,6 @@
 import { Linking, StyleSheet, View } from 'react-native';
 import type { RentalRequestProfile } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { ProfileAvatar } from '@/components/profile-avatar';
@@ -13,6 +14,8 @@ type Props = {
 };
 
 export function RentalRequestProfileCard({ label, profile, phone }: Props) {
+  const { t } = useTranslation('rentals');
+
   return (
     <View style={styles.card}>
       <AppText variant="label">{label}</AppText>
@@ -24,14 +27,16 @@ export function RentalRequestProfileCard({ label, profile, phone }: Props) {
         />
         <View style={styles.meta}>
           <AppText variant="title">{profile.fullName}</AppText>
-          <AppText variant="caption">Member since {formatRentalDate(profile.memberSince)}</AppText>
+          <AppText variant="caption">
+            {t('memberSince', { date: formatRentalDate(profile.memberSince) })}
+          </AppText>
         </View>
       </View>
       {phone ? (
         <>
-          <AppText variant="body">Phone: {phone}</AppText>
+          <AppText variant="body">{t('phone', { phone })}</AppText>
           <AppButton
-            title="Call"
+            title={t('common:call')}
             variant="secondary"
             onPress={() => {
               void Linking.openURL(`tel:${phone}`);
@@ -39,7 +44,7 @@ export function RentalRequestProfileCard({ label, profile, phone }: Props) {
           />
         </>
       ) : (
-        <AppText variant="caption">Phone number is shared after the owner accepts.</AppText>
+        <AppText variant="caption">{t('phoneAfterAccept')}</AppText>
       )}
     </View>
   );

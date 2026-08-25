@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import type { AgreementParticipant } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
@@ -9,21 +10,20 @@ import { useLookupUserByCnicMutation } from '@/api/hooks/use-users';
 import { colors, radii, spacing } from '@/theme';
 
 type Props = {
-  participantLabel: string;
+  participant: 'renter' | 'owner';
 };
 
-export function CnicProfileLookup({ participantLabel }: Props) {
+export function CnicProfileLookup({ participant }: Props) {
+  const { t } = useTranslation('users');
   const [cnic, setCnic] = useState('');
   const [profile, setProfile] = useState<AgreementParticipant | null>(null);
   const lookupMutation = useLookupUserByCnicMutation();
+  const role = t(`common:${participant}`);
 
   const handleLookup = () => {
     const trimmedCnic = cnic.trim();
     if (!trimmedCnic) {
-      Alert.alert(
-        'CNIC required',
-        `Enter the ${participantLabel.toLowerCase()}'s CNIC to verify their profile.`,
-      );
+      Alert.alert(t('cnicRequired'), t('cnicRequiredLookup', { role }));
       return;
     }
 
@@ -35,7 +35,7 @@ export function CnicProfileLookup({ participantLabel }: Props) {
         },
         onError: (error) => {
           setProfile(null);
-          Alert.alert('Profile not found', error.message);
+          Alert.alert(t('notFound'), error.message);
         },
       },
     );
@@ -43,10 +43,8 @@ export function CnicProfileLookup({ participantLabel }: Props) {
 
   return (
     <View style={styles.container}>
-      <AppText variant="label">Verify {participantLabel} by CNIC</AppText>
-      <AppText variant="body">
-        Enter the other party&apos;s CNIC to confirm their identity before pickup or handover.
-      </AppText>
+      <AppText variant="label">{t('verifyByCnic', { role })}</AppText>
+      <AppText variant="body">{t('verifyHint')}</AppText>
       <AppInput
         placeholder="35201-1234567-1"
         value={cnic}
@@ -54,7 +52,7 @@ export function CnicProfileLookup({ participantLabel }: Props) {
         keyboardType="number-pad"
       />
       <AppButton
-        title="Look up profile"
+        title={t('lookupCta')}
         loading={lookupMutation.isPending}
         onPress={handleLookup}
       />
@@ -67,7 +65,7 @@ export function CnicProfileLookup({ participantLabel }: Props) {
             size={72}
           />
           <AppText variant="title">{profile.fullName}</AppText>
-          <AppText variant="body">CNIC: {profile.cnic}</AppText>
+          <AppText variant="body">{t('cnicLabel', { cnic: profile.cnic })}</AppText>
         </View>
       ) : null}
     </View>

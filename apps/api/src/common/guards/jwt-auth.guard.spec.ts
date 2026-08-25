@@ -4,9 +4,13 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
-function createContext(headers: Record<string, string> = {}): ExecutionContext {
+function createContext(
+  headers: Record<string, string> = {},
+  type: string = 'http',
+): ExecutionContext {
   const request = { headers, user: undefined };
   return {
+    getType: () => type,
     getHandler: () => ({}),
     getClass: () => ({}),
     switchToHttp: () => ({
@@ -61,5 +65,12 @@ describe('JwtAuthGuard', () => {
     reflector.getAllAndOverride.mockReturnValue(false);
 
     await expect(guard.canActivate(createContext())).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('skips websocket connections so the realtime gateway can authenticate', async () => {
+    reflector.getAllAndOverride.mockReturnValue(false);
+
+    await expect(guard.canActivate(createContext({}, 'ws'))).resolves.toBe(true);
+    expect(jwtService.verifyAsync).not.toHaveBeenCalled();
   });
 });

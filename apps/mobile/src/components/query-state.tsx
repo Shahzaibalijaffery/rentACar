@@ -1,4 +1,5 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { colors, radii, spacing } from '@/theme';
@@ -11,12 +12,14 @@ type QueryStateProps = {
 };
 
 export function QueryState({ isLoading, isError, errorMessage, children }: QueryStateProps) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.primary} size="large" />
         <AppText variant="caption" style={styles.loadingText}>
-          Loading…
+          {t('loading')}
         </AppText>
       </View>
     );
@@ -27,10 +30,10 @@ export function QueryState({ isLoading, isError, errorMessage, children }: Query
       <View style={styles.errorBox}>
         <AppIcon name="alert" size={22} color={colors.error} />
         <AppText variant="heading" style={styles.errorTitle}>
-          Something went wrong
+          {t('somethingWentWrong')}
         </AppText>
         <AppText variant="body" style={styles.errorMessage}>
-          {errorMessage ?? 'Please try again in a moment.'}
+          {errorMessage ?? t('tryAgain')}
         </AppText>
       </View>
     );

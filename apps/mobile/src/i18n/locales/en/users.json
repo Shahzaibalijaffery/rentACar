@@ -1,0 +1,15 @@
+{
+  "searchTitle": "Search by CNIC",
+  "searchHint": "Find another user's profile and browse their listed vehicles. Enter their CNIC to search.",
+  "cnicRequired": "CNIC required",
+  "cnicRequiredBody": "Enter a CNIC number to search for a profile.",
+  "notFound": "Profile not found",
+  "listedVehicles": "Listed vehicles",
+  "noVehicles": "This user has no active vehicle listings.",
+  "searchCta": "Search profile",
+  "verifyByCnic": "Verify {{role}} by CNIC",
+  "verifyHint": "Enter the other party's CNIC to confirm their identity before pickup or handover.",
+  "lookupCta": "Look up profile",
+  "cnicRequiredLookup": "Enter the {{role}}'s CNIC to verify their profile.",
+  "cnicLabel": "CNIC: {{cnic}}"
+}

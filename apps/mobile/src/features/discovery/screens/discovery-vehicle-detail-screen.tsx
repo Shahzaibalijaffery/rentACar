@@ -1,6 +1,7 @@
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { DEFAULT_RENTAL_AGREEMENT_TERMS } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { PhotoCover } from '@/components/photo-cover';
@@ -17,6 +18,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'DiscoveryVehicleDetail'>;
 
 export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
+  const { t } = useTranslation('discovery');
   const { vehicleId, distanceLabel } = route.params;
   const vehicleQuery = usePublicVehicleQuery(vehicleId);
   const ratingsQuery = useVehicleRatingsQuery(vehicleId);
@@ -33,34 +35,35 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
     }
 
     Alert.alert(
-      'Request rental',
-      `Send a request for ${vehicle.year} ${vehicle.make} ${vehicle.model}? If the owner accepts, you can call them to arrange pickup.\n\n${DEFAULT_RENTAL_AGREEMENT_TERMS}`,
+      t('requestTitle'),
+      t('requestBody', {
+        year: vehicle.year,
+        make: vehicle.make,
+        model: vehicle.model,
+        terms: DEFAULT_RENTAL_AGREEMENT_TERMS,
+      }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common:cancel'), style: 'cancel' },
         {
-          text: 'Send request',
+          text: t('sendRequest'),
           onPress: () => {
             createRentalMutation.mutate(
               { vehicleId: vehicle.id },
               {
                 onSuccess: (rental) => {
-                  Alert.alert(
-                    'Request sent',
-                    'Waiting for the owner to accept. You will see their phone number if they do.',
-                    [
-                      {
-                        text: 'View request',
-                        onPress: () =>
-                          navigation.navigate('RentalRequestDetail', {
-                            rentalId: rental.id,
-                            perspective: 'renter',
-                          }),
-                      },
-                      { text: 'OK' },
-                    ],
-                  );
+                  Alert.alert(t('requestSent'), t('requestSentBody'), [
+                    {
+                      text: t('viewRequest'),
+                      onPress: () =>
+                        navigation.navigate('RentalRequestDetail', {
+                          rentalId: rental.id,
+                          perspective: 'renter',
+                        }),
+                    },
+                    { text: t('common:ok') },
+                  ]);
                 },
-                onError: (error) => Alert.alert('Request failed', error.message),
+                onError: (error) => Alert.alert(t('requestFailed'), error.message),
               },
             );
           },
@@ -81,33 +84,40 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
             <AppText variant="title">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </AppText>
-            <AppText variant="body">Color: {vehicle.color}</AppText>
-            <AppText variant="body">Availability: {vehicle.availability}</AppText>
+            <AppText variant="body">{t('color', { color: vehicle.color })}</AppText>
+            <AppText variant="body">
+              {t('availability', {
+                value:
+                  vehicle.availability === 'AVAILABLE'
+                    ? t('common:available')
+                    : t('common:unavailable'),
+              })}
+            </AppText>
             {distanceLabel ? <AppText variant="body">{distanceLabel}</AppText> : null}
-            {vehicle.areaLabel ? <AppText variant="body">Area: {vehicle.areaLabel}</AppText> : null}
-            <AppText variant="body">Owner: {vehicle.owner.fullName}</AppText>
+            {vehicle.areaLabel ? (
+              <AppText variant="body">{t('area', { area: vehicle.areaLabel })}</AppText>
+            ) : null}
+            <AppText variant="body">{t('owner', { name: vehicle.owner.fullName })}</AppText>
             <RatingSummaryText summary={vehicle.rating} />
 
-            <AppText variant="label">Photos</AppText>
-            <PhotoCover photos={vehicle.photos} emptyLabel="No vehicle photos yet" />
+            <AppText variant="label">{t('photos')}</AppText>
+            <PhotoCover photos={vehicle.photos} emptyLabel={t('noVehiclePhotos')} />
 
             {isOwnVehicle ? (
-              <AppText variant="body">
-                This is your vehicle. Switch to owner mode to manage it.
-              </AppText>
+              <AppText variant="body">{t('ownVehicle')}</AppText>
             ) : canRequestRental ? (
               <AppButton
-                title="Request rental"
+                title={t('requestRental')}
                 loading={createRentalMutation.isPending}
                 onPress={handleRequestRental}
               />
             ) : (
-              <AppText variant="body">This vehicle is not available for rental requests.</AppText>
+              <AppText variant="body">{t('notAvailable')}</AppText>
             )}
 
             {ratingsQuery.data ? (
               <RatingReviewList
-                title="Ratings"
+                title={t('ratings:title')}
                 summary={ratingsQuery.data.summary}
                 reviews={ratingsQuery.data.reviews}
               />
@@ -116,7 +126,7 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
         ) : null}
       </QueryState>
 
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('common:back')} variant="secondary" onPress={() => navigation.goBack()} />
     </ScrollView>
   );
 }

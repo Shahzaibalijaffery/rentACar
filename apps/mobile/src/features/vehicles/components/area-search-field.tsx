@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import type { AreaSearchResult } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppCard } from '@/components/app-card';
 import { AppIcon } from '@/components/app-icon';
@@ -30,6 +31,7 @@ export function AreaSearchField({
   onSelect,
   onClearSelection,
 }: AreaSearchFieldProps) {
+  const { t } = useTranslation('vehicles');
   const [query, setQuery] = useState(selectedAreaLabel);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -64,7 +66,7 @@ export function AreaSearchField({
     try {
       const granted = await requestAndroidLocationPermission();
       if (!granted) {
-        Alert.alert('Location needed', 'Allow location access to set the vehicle area.');
+        Alert.alert(t('locationNeeded'), t('locationNeededBody'));
         return;
       }
 
@@ -74,8 +76,8 @@ export function AreaSearchField({
       setShowResults(false);
       onSelect(resolved);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not read location';
-      Alert.alert('Location error', message);
+      const message = error instanceof Error ? error.message : t('locationError');
+      Alert.alert(t('locationError'), message);
     } finally {
       setGpsLoading(false);
     }
@@ -90,7 +92,7 @@ export function AreaSearchField({
       return (
         <View style={styles.resultsPanel}>
           <AppText variant="caption" style={styles.panelMessage}>
-            Type at least {MIN_SEARCH_LENGTH} characters to search areas.
+            {t('areaMinChars', { count: MIN_SEARCH_LENGTH })}
           </AppText>
         </View>
       );
@@ -101,7 +103,7 @@ export function AreaSearchField({
         <View style={[styles.resultsPanel, styles.loadingPanel]}>
           <ActivityIndicator color={colors.primary} />
           <AppText variant="caption" style={styles.panelMessage}>
-            Searching areas...
+            {t('areaSearching')}
           </AppText>
         </View>
       );
@@ -111,12 +113,12 @@ export function AreaSearchField({
       const message =
         areaSearchQuery.error instanceof Error
           ? areaSearchQuery.error.message
-          : 'Could not search areas.';
+          : t('areaUnavailable');
       return (
         <View style={styles.resultsPanel}>
           <AppText variant="caption" style={styles.errorMessage}>
             {message.includes('404') || message.toLowerCase().includes('not found')
-              ? 'Area search is not available yet. Update the API server and try again.'
+              ? t('areaUnavailable')
               : message}
           </AppText>
         </View>
@@ -127,7 +129,7 @@ export function AreaSearchField({
       return (
         <View style={styles.resultsPanel}>
           <AppText variant="caption" style={styles.panelMessage}>
-            No areas found for "{trimmedQuery}". Try a nearby neighborhood or city name.
+            {t('areaNone', { query: trimmedQuery })}
           </AppText>
         </View>
       );
@@ -136,7 +138,7 @@ export function AreaSearchField({
     return (
       <View style={styles.resultsPanel}>
         <AppText variant="label" style={styles.resultsHeading}>
-          Select an area
+          {t('areaSelectHeading')}
         </AppText>
         <FlatList
           data={results}
@@ -167,15 +169,14 @@ export function AreaSearchField({
 
   return (
     <View style={styles.container}>
-      <AppText variant="label">Vehicle area</AppText>
+      <AppText variant="label">{t('areaLabel')}</AppText>
       <AppText variant="caption" style={styles.hint}>
-        Search where the car is usually kept. Only the area name is shown publicly — not your exact
-        address.
+        {t('areaHint')}
       </AppText>
 
       <AppInput
         icon="pin"
-        placeholder="Search area (e.g. Clifton, Karachi)"
+        placeholder={t('areaPlaceholder')}
         value={query}
         onChangeText={handleQueryChange}
         onFocus={() => setShowResults(true)}
@@ -185,7 +186,7 @@ export function AreaSearchField({
       {renderResultsPanel()}
 
       <AppButton
-        title="I'm at the vehicle — use this location"
+        title={t('useCurrentLocation')}
         icon="pin"
         variant="secondary"
         size="sm"
@@ -197,10 +198,10 @@ export function AreaSearchField({
 
       {hasSelection && !showResults ? (
         <AppCard muted style={styles.selectedCard}>
-          <AppText variant="label">Selected area</AppText>
+          <AppText variant="label">{t('selectedArea')}</AppText>
           <AppText variant="body">{selectedAreaLabel}</AppText>
           <AppText variant="caption" style={styles.coords}>
-            Approx. {latitude}, {longitude}
+            {t('approxCoords', { lat: latitude, lng: longitude })}
           </AppText>
         </AppCard>
       ) : null}

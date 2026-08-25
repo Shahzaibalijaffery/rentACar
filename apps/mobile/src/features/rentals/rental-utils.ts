@@ -1,42 +1,17 @@
 import type { HandoverStatus, RentalStatus } from '@rentacar/shared';
+import { getCurrentLocale, i18n } from '@/i18n';
+import { getIntlTag } from '@/i18n/locale.types';
 
 export function getRentalStatusLabel(status: RentalStatus): string {
-  switch (status) {
-    case 'PENDING':
-      return 'Pending';
-    case 'ACCEPTED':
-      return 'Accepted';
-    case 'REJECTED':
-      return 'Rejected';
-    case 'CANCELLED':
-      return 'Cancelled';
-    case 'AGREEMENT_PENDING':
-      return 'Agreement pending';
-    case 'PICKUP_PENDING':
-      return 'Pickup pending';
-    case 'PICKUP_APPROVAL_PENDING':
-      return 'Pickup approval pending';
-    case 'ACTIVE':
-      return 'Active';
-    case 'RETURN_PENDING':
-      return 'Return pending';
-    case 'RETURN_APPROVAL_PENDING':
-      return 'Return approval pending';
-    case 'COMPLETED':
-      return 'Completed';
-    case 'RATED':
-      return 'Rated';
-    default:
-      return status;
-  }
+  return i18n.t(`rentals:status.${status}`, { defaultValue: status });
 }
 
 export function formatRentalDate(value: string | null): string {
   if (!value) {
-    return 'Not specified';
+    return i18n.t('rentals:notSpecified');
   }
 
-  return new Date(value).toLocaleDateString();
+  return new Date(value).toLocaleDateString(getIntlTag(getCurrentLocale()));
 }
 
 export type RentalNextStep = {
@@ -59,49 +34,49 @@ export function getRentalNextStep(input: {
   if (status === 'PENDING') {
     return perspective === 'owner'
       ? {
-          title: 'Review request',
-          description: 'View the renter profile, then accept or reject this request.',
+          title: i18n.t('rentals:next.reviewRequestTitle'),
+          description: i18n.t('rentals:next.reviewRequestBody'),
         }
       : {
-          title: 'Waiting for owner',
-          description: 'The owner will review your request and accept or reject it.',
+          title: i18n.t('rentals:next.waitingOwnerTitle'),
+          description: i18n.t('rentals:next.waitingOwnerBody'),
         };
   }
 
   if (status === 'ACCEPTED') {
     return perspective === 'owner'
       ? {
-          title: 'Call the renter',
-          description: 'Arrange pickup by phone, then start handover photos when you meet.',
+          title: i18n.t('rentals:next.callRenterTitle'),
+          description: i18n.t('rentals:next.callRenterBody'),
         }
       : {
-          title: 'Call the owner',
-          description: 'Call to arrange pickup, then meet at the vehicle.',
+          title: i18n.t('rentals:next.callOwnerTitle'),
+          description: i18n.t('rentals:next.callOwnerBody'),
         };
   }
 
   if (status === 'AGREEMENT_PENDING') {
     if (!hasAgreement) {
       return {
-        title: 'Agreement in progress',
-        description: 'The rental agreement is being prepared.',
+        title: i18n.t('rentals:next.agreementProgressTitle'),
+        description: i18n.t('rentals:next.agreementProgressBody'),
       };
     }
 
     if (!userApprovedAgreement && perspective === 'renter') {
       return {
-        title: 'Approve agreement',
-        description: 'Review the terms and approve to continue to vehicle pickup.',
+        title: i18n.t('rentals:next.approveAgreementTitle'),
+        description: i18n.t('rentals:next.approveAgreementBody'),
       };
     }
 
     if (!agreementFullyApproved) {
       return {
-        title: 'Waiting for approval',
+        title: i18n.t('rentals:next.waitingApprovalTitle'),
         description:
           perspective === 'owner'
-            ? 'You approved the agreement. Waiting for the renter to approve.'
-            : 'You approved the agreement. Waiting for the other party.',
+            ? i18n.t('rentals:next.waitingApprovalOwner')
+            : i18n.t('rentals:next.waitingApprovalRenter'),
       };
     }
 
@@ -111,63 +86,62 @@ export function getRentalNextStep(input: {
   if (status === 'PICKUP_PENDING') {
     return perspective === 'owner'
       ? {
-          title: 'Take pickup photos',
-          description:
-            'Photograph the vehicle condition before handover. Minimum 3 photos required.',
+          title: i18n.t('rentals:next.takePhotosTitle'),
+          description: i18n.t('rentals:next.takePhotosBody'),
         }
       : {
-          title: 'Pickup photos pending',
-          description: 'The owner will photograph the vehicle and submit pickup evidence.',
+          title: i18n.t('rentals:next.photosPendingTitle'),
+          description: i18n.t('rentals:next.photosPendingBody'),
         };
   }
 
   if (status === 'PICKUP_APPROVAL_PENDING') {
     return perspective === 'renter'
       ? {
-          title: 'Review pickup photos',
-          description: "Approve the owner's vehicle photos to activate the rental.",
+          title: i18n.t('rentals:next.reviewPhotosTitle'),
+          description: i18n.t('rentals:next.reviewPhotosBody'),
         }
       : {
-          title: 'Waiting for renter approval',
-          description: 'The renter is reviewing your submitted pickup photos.',
+          title: i18n.t('rentals:next.waitingRenterTitle'),
+          description: i18n.t('rentals:next.waitingRenterBody'),
         };
   }
 
   if (status === 'ACTIVE') {
     return perspective === 'owner'
       ? {
-          title: 'Complete rental',
-          description: 'Mark the rental complete after the vehicle is returned.',
+          title: i18n.t('rentals:next.completeTitle'),
+          description: i18n.t('rentals:next.completeBody'),
         }
       : {
-          title: 'Rental active',
-          description: 'Use the vehicle until the agreed end date.',
+          title: i18n.t('rentals:next.activeTitle'),
+          description: i18n.t('rentals:next.activeBody'),
         };
   }
 
   if (status === 'COMPLETED') {
     if (input.hasSubmittedRating) {
       return {
-        title: 'Rating sent',
-        description: 'You are done. The other person can still add their rating.',
+        title: i18n.t('rentals:next.ratingSentTitle'),
+        description: i18n.t('rentals:next.ratingSentBody'),
       };
     }
 
     return perspective === 'owner'
       ? {
-          title: 'Rate the renter',
-          description: 'Tap the stars below. This shows on their profile.',
+          title: i18n.t('rentals:next.rateRenterTitle'),
+          description: i18n.t('rentals:next.rateRenterBody'),
         }
       : {
-          title: 'Rate this car',
-          description: 'Tap the stars below. This shows on the car.',
+          title: i18n.t('rentals:next.rateCarTitle'),
+          description: i18n.t('rentals:next.rateCarBody'),
         };
   }
 
   if (status === 'RATED') {
     return {
-      title: 'All done',
-      description: 'This rental is finished.',
+      title: i18n.t('rentals:next.doneTitle'),
+      description: i18n.t('rentals:next.doneBody'),
     };
   }
 

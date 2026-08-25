@@ -1,4 +1,5 @@
 import { Alert, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
@@ -13,13 +14,14 @@ import { useState } from 'react';
 type Props = NativeStackScreenProps<AppStackParamList, 'CreateAgreement'>;
 
 export function CreateAgreementScreen({ navigation, route }: Props) {
+  const { t } = useTranslation('agreements');
   const { rentalId } = route.params;
   const createMutation = useCreateAgreementMutation(rentalId);
   const [terms, setTerms] = useState(DEFAULT_AGREEMENT_TERMS);
 
   const handleCreate = () => {
     if (terms.trim().length < 10) {
-      Alert.alert('Terms required', 'Please provide agreement terms.');
+      Alert.alert(t('termsRequired'), t('termsRequiredBody'));
       return;
     }
 
@@ -27,32 +29,25 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
       { terms: terms.trim() },
       {
         onSuccess: () => {
-          Alert.alert(
-            'Agreement sent',
-            'You already approved the terms. The renter can approve to continue to pickup photos.',
-            [
-              {
-                text: 'Back to rental',
-                onPress: () =>
-                  navigation.navigate('RentalRequestDetail', { rentalId, perspective: 'owner' }),
-              },
-            ],
-          );
+          Alert.alert(t('createdTitle'), t('createdBody'), [
+            {
+              text: t('backToRental'),
+              onPress: () =>
+                navigation.navigate('RentalRequestDetail', { rentalId, perspective: 'owner' }),
+            },
+          ]);
         },
-        onError: (error) => Alert.alert('Create failed', error.message),
+        onError: (error) => Alert.alert(t('createFailed'), error.message),
       },
     );
   };
 
   return (
     <KeyboardAwareScroll contentContainerStyle={styles.container}>
-      <AppText variant="title">Create rental agreement</AppText>
-      <AppText variant="body">
-        This older request still needs terms. You approve automatically; the renter approves once
-        before pickup photos.
-      </AppText>
+      <AppText variant="title">{t('createTitle')}</AppText>
+      <AppText variant="body">{t('createHint')}</AppText>
 
-      <AppText variant="label">Agreement terms</AppText>
+      <AppText variant="label">{t('termsLabel')}</AppText>
       <AppInput
         value={terms}
         onChangeText={setTerms}
@@ -63,11 +58,11 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
       />
 
       <AppButton
-        title="Create agreement"
+        title={t('createCta')}
         loading={createMutation.isPending}
         onPress={handleCreate}
       />
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('common:back')} variant="secondary" onPress={() => navigation.goBack()} />
     </KeyboardAwareScroll>
   );
 }

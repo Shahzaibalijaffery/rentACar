@@ -1,13 +1,14 @@
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { AppMode } from '@rentacar/shared';
 import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { useAppModeStore } from '@/stores/app-mode-store';
 import { colors, radii, spacing } from '@/theme';
 
-const MODE_OPTIONS: { mode: AppMode; label: string; icon: AppIconName }[] = [
-  { mode: 'renter', label: 'Renter', icon: 'user' },
-  { mode: 'owner', label: 'Owner', icon: 'car' },
+const MODE_OPTIONS: { mode: AppMode; labelKey: 'renter' | 'owner'; icon: AppIconName }[] = [
+  { mode: 'renter', labelKey: 'renter', icon: 'user' },
+  { mode: 'owner', labelKey: 'owner', icon: 'car' },
 ];
 
 type Props = {
@@ -15,12 +16,13 @@ type Props = {
 };
 
 export function AppModeSwitcher({ compact = false }: Props) {
+  const { t } = useTranslation();
   const activeMode = useAppModeStore((state) => state.activeMode);
   const setActiveMode = useAppModeStore((state) => state.setActiveMode);
 
   return (
     <View style={styles.container}>
-      {!compact ? <AppText variant="label">Active profile</AppText> : null}
+      {!compact ? <AppText variant="label">{t('home:activeProfile')}</AppText> : null}
       <View style={styles.track}>
         {MODE_OPTIONS.map((option) => {
           const selected = activeMode === option.mode;
@@ -42,7 +44,7 @@ export function AppModeSwitcher({ compact = false }: Props) {
                   variant="subtitle"
                   style={[styles.segmentText, selected ? styles.segmentTextSelected : null]}
                 >
-                  {option.label}
+                  {t(option.labelKey)}
                 </AppText>
               </View>
             </Pressable>

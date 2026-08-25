@@ -1,6 +1,7 @@
 import { Alert, FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getPlanLimits } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
@@ -15,6 +16,7 @@ import { colors, radii, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'MyVehicles'>;
 
 export function MyVehiclesScreen({ navigation }: Props) {
+  const { t } = useTranslation('vehicles');
   const vehiclesQuery = useMyVehiclesQuery();
   const profileQuery = useProfileQuery();
   const limits = getPlanLimits(profileQuery.data?.plan);
@@ -24,17 +26,14 @@ export function MyVehiclesScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <AppText variant="caption" style={styles.limitHint}>
-        {listedCount} of {limits.maxListedVehicles} vehicles on your plan
+        {t('planLimit', { count: listedCount, limit: limits.maxListedVehicles })}
       </AppText>
       <AppButton
-        title="Add vehicle"
+        title={t('addVehicle')}
         icon="plus"
         onPress={() => {
           if (atListingLimit) {
-            Alert.alert(
-              'Plan limit',
-              `Your plan allows ${limits.maxListedVehicles} listed vehicles. Archive one or upgrade to add more.`,
-            );
+            Alert.alert(t('planLimitTitle'), t('planLimitBody', { limit: limits.maxListedVehicles }));
             return;
           }
           navigation.navigate('AddVehicle');
@@ -53,8 +52,8 @@ export function MyVehiclesScreen({ navigation }: Props) {
           ListEmptyComponent={
             <EmptyState
               icon="car"
-              title="No vehicles yet"
-              message="You have not listed any vehicles yet."
+              title={t('noVehicles')}
+              message={t('noVehiclesBody')}
             />
           }
           renderItem={({ item }) => {
@@ -71,7 +70,7 @@ export function MyVehiclesScreen({ navigation }: Props) {
                     <View style={styles.badge}>
                       <AppIcon name="camera" size={12} color={colors.textOnPrimary} />
                       <AppText variant="caption" style={styles.badgeText}>
-                        {item.photos.length === 1 ? '1 photo' : `${item.photos.length} photos`}
+                        {t('photoCount', { count: item.photos.length })}
                       </AppText>
                     </View>
                   </View>
@@ -79,7 +78,7 @@ export function MyVehiclesScreen({ navigation }: Props) {
                   <View style={styles.photoPlaceholder}>
                     <AppIcon name="camera" size={26} color={colors.textSecondary} />
                     <AppText variant="caption" style={styles.placeholderText}>
-                      No photo
+                      {t('noPhoto')}
                     </AppText>
                   </View>
                 )}
@@ -88,7 +87,13 @@ export function MyVehiclesScreen({ navigation }: Props) {
                     {item.year} {item.make} {item.model}
                   </AppText>
                   <AppText variant="caption" style={styles.meta}>
-                    {item.color} · {item.availability}
+                    {t('colorMeta', {
+                      color: item.color,
+                      availability:
+                        item.availability === 'AVAILABLE'
+                          ? t('common:available')
+                          : t('common:unavailable'),
+                    })}
                   </AppText>
                   <RatingSummaryText summary={item.rating} />
                   {item.areaLabel ? (

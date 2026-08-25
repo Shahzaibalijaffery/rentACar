@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { I18nManager, Pressable, StyleSheet, View } from 'react-native';
 import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { colors, spacing } from '@/theme';
@@ -7,6 +8,7 @@ import { colors, spacing } from '@/theme';
 const HEADER_HEIGHT = 44;
 
 export function CompactHeader({ navigation, options, back }: NativeStackHeaderProps) {
+  const { t } = useTranslation('nav');
   const tintColor = options.headerTintColor ?? colors.primary;
   const canGoBack = Boolean(back) && options.headerBackVisible !== false;
   const title =
@@ -18,12 +20,16 @@ export function CompactHeader({ navigation, options, back }: NativeStackHeaderPr
         {canGoBack ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={t('goBack')}
             hitSlop={8}
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <AppIcon name="chevron-left" size={22} color={tintColor} />
+            <AppIcon
+              name={I18nManager.isRTL ? 'chevron-right' : 'chevron-left'}
+              size={22}
+              color={tintColor}
+            />
           </Pressable>
         ) : options.headerLeft ? (
           options.headerLeft({ canGoBack, tintColor, label: back?.title, href: back?.href })
@@ -56,14 +62,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
+    overflow: 'visible',
   },
   side: {
     width: 44,
     alignItems: 'flex-start',
     justifyContent: 'center',
+    overflow: 'visible',
   },
   sideRight: {
+    width: 48,
     alignItems: 'flex-end',
+    overflow: 'visible',
   },
   backButton: {
     padding: spacing.xs,

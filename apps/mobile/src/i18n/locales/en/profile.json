@@ -1,0 +1,33 @@
+{
+  "title": "My profile",
+  "activeProfile": "Active profile",
+  "activeProfileHint": "Switch between renter and owner mode for the home screen.",
+  "fullName": "Full name",
+  "saveName": "Save name",
+  "nameEmpty": "Name cannot be empty",
+  "validation": "Check your details",
+  "saved": "Saved",
+  "savedBody": "Profile updated successfully",
+  "updateFailed": "Update failed",
+  "photoError": "Photo error",
+  "photoErrorBody": "Could not read selected image",
+  "uploadFailed": "Upload failed",
+  "cnic": "CNIC",
+  "cnicNote": "Private — only shared with rental participants in agreements.",
+  "phone": "Phone",
+  "phoneNote": "Shared with the other party only after you accept or are accepted for a rental.",
+  "plan": "Plan",
+  "listedVehicles": "Listed vehicles",
+  "photosPerListing": "Photos per listing",
+  "evidencePhotos": "Rental evidence photos",
+  "upTo": "Up to {{count}}",
+  "status": "Status",
+  "emailVerified": "Email verified",
+  "memberSince": "Member since",
+  "plans": {
+    "FREE": "Starter",
+    "LITE": "Lite",
+    "PRO": "Pro",
+    "BUSINESS": "Business"
+  }
+}

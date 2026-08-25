@@ -3,6 +3,8 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { restoreSessionFromStorage } from '@/api/hooks/use-auth';
+import { startAndroidPush } from '@/features/notifications/android-push';
+import { useRealtimeConnection } from '@/features/notifications/use-realtime-connection';
 import { AppNavigator } from '@/navigation/app-navigator';
 import { AuthNavigator } from '@/navigation/auth-navigator';
 import type { RootStackParamList } from '@/navigation/types';
@@ -15,9 +17,18 @@ export function RootNavigator() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const isHydrated = useAuthStore((state) => state.isHydrated);
 
+  useRealtimeConnection(accessToken);
+
   useEffect(() => {
     void restoreSessionFromStorage();
   }, []);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+    void startAndroidPush();
+  }, [accessToken]);
 
   if (!isHydrated) {
     return (

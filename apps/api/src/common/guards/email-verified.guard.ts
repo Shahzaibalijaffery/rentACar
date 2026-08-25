@@ -18,6 +18,10 @@ export class EmailVerifiedGuard implements CanActivate {
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
+    if (context.getType() !== 'http') {
+      return true;
+    }
+
     if (!this.configService.get('emailVerificationEnabled', { infer: true })) {
       return true;
     }

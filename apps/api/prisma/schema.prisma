@@ -105,6 +105,8 @@ model User {
   handoverAuditEntries    HandoverAuditEntry[]
   ratingsGiven            Rating[]                 @relation("RatingRater")
   ratingsReceived         Rating[]                 @relation("RatingRatee")
+  notifications           Notification[]
+  deviceTokens            DeviceToken[]
   /// Average of owner→renter ratings. Null when the user has not been rated as a renter.
   renterRatingAverage     Float?
   renterRatingCount       Int                      @default(0)
@@ -373,4 +375,53 @@ model Rating {
   @@index([rateeId, target])
   @@index([rentalId])
   @@index([createdAt])
+}
+
+enum NotificationType {
+  RENTAL_CREATED
+  RENTAL_ACCEPTED
+  RENTAL_REJECTED
+  RENTAL_CANCELLED
+  RENTAL_COMPLETED
+  AGREEMENT_CREATED
+  AGREEMENT_APPROVAL_NEEDED
+  AGREEMENT_FULLY_APPROVED
+  AGREEMENT_CANCELLED
+  HANDOVER_PHOTOS_READY
+  HANDOVER_APPROVED
+  RENTAL_BECAME_ACTIVE
+}
+
+enum DevicePlatform {
+  ANDROID
+}
+
+model Notification {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String           @db.ObjectId
+  type        NotificationType
+  rentalId    String?          @db.ObjectId
+  agreementId String?          @db.ObjectId
+  handoverId  String?          @db.ObjectId
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+model DeviceToken {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String         @db.ObjectId
+  token     String         @unique
+  platform  DevicePlatform
+  locale    String         @default("en")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

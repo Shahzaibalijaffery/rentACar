@@ -2,6 +2,7 @@ import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getPlanLimits } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { QueryState } from '@/components/query-state';
@@ -26,6 +27,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'PickupHandover'>;
 
 export function PickupHandoverScreen({ navigation, route }: Props) {
+  const { t } = useTranslation('handovers');
   const { handoverId, rentalId, perspective } = route.params;
   const handoverQuery = useHandoverQuery(handoverId);
   const uploadMutation = useUploadHandoverPhotoMutation(handoverId, rentalId);
@@ -61,36 +63,33 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
         name: asset.fileName ?? 'handover.jpg',
       },
       {
-        onError: (error) => Alert.alert('Upload failed', error.message),
+        onError: (error) => Alert.alert(t('uploadFailed'), error.message),
       },
     );
   };
 
   const handleAddPhoto = () => {
     if (atEvidenceLimit) {
-      Alert.alert(
-        'Plan limit',
-        `Your plan allows ${limits.maxHandoverPhotos} rental evidence photos.`,
-      );
+      Alert.alert(t('planLimitTitle'), t('planLimitBody', { limit: limits.maxHandoverPhotos }));
       return;
     }
 
-    Alert.alert('Add photo', 'Choose a source for the vehicle condition photo.', [
-      { text: 'Camera', onPress: () => void pickPhoto(true) },
-      { text: 'Gallery', onPress: () => void pickPhoto(false) },
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('addPhoto'), t('addPhotoBody'), [
+      { text: t('camera'), onPress: () => void pickPhoto(true) },
+      { text: t('gallery'), onPress: () => void pickPhoto(false) },
+      { text: t('common:cancel'), style: 'cancel' },
     ]);
   };
 
   const handleDeletePhoto = (photoId: string) => {
-    Alert.alert('Remove photo', 'Remove this photo before submission?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('removePhoto'), t('removePhotoBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
       {
-        text: 'Remove',
+        text: t('common:remove'),
         style: 'destructive',
         onPress: () => {
           deleteMutation.mutate(photoId, {
-            onError: (error) => Alert.alert('Remove failed', error.message),
+            onError: (error) => Alert.alert(t('removeFailed'), error.message),
           });
         },
       },
@@ -98,48 +97,37 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
   };
 
   const handleSubmit = () => {
-    Alert.alert(
-      'Submit pickup photos',
-      'After submission, these photos become official evidence and cannot be changed.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Submit',
-          onPress: () => {
-            submitMutation.mutate(undefined, {
-              onSuccess: () => {
-                Alert.alert(
-                  'Photos submitted',
-                  'The renter can now review and approve the pickup evidence.',
-                );
-              },
-              onError: (error) => Alert.alert('Submit failed', error.message),
-            });
-          },
+    Alert.alert(t('submitTitle'), t('submitBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
+      {
+        text: t('common:submit'),
+        onPress: () => {
+          submitMutation.mutate(undefined, {
+            onSuccess: () => {
+              Alert.alert(t('submittedTitle'), t('submittedBody'));
+            },
+            onError: (error) => Alert.alert(t('submitFailed'), error.message),
+          });
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const handleApprove = () => {
-    Alert.alert(
-      'Approve pickup evidence',
-      'Confirm that you approve the vehicle condition shown in these photos.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Approve',
-          onPress: () => {
-            approveMutation.mutate(undefined, {
-              onSuccess: () => {
-                Alert.alert('Pickup approved', 'The rental is now active.');
-              },
-              onError: (error) => Alert.alert('Approval failed', error.message),
-            });
-          },
+    Alert.alert(t('approveTitle'), t('approveBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
+      {
+        text: t('common:approve'),
+        onPress: () => {
+          approveMutation.mutate(undefined, {
+            onSuccess: () => {
+              Alert.alert(t('approvedTitle'), t('approvedBody'));
+            },
+            onError: (error) => Alert.alert(t('approvalFailed'), error.message),
+          });
         },
-      ],
-    );
+      },
+    ]);
   };
 
   return (
@@ -151,21 +139,31 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
       >
         {handover ? (
           <>
-            <AppText variant="title">Vehicle pickup photos</AppText>
-            <AppText variant="body">Status: {getHandoverStatusLabel(handover.status)}</AppText>
+            <AppText variant="title">{t('title')}</AppText>
             <AppText variant="body">
-              Vehicle: {handover.vehicle.year} {handover.vehicle.make} {handover.vehicle.model}
+              {t('statusLabel', { status: getHandoverStatusLabel(handover.status) })}
             </AppText>
             <AppText variant="body">
-              {isOwnerView ? 'Renter' : 'Owner'}:{' '}
-              {isOwnerView ? handover.renter.fullName : handover.owner.fullName}
+              {t('vehicle', {
+                year: handover.vehicle.year,
+                make: handover.vehicle.make,
+                model: handover.vehicle.model,
+              })}
             </AppText>
-            <CnicProfileLookup participantLabel={isOwnerView ? 'renter' : 'owner'} />
+            <AppText variant="body">
+              {t('rentals:counterparty', {
+                role: isOwnerView ? t('common:renter') : t('common:owner'),
+                name: isOwnerView ? handover.renter.fullName : handover.owner.fullName,
+              })}
+            </AppText>
+            <CnicProfileLookup participant={isOwnerView ? 'renter' : 'owner'} />
             {handover.submittedAt ? (
-              <AppText variant="body">Submitted: {formatRentalDate(handover.submittedAt)}</AppText>
+              <AppText variant="body">
+                {t('submitted', { date: formatRentalDate(handover.submittedAt) })}
+              </AppText>
             ) : null}
 
-            <AppText variant="label">Submitted evidence</AppText>
+            <AppText variant="label">{t('evidence')}</AppText>
             <HandoverPhotoGrid
               photos={handover.photos}
               onRemovePhoto={canEditPhotos ? handleDeletePhoto : undefined}
@@ -174,19 +172,22 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
             {canEditPhotos ? (
               <>
                 <AppText variant="body">
-                  Photos: {photoCount} / minimum {MIN_PICKUP_HANDOVER_PHOTOS} · max{' '}
-                  {limits.maxHandoverPhotos}
+                  {t('photoProgress', {
+                    count: photoCount,
+                    min: MIN_PICKUP_HANDOVER_PHOTOS,
+                    max: limits.maxHandoverPhotos,
+                  })}
                 </AppText>
                 {!atEvidenceLimit ? (
                   <AppButton
-                    title="Take photo"
+                    title={t('takePhoto')}
                     icon="camera"
                     loading={uploadMutation.isPending}
                     onPress={handleAddPhoto}
                   />
                 ) : null}
                 <AppButton
-                  title="Submit photo set"
+                  title={t('submitSet')}
                   loading={submitMutation.isPending}
                   disabled={!canSubmit}
                   onPress={handleSubmit}
@@ -196,28 +197,24 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
 
             {canApprove ? (
               <AppButton
-                title="Approve pickup evidence"
+                title={t('approveEvidence')}
                 loading={approveMutation.isPending}
                 onPress={handleApprove}
               />
             ) : null}
 
             {isApproved ? (
-              <AppText variant="body">
-                Pickup handover is complete. Both parties reviewed the same submitted photo set.
-              </AppText>
+              <AppText variant="body">{t('approvedHint')}</AppText>
             ) : null}
 
             {!isOwnerView && handover.status === 'OWNER_PHOTOS_REQUIRED' ? (
-              <AppText variant="body">
-                Waiting for the owner to capture and submit pickup photos.
-              </AppText>
+              <AppText variant="body">{t('waitingOwner')}</AppText>
             ) : null}
           </>
         ) : null}
       </QueryState>
 
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('common:back')} variant="secondary" onPress={() => navigation.goBack()} />
     </ScrollView>
   );
 }

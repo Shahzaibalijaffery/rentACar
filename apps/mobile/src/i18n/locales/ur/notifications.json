@@ -1,0 +1,22 @@
+{
+  "title": "اطلاعات",
+  "emptyTitle": "ابھی کوئی اطلاع نہیں",
+  "emptyBody": "کرایے کی تازہ خبریں یہاں دکھیں گی۔",
+  "markAllRead": "سب پڑھی ہوئی نشان زد کریں",
+  "bellA11y": "اطلاعات",
+  "bellA11yUnread": "اطلاعات، {{count}} ان پڑھی",
+  "types": {
+    "RENTAL_CREATED": "نئی کرایہ کی درخواست",
+    "RENTAL_ACCEPTED": "آپ کی درخواست منظور ہو گئی",
+    "RENTAL_REJECTED": "آپ کی درخواست مسترد ہو گئی",
+    "RENTAL_CANCELLED": "ایک کرایہ منسوخ ہوا",
+    "RENTAL_COMPLETED": "ایک کرایہ مکمل ہوا",
+    "AGREEMENT_CREATED": "معاہدہ دیکھنے کے لیے تیار",
+    "AGREEMENT_APPROVAL_NEEDED": "معاہدے کی منظوری درکار ہے",
+    "AGREEMENT_FULLY_APPROVED": "معاہدہ منظور ہو گیا",
+    "AGREEMENT_CANCELLED": "معاہدہ منسوخ ہوا",
+    "HANDOVER_PHOTOS_READY": "پک اپ تصاویر تیار ہیں",
+    "HANDOVER_APPROVED": "پک اپ تصاویر منظور ہو گئیں",
+    "RENTAL_BECAME_ACTIVE": "کرایہ اب جاری ہے"
+  }
+}

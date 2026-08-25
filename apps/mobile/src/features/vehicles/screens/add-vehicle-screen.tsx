@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
@@ -11,6 +12,8 @@ import { VehicleFormFields } from '@/features/vehicles/components/vehicle-form-f
 import {
   toVehiclePayload,
   validateVehicleForm,
+  VEHICLE_YEAR_MAX,
+  VEHICLE_YEAR_MIN,
   type VehicleFormValues,
 } from '@/features/vehicles/vehicle-form-utils';
 import type { AppStackParamList } from '@/navigation/types';
@@ -29,6 +32,7 @@ const initialValues: VehicleFormValues = {
 };
 
 export function AddVehicleScreen({ navigation }: Props) {
+  const { t } = useTranslation('vehicles');
   const createMutation = useCreateVehicleMutation();
   const profileQuery = useProfileQuery();
   const vehiclesQuery = useMyVehiclesQuery();
@@ -38,16 +42,16 @@ export function AddVehicleScreen({ navigation }: Props) {
 
   const handleSubmit = () => {
     if (listedCount >= limits.maxListedVehicles) {
-      Alert.alert(
-        'Plan limit',
-        `Your plan allows ${limits.maxListedVehicles} listed vehicles.`,
-      );
+      Alert.alert(t('planLimitTitle'), t('planLimitShort', { limit: limits.maxListedVehicles }));
       return;
     }
 
     const error = validateVehicleForm(values);
     if (error) {
-      Alert.alert('Validation', error);
+      Alert.alert(
+        t('validation'),
+        t(`formErrors.${error}`, { min: VEHICLE_YEAR_MIN, max: VEHICLE_YEAR_MAX }),
+      );
       return;
     }
 
@@ -55,20 +59,23 @@ export function AddVehicleScreen({ navigation }: Props) {
       onSuccess: (vehicle) => {
         navigation.replace('VehicleDetails', { vehicleId: vehicle.id });
       },
-      onError: (err) => Alert.alert('Could not create vehicle', err.message),
+      onError: (err) => Alert.alert(t('createFailed'), err.message),
     });
   };
 
   return (
     <KeyboardAwareScroll contentContainerStyle={styles.container}>
-      <AppText variant="title">Add vehicle</AppText>
+      <AppText variant="title">{t('addVehicle')}</AppText>
       <AppText variant="caption" style={styles.limitHint}>
-        {listedCount} of {limits.maxListedVehicles} vehicles used · up to {limits.maxVehiclePhotos}{' '}
-        photos each
+        {t('addLimitHint', {
+          count: listedCount,
+          limit: limits.maxListedVehicles,
+          photos: limits.maxVehiclePhotos,
+        })}
       </AppText>
       <VehicleFormFields values={values} onChange={setValues} />
-      <AppButton title="Create vehicle" loading={createMutation.isPending} onPress={handleSubmit} />
-      <AppButton title="Cancel" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('createVehicle')} loading={createMutation.isPending} onPress={handleSubmit} />
+      <AppButton title={t('common:cancel')} variant="secondary" onPress={() => navigation.goBack()} />
     </KeyboardAwareScroll>
   );
 }

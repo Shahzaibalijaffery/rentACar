@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { RATING_COMMENT_MAX_LENGTH, type RentalRatingsView } from '@rentacar/shared';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppInput } from '@/components/app-input';
 import { AppText } from '@/components/app-text';
@@ -15,19 +16,18 @@ type RateRentalCardProps = {
 };
 
 export function RateRentalCard({ rentalId, perspective, ratings }: RateRentalCardProps) {
+  const { t } = useTranslation('ratings');
   const [stars, setStars] = useState(ratings.myRating?.stars ?? 0);
   const [comment, setComment] = useState('');
   const submitMutation = useSubmitRentalRatingMutation(rentalId);
 
   const isOwner = perspective === 'owner';
-  const title = isOwner ? 'How was the renter?' : 'How was this car?';
-  const hint = isOwner
-    ? 'Tap the stars. This rating shows on the renter’s profile.'
-    : 'Tap the stars. This rating shows on the car.';
+  const title = isOwner ? t('howWasRenter') : t('howWasCar');
+  const hint = isOwner ? t('hintRenter') : t('hintCar');
 
   const handleSubmit = () => {
     if (stars < 1) {
-      Alert.alert('Choose stars', 'Tap 1 to 5 stars, then send.');
+      Alert.alert(t('chooseStars'), t('chooseStarsBody'));
       return;
     }
 
@@ -36,9 +36,9 @@ export function RateRentalCard({ rentalId, perspective, ratings }: RateRentalCar
       {
         onSuccess: () => {
           setComment('');
-          Alert.alert('Saved', 'Thanks. Your rating was sent.');
+          Alert.alert(t('saved'), t('savedBody'));
         },
-        onError: (error) => Alert.alert('Could not send rating', error.message),
+        onError: (error) => Alert.alert(t('sendFailed'), error.message),
       },
     );
   };
@@ -47,7 +47,7 @@ export function RateRentalCard({ rentalId, perspective, ratings }: RateRentalCar
     return (
       <View style={styles.card}>
         <AppText variant="title">{title}</AppText>
-        <AppText variant="caption">You already sent a rating.</AppText>
+        <AppText variant="caption">{t('alreadySent')}</AppText>
         <StarRating value={ratings.myRating.stars} size={22} />
         {ratings.myRating.comment ? (
           <AppText variant="body">{ratings.myRating.comment}</AppText>
@@ -66,7 +66,7 @@ export function RateRentalCard({ rentalId, perspective, ratings }: RateRentalCar
       <AppText variant="body">{hint}</AppText>
       <StarRating value={stars} onChange={setStars} />
       <AppInput
-        placeholder="Write a short comment (optional)"
+        placeholder={t('commentPlaceholder')}
         value={comment}
         onChangeText={setComment}
         multiline
@@ -74,7 +74,7 @@ export function RateRentalCard({ rentalId, perspective, ratings }: RateRentalCar
         style={styles.comment}
       />
       <AppButton
-        title="Send rating"
+        title={t('send')}
         icon="star"
         loading={submitMutation.isPending}
         onPress={handleSubmit}

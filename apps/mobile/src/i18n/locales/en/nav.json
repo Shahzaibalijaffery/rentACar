@@ -1,0 +1,17 @@
+{
+  "home": "RentACar",
+  "profileSearch": "Search by CNIC",
+  "discovery": "Discover",
+  "vehicleDetails": "Vehicle details",
+  "profile": "My profile",
+  "myVehicles": "My vehicles",
+  "addVehicle": "Add vehicle",
+  "editVehicle": "Edit vehicle",
+  "rentals": "Rentals",
+  "rentalDetails": "Rental details",
+  "createAgreement": "Create agreement",
+  "agreement": "Rental agreement",
+  "pickupPhotos": "Pickup photos",
+  "notifications": "Notifications",
+  "goBack": "Go back"
+}

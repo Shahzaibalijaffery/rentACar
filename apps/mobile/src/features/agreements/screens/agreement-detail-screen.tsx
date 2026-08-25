@@ -1,5 +1,6 @@
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { QueryState } from '@/components/query-state';
@@ -21,6 +22,7 @@ import { colors, spacing } from '@/theme';
 type Props = NativeStackScreenProps<AppStackParamList, 'AgreementDetail'>;
 
 export function AgreementDetailScreen({ navigation, route }: Props) {
+  const { t } = useTranslation('agreements');
   const { agreementId, rentalId, perspective: routePerspective } = route.params;
   const profileQuery = useProfileQuery();
   const agreementQuery = useAgreementQuery(agreementId);
@@ -43,38 +45,32 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
   const { openPickupPhotos, isOpening } = useOpenPickupPhotos(rentalId, isFullyApproved);
 
   const handleApprove = () => {
-    Alert.alert('Approve agreement', 'Confirm that you approve this rental agreement.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('approveTitle'), t('approveBody'), [
+      { text: t('common:cancel'), style: 'cancel' },
       {
-        text: 'Approve',
+        text: t('common:approve'),
         onPress: () => {
           approveMutation.mutate(undefined, {
             onSuccess: (updated) => {
               if (updated.status === 'APPROVED') {
                 if (isOwnerView) {
-                  Alert.alert(
-                    'Agreement approved',
-                    'Pickup is ready. Take photos of the vehicle condition next.',
-                    [
-                      {
-                        text: 'Take pickup photos',
-                        onPress: () => openPickupPhotos(navigation, 'owner'),
-                      },
-                      { text: 'Later', style: 'cancel' },
-                    ],
-                  );
+                  Alert.alert(t('approvedTitle'), t('approvedOwner'), [
+                    {
+                      text: t('takePhotos'),
+                      onPress: () => openPickupPhotos(navigation, 'owner'),
+                    },
+                    { text: t('common:later'), style: 'cancel' },
+                  ]);
                 } else {
-                  Alert.alert(
-                    'Agreement approved',
-                    'The owner will photograph the vehicle before pickup.',
-                    [{ text: 'OK', onPress: () => navigation.goBack() }],
-                  );
+                  Alert.alert(t('approvedTitle'), t('approvedRenter'), [
+                    { text: t('common:ok'), onPress: () => navigation.goBack() },
+                  ]);
                 }
               } else {
-                Alert.alert('Approval recorded', 'Waiting for the other party to approve.');
+                Alert.alert(t('approvalRecorded'), t('approvalRecordedBody'));
               }
             },
-            onError: (error) => Alert.alert('Approval failed', error.message),
+            onError: (error) => Alert.alert(t('approvalFailed'), error.message),
           });
         },
       },
@@ -82,18 +78,18 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
   };
 
   const handleCancel = () => {
-    Alert.alert('Cancel agreement', 'Are you sure you want to cancel this agreement?', [
-      { text: 'Keep agreement', style: 'cancel' },
+    Alert.alert(t('cancelTitle'), t('cancelBody'), [
+      { text: t('keep'), style: 'cancel' },
       {
-        text: 'Cancel agreement',
+        text: t('cancelCta'),
         style: 'destructive',
         onPress: () => {
           cancelMutation.mutate(undefined, {
             onSuccess: () => {
-              Alert.alert('Agreement cancelled', 'The agreement has been cancelled.');
+              Alert.alert(t('cancelledTitle'), t('cancelledBody'));
               navigation.goBack();
             },
-            onError: (error) => Alert.alert('Cancel failed', error.message),
+            onError: (error) => Alert.alert(t('cancelFailed'), error.message),
           });
         },
       },
@@ -109,56 +105,68 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
       >
         {agreement ? (
           <>
-            <AppText variant="title">Rental agreement</AppText>
-            <AppText variant="body">Status: {getAgreementStatusLabel(agreement.status)}</AppText>
-            <AppText variant="body">Version: {agreement.version}</AppText>
-
-            <AppText variant="label">Vehicle</AppText>
+            <AppText variant="title">{t('title')}</AppText>
             <AppText variant="body">
-              {agreement.vehicle.year} {agreement.vehicle.make} {agreement.vehicle.model} (
-              {agreement.vehicle.color})
+              {t('statusLabel', { status: getAgreementStatusLabel(agreement.status) })}
+            </AppText>
+            <AppText variant="body">{t('version', { version: agreement.version })}</AppText>
+
+            <AppText variant="label">{t('vehicle')}</AppText>
+            <AppText variant="body">
+              {t('vehicleLine', {
+                year: agreement.vehicle.year,
+                make: agreement.vehicle.make,
+                model: agreement.vehicle.model,
+                color: agreement.vehicle.color,
+              })}
             </AppText>
 
-            <AppText variant="label">Rental period</AppText>
-            <AppText variant="body">Start: {formatRentalDate(agreement.startDate)}</AppText>
-            <AppText variant="body">End: {formatRentalDate(agreement.endDate)}</AppText>
+            <AppText variant="label">{t('period')}</AppText>
+            <AppText variant="body">
+              {t('start', { date: formatRentalDate(agreement.startDate) })}
+            </AppText>
+            <AppText variant="body">
+              {t('end', { date: formatRentalDate(agreement.endDate) })}
+            </AppText>
 
-            <AppText variant="label">Owner</AppText>
+            <AppText variant="label">{t('common:owner')}</AppText>
             <AppText variant="body">{agreement.owner.fullName}</AppText>
-            <AppText variant="body">CNIC: {agreement.owner.cnic}</AppText>
+            <AppText variant="body">{t('cnic', { cnic: agreement.owner.cnic })}</AppText>
             <AppText variant="caption">
-              Owner approved: {agreement.ownerApprovedAt ? 'Yes' : 'No'}
+              {t('ownerApproved', {
+                value: agreement.ownerApprovedAt ? t('common:yes') : t('common:no'),
+              })}
             </AppText>
 
-            <AppText variant="label">Renter</AppText>
+            <AppText variant="label">{t('common:renter')}</AppText>
             <AppText variant="body">{agreement.renter.fullName}</AppText>
-            <AppText variant="body">CNIC: {agreement.renter.cnic}</AppText>
+            <AppText variant="body">{t('cnic', { cnic: agreement.renter.cnic })}</AppText>
             <AppText variant="caption">
-              Renter approved: {agreement.renterApprovedAt ? 'Yes' : 'No'}
+              {t('renterApproved', {
+                value: agreement.renterApprovedAt ? t('common:yes') : t('common:no'),
+              })}
             </AppText>
 
-            <AppText variant="label">Terms</AppText>
+            <AppText variant="label">{t('terms')}</AppText>
             <AppText variant="body">{agreement.terms}</AppText>
 
             {canApprove ? (
               <AppButton
-                title="Approve agreement"
+                title={t('approveCta')}
                 loading={approveMutation.isPending}
                 onPress={handleApprove}
               />
             ) : null}
 
             {userAlreadyApproved && isPendingApproval ? (
-              <AppText variant="body">You have approved. Waiting for the other party.</AppText>
+              <AppText variant="body">{t('waitingOther')}</AppText>
             ) : null}
 
             {isFullyApproved && isOwnerView ? (
               <>
-                <AppText variant="body">
-                  Agreement is approved. Take photos of the vehicle before handover.
-                </AppText>
+                <AppText variant="body">{t('approvedOwnerHint')}</AppText>
                 <AppButton
-                  title="Take pickup photos"
+                  title={t('takePhotos')}
                   loading={isOpening}
                   onPress={() => openPickupPhotos(navigation, 'owner')}
                 />
@@ -166,15 +174,13 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
             ) : null}
 
             {isFullyApproved && !isOwnerView ? (
-              <AppText variant="body">
-                Agreement is approved. Waiting for the owner to take pickup photos.
-              </AppText>
+              <AppText variant="body">{t('approvedRenterHint')}</AppText>
             ) : null}
 
             {canCancel ? (
               <View style={styles.actions}>
                 <AppButton
-                  title="Cancel agreement"
+                  title={t('cancelCta')}
                   variant="secondary"
                   loading={cancelMutation.isPending}
                   onPress={handleCancel}
@@ -185,7 +191,7 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
         ) : null}
       </QueryState>
 
-      <AppButton title="Back" variant="secondary" onPress={() => navigation.goBack()} />
+      <AppButton title={t('common:back')} variant="secondary" onPress={() => navigation.goBack()} />
     </ScrollView>
   );
 }

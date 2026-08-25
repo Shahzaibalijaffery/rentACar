@@ -1,18 +1,8 @@
 import { DEFAULT_RENTAL_AGREEMENT_TERMS, type AgreementStatus } from '@rentacar/shared';
+import { i18n } from '@/i18n';
 
 export function getAgreementStatusLabel(status: AgreementStatus): string {
-  switch (status) {
-    case 'DRAFT':
-      return 'Draft';
-    case 'PENDING_APPROVAL':
-      return 'Pending approval';
-    case 'APPROVED':
-      return 'Approved';
-    case 'CANCELLED':
-      return 'Cancelled';
-    default:
-      return status;
-  }
+  return i18n.t(`agreements:status.${status}`, { defaultValue: status });
 }
 
 export function hasUserApprovedAgreement(

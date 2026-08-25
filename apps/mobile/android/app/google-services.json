@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "635362421111",
+    "project_id": "rentacar-56387",
+    "storage_bucket": "rentacar-56387.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:635362421111:android:eb4f1618b2aee94ad75972",
+        "android_client_info": {
+          "package_name": "com.rentacarmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD71qXN0cUHwV4dBJPdX0DKbXzon9W1ulI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

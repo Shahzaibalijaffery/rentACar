@@ -13,6 +13,7 @@ export type RentalEventPayload = {
   ownerId: string;
   vehicleId: string;
   status: RentalStatus;
+  actorId?: string;
   completedById?: string;
   completedAt?: string;
 };

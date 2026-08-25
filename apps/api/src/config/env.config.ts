@@ -23,6 +23,8 @@ export const envValidationSchema = Joi.object({
   R2_PUBLIC_BASE_URL: Joi.string().uri().required(),
   GEOCODING_COUNTRY_CODES: Joi.string().default('pk'),
   GEOCODING_USER_AGENT: Joi.string().default('RentACar/1.0 (peer-to-peer car rental)'),
+  FIREBASE_SERVICE_ACCOUNT_JSON: Joi.string().allow('').optional(),
+  FIREBASE_SERVICE_ACCOUNT_PATH: Joi.string().allow('').optional(),
 });
 
 export type AppConfig = {
@@ -48,6 +50,8 @@ export type AppConfig = {
   r2PublicBaseUrl: string;
   geocodingCountryCodes: string;
   geocodingUserAgent: string;
+  firebaseServiceAccountJson: string | undefined;
+  firebaseServiceAccountPath: string | undefined;
 };
 
 export default (): AppConfig => ({
@@ -74,4 +78,10 @@ export default (): AppConfig => ({
   geocodingCountryCodes: process.env['GEOCODING_COUNTRY_CODES'] ?? 'pk',
   geocodingUserAgent:
     process.env['GEOCODING_USER_AGENT'] ?? 'RentACar/1.0 (peer-to-peer car rental)',
+  firebaseServiceAccountJson: process.env['FIREBASE_SERVICE_ACCOUNT_JSON']?.length
+    ? process.env['FIREBASE_SERVICE_ACCOUNT_JSON']
+    : undefined,
+  firebaseServiceAccountPath: process.env['FIREBASE_SERVICE_ACCOUNT_PATH']?.length
+    ? process.env['FIREBASE_SERVICE_ACCOUNT_PATH']
+    : undefined,
 });

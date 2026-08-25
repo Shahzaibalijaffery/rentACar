@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { AppInput } from '@/components/app-input';
 import type { VehicleFormValues } from '@/features/vehicles/vehicle-form-utils';
 import { AreaSearchField } from '@/features/vehicles/components/area-search-field';
@@ -10,26 +11,31 @@ type VehicleFormFieldsProps = {
 };
 
 export function VehicleFormFields({ values, onChange }: VehicleFormFieldsProps) {
+  const { t } = useTranslation('vehicles');
   const setField = (field: keyof VehicleFormValues, value: string) => {
     onChange({ ...values, [field]: value });
   };
 
   return (
     <View style={styles.container}>
-      <AppInput placeholder="Make" value={values.make} onChangeText={(v) => setField('make', v)} />
       <AppInput
-        placeholder="Model"
+        placeholder={t('formMake')}
+        value={values.make}
+        onChangeText={(v) => setField('make', v)}
+      />
+      <AppInput
+        placeholder={t('formModel')}
         value={values.model}
         onChangeText={(v) => setField('model', v)}
       />
       <AppInput
-        placeholder="Year"
+        placeholder={t('formYear')}
         keyboardType="number-pad"
         value={values.year}
         onChangeText={(v) => setField('year', v)}
       />
       <AppInput
-        placeholder="Color"
+        placeholder={t('formColor')}
         value={values.color}
         onChangeText={(v) => setField('color', v)}
       />
