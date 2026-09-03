@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RentalStatus, User } from '@prisma/client';
+import { RentalStatus, User, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../common/database/prisma.service';
 import { DomainError } from '../../common/errors/domain.error';
 
@@ -39,6 +39,8 @@ export class UsersRepository {
     fullName: string;
     cnic: string;
     phone: string;
+    emailVerifiedAt?: Date | null;
+    status?: UserStatus;
   }): Promise<User> {
     return this.prisma.user.create({
       data: {
@@ -47,6 +49,8 @@ export class UsersRepository {
         fullName: data.fullName.trim(),
         cnic: data.cnic,
         phone: data.phone,
+        ...(data.emailVerifiedAt !== undefined ? { emailVerifiedAt: data.emailVerifiedAt } : {}),
+        ...(data.status !== undefined ? { status: data.status } : {}),
       },
     });
   }
@@ -71,6 +75,13 @@ export class UsersRepository {
         emailVerifiedAt: new Date(),
         status: 'ACTIVE',
       },
+    });
+  }
+
+  updatePasswordHash(userId: string, passwordHash: string): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
     });
   }
 

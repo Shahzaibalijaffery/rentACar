@@ -5,6 +5,11 @@
   "markAllRead": "سب پڑھی ہوئی نشان زد کریں",
   "bellA11y": "اطلاعات",
   "bellA11yUnread": "اطلاعات، {{count}} ان پڑھی",
+  "permissionTitle": "اطلاعات کی اجازت دیں",
+  "permissionBody": "کرایہ کی تازہ خبر یا منظوری درکار ہو تو RentACar آپ کو مطلع کر سکتا ہے۔",
+  "permissionAllow": "اجازت دیں",
+  "permissionNotNow": "ابھی نہیں",
+  "toastA11y": "نئی اطلاع: {{title}}",
   "types": {
     "RENTAL_CREATED": "نئی کرایہ کی درخواست",
     "RENTAL_ACCEPTED": "آپ کی درخواست منظور ہو گئی",
@@ -18,5 +23,19 @@
     "HANDOVER_PHOTOS_READY": "پک اپ تصاویر تیار ہیں",
     "HANDOVER_APPROVED": "پک اپ تصاویر منظور ہو گئیں",
     "RENTAL_BECAME_ACTIVE": "کرایہ اب جاری ہے"
+  },
+  "bodies": {
+    "RENTAL_CREATED": "کسی نے آپ کی گاڑی مانگی ہے۔",
+    "RENTAL_ACCEPTED": "مالک نے آپ کی درخواست منظور کر لی۔",
+    "RENTAL_REJECTED": "مالک نے آپ کی درخواست مسترد کر دی۔",
+    "RENTAL_CANCELLED": "یہ کرایہ منسوخ ہو گیا۔",
+    "RENTAL_COMPLETED": "کرایہ مکمل ہو گیا۔ آپ درجہ دے سکتے ہیں۔",
+    "AGREEMENT_CREATED": "کرایہ کا معاہدہ پڑھیں اور منظور کریں۔",
+    "AGREEMENT_APPROVAL_NEEDED": "معاہدے کے لیے آپ کی منظوری درکار ہے۔",
+    "AGREEMENT_FULLY_APPROVED": "دونوں فریقوں نے معاہدہ منظور کر لیا۔",
+    "AGREEMENT_CANCELLED": "کرایہ کا معاہدہ منسوخ ہو گیا۔",
+    "HANDOVER_PHOTOS_READY": "گاڑی کی تصاویر دیکھیں اور منظور کریں۔",
+    "HANDOVER_APPROVED": "کرایہ دار نے پک اپ تصاویر منظور کر لیں۔",
+    "RENTAL_BECAME_ACTIVE": "پک اپ ہو گیا۔ کرایہ اب جاری ہے۔"
   }
 }

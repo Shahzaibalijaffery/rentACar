@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
@@ -27,6 +27,7 @@ import { useRentalRatingsQuery } from '@/api/hooks/use-ratings';
 import { RateRentalCard } from '@/features/ratings/components/rate-rental-card';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RentalRequestDetail'>;
 
@@ -105,14 +106,14 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   const handleAccept = () => {
     acceptMutation.mutate(undefined, {
       onSuccess: () => {
-        Alert.alert(t('acceptedTitle'), t('acceptedBody'));
+        showAppAlert(t('acceptedTitle'), t('acceptedBody'));
       },
-      onError: (error) => Alert.alert(t('acceptFailed'), error.message),
+      onError: (error) => showAppAlert(t('acceptFailed'), error.message),
     });
   };
 
   const handleReject = () => {
-    Alert.alert(t('rejectTitle'), t('rejectBody'), [
+    showAppAlert(t('rejectTitle'), t('rejectBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('rejectRequest'),
@@ -120,9 +121,9 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
         onPress: () => {
           rejectMutation.mutate(undefined, {
             onSuccess: () => {
-              Alert.alert(t('rejectedTitle'), t('rejectedBody'));
+              showAppAlert(t('rejectedTitle'), t('rejectedBody'));
             },
-            onError: (error) => Alert.alert(t('rejectFailed'), error.message),
+            onError: (error) => showAppAlert(t('rejectFailed'), error.message),
           });
         },
       },
@@ -130,7 +131,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   };
 
   const handleCancel = () => {
-    Alert.alert(
+    showAppAlert(
       isPending ? t('cancelRequestTitle') : t('cancelRentalTitle'),
       isPending ? t('cancelRequestBody') : t('cancelRentalBody'),
       [
@@ -141,12 +142,12 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
           onPress: () => {
             cancelMutation.mutate(undefined, {
               onSuccess: () => {
-                Alert.alert(
+                showAppAlert(
                   isPending ? t('cancelledRequestTitle') : t('cancelledRentalTitle'),
                   isPending ? t('cancelledRequestBody') : t('cancelledRentalBody'),
                 );
               },
-              onError: (error) => Alert.alert(t('cancelFailed'), error.message),
+              onError: (error) => showAppAlert(t('cancelFailed'), error.message),
             });
           },
         },
@@ -155,7 +156,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   };
 
   const handleApproveAgreement = () => {
-    Alert.alert(t('approveAgreementTitle'), t('approveAgreementBody'), [
+    showAppAlert(t('approveAgreementTitle'), t('approveAgreementBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('common:approve'),
@@ -164,7 +165,7 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
             onSuccess: (updated) => {
               if (updated.status === 'APPROVED') {
                 if (isOwnerView) {
-                  Alert.alert(t('agreementApprovedTitle'), t('agreementApprovedOwner'), [
+                  showAppAlert(t('agreementApprovedTitle'), t('agreementApprovedOwner'), [
                     {
                       text: t('takePickupPhotos'),
                       onPress: () => openPickupPhotos(navigation, 'owner'),
@@ -172,13 +173,13 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
                     { text: t('common:later'), style: 'cancel' },
                   ]);
                 } else {
-                  Alert.alert(t('agreementApprovedTitle'), t('agreementApprovedRenter'));
+                  showAppAlert(t('agreementApprovedTitle'), t('agreementApprovedRenter'));
                 }
               } else {
-                Alert.alert(t('approvalRecorded'), t('approvalRecordedBody'));
+                showAppAlert(t('approvalRecorded'), t('approvalRecordedBody'));
               }
             },
-            onError: (error) => Alert.alert(t('approvalFailed'), error.message),
+            onError: (error) => showAppAlert(t('approvalFailed'), error.message),
           });
         },
       },
@@ -186,16 +187,16 @@ export function RentalRequestDetailScreen({ navigation, route }: Props) {
   };
 
   const handleComplete = () => {
-    Alert.alert(t('completeTitle'), t('completeBody'), [
+    showAppAlert(t('completeTitle'), t('completeBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('completeRental'),
         onPress: () => {
           completeMutation.mutate(undefined, {
             onSuccess: () => {
-              Alert.alert(t('completedTitle'), t('completedBody'));
+              showAppAlert(t('completedTitle'), t('completedBody'));
             },
-            onError: (error) => Alert.alert(t('completeFailed'), error.message),
+            onError: (error) => showAppAlert(t('completeFailed'), error.message),
           });
         },
       },

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { DevicePlatform } from '@prisma/client';
 import { readFileSync } from 'node:fs';
 import { isAbsolute, resolve } from 'node:path';
-import type { NotificationType } from '@rentacar/shared';
+import { ANDROID_FCM_CHANNEL_ID, type NotificationType } from '@rentacar/shared';
 import type { AppConfig } from '../../config/env.config';
 import { getPushCopy } from './notification-copy';
 import { NotificationsRepository } from './notifications.repository';
@@ -13,7 +13,10 @@ type FirebaseMessaging = {
     tokens: string[];
     notification: { title: string; body: string };
     data: Record<string, string>;
-    android: { priority: 'high' };
+    android: {
+      priority: 'high';
+      notification: { channelId: string; defaultSound: boolean; priority: 'high' };
+    };
   }) => Promise<{
     responses: Array<{ success: boolean; error?: { code?: string } }>;
   }>;
@@ -52,6 +55,7 @@ export class PushService {
     const devices = await this.notificationsRepository.listDeviceTokens(userId);
     const androidDevices = devices.filter((device) => device.platform === DevicePlatform.ANDROID);
     if (androidDevices.length === 0) {
+      this.logger.warn(`FCM skipped — no Android device token for user ${userId}`);
       return;
     }
 
@@ -76,7 +80,14 @@ export class PushService {
             handoverId: input.handoverId ?? '',
             notificationId: input.notificationId ?? '',
           },
-          android: { priority: 'high' },
+          android: {
+            priority: 'high',
+            notification: {
+              channelId: ANDROID_FCM_CHANNEL_ID,
+              defaultSound: true,
+              priority: 'high',
+            },
+          },
         });
 
         await this.dropInvalidTokens(tokens, result.responses);

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RentalStatus } from '@prisma/client';
 import type { ApiResponse, RentalAgreementView } from '@rentacar/shared';
 import { DomainError } from '../../common/errors/domain.error';
+import { runPrivacyAssert } from '../../common/utils/privacy-assert';
 import { RentalsRepository } from '../rentals/rentals.repository';
 import { AgreementEventsService } from './agreement-events.service';
 import { assertAgreementViewParticipantOnly, toRentalAgreementView } from './agreement.mapper';
@@ -92,7 +93,7 @@ export class AgreementsService {
     }
 
     const view = toRentalAgreementView(agreement);
-    assertAgreementViewParticipantOnly(view, ownerId);
+    runPrivacyAssert('agreement.view', () => assertAgreementViewParticipantOnly(view, ownerId));
 
     this.agreementEventsService.emit('AGREEMENT_CREATED', this.toEventPayload(agreement));
     this.agreementEventsService.emit('AGREEMENT_OWNER_APPROVED', this.toEventPayload(agreement));
@@ -106,7 +107,7 @@ export class AgreementsService {
   ): Promise<ApiResponse<RentalAgreementView>> {
     const agreement = await this.getParticipantAgreementOrThrow(agreementId, userId);
     const view = toRentalAgreementView(agreement);
-    assertAgreementViewParticipantOnly(view, userId);
+    runPrivacyAssert('agreement.view', () => assertAgreementViewParticipantOnly(view, userId));
     return { data: view };
   }
 
@@ -129,7 +130,7 @@ export class AgreementsService {
     }
 
     const view = toRentalAgreementView(agreement);
-    assertAgreementViewParticipantOnly(view, userId);
+    runPrivacyAssert('agreement.view', () => assertAgreementViewParticipantOnly(view, userId));
     return { data: view };
   }
 
@@ -174,7 +175,7 @@ export class AgreementsService {
     }
 
     const view = toRentalAgreementView(updated);
-    assertAgreementViewParticipantOnly(view, userId);
+    runPrivacyAssert('agreement.view', () => assertAgreementViewParticipantOnly(view, userId));
 
     if (role === 'owner') {
       this.agreementEventsService.emit('AGREEMENT_OWNER_APPROVED', this.toEventPayload(updated));
@@ -217,7 +218,7 @@ export class AgreementsService {
     }
 
     const view = toRentalAgreementView(updated);
-    assertAgreementViewParticipantOnly(view, userId);
+    runPrivacyAssert('agreement.view', () => assertAgreementViewParticipantOnly(view, userId));
 
     this.agreementEventsService.emit('AGREEMENT_CANCELLED', this.toEventPayload(updated));
 

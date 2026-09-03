@@ -93,6 +93,7 @@ export class NotificationsService {
       platform: DevicePlatform.ANDROID,
       locale: dto.locale === 'ur' ? 'ur' : 'en',
     });
+    this.logger.log(`Registered Android device token for user ${userId}`);
     return { data: { ok: true } };
   }
 
@@ -108,34 +109,41 @@ export class NotificationsService {
 
     await Promise.all(
       plan.recipientIds.map(async (userId) => {
-        let notification: NotificationView | undefined;
-        if (plan.persistType) {
-          const record = await this.notificationsRepository.create({
-            userId,
-            type: plan.persistType,
+        try {
+          let notification: NotificationView | undefined;
+          if (plan.persistType) {
+            const record = await this.notificationsRepository.create({
+              userId,
+              type: plan.persistType,
+              ...optionalIds(plan),
+            });
+            notification = toNotificationView(record);
+          }
+
+          const event: RealtimeEvent = {
+            type: plan.realtimeType,
             ...optionalIds(plan),
-          });
-          notification = toNotificationView(record);
-        }
+            ...(notification ? { notification } : {}),
+          };
 
-        const event: RealtimeEvent = {
-          type: plan.realtimeType,
-          ...optionalIds(plan),
-          ...(notification ? { notification } : {}),
-        };
+          const connected = this.realtimeService.isConnected(userId);
+          this.realtimeService.emitToUser(userId, 'notification', event);
 
-        const connected = this.realtimeService.isConnected(userId);
-        this.realtimeService.emitToUser(userId, 'notification', event);
-
-        if (plan.persistType) {
-          this.logger.log(
-            `Notify ${userId} type=${plan.persistType} rental=${plan.rentalId ?? '-'} connected=${connected}`,
+          if (plan.persistType) {
+            this.logger.log(
+              `Notify ${userId} type=${plan.persistType} rental=${plan.rentalId ?? '-'} connected=${connected}`,
+            );
+            await this.pushService.sendToUser(userId, {
+              type: plan.persistType,
+              ...optionalIds(plan),
+              ...(notification ? { notificationId: notification.id } : {}),
+            });
+          }
+        } catch (error) {
+          this.logger.error(
+            `Notification side effect failed user=${userId} type=${plan.persistType ?? plan.realtimeType}`,
+            error instanceof Error ? error.stack : undefined,
           );
-          await this.pushService.sendToUser(userId, {
-            type: plan.persistType,
-            ...optionalIds(plan),
-            ...(notification ? { notificationId: notification.id } : {}),
-          });
         }
       }),
     );

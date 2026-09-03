@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActionTile } from '@/components/action-tile';
 import { AppButton } from '@/components/app-button';
@@ -15,6 +15,7 @@ import { useLogoutMutation, useProfileQuery } from '@/api/hooks/use-auth';
 import type { AppStackParamList } from '@/navigation/types';
 import { useAppModeStore } from '@/stores/app-mode-store';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Home'>;
 
@@ -35,7 +36,7 @@ export function HomeScreen({ navigation }: Props) {
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onError: (error) => {
-        Alert.alert(t('logoutFailed'), error.message);
+        showAppAlert(t('logoutFailed'), error.message);
       },
     });
   };

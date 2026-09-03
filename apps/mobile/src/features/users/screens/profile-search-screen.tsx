@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -14,6 +14,7 @@ import { RatingReviewList } from '@/features/ratings/components/rating-review-li
 import { ProfileVehicleCard } from '@/features/users/components/profile-vehicle-card';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, radii, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ProfileSearch'>;
 
@@ -30,7 +31,7 @@ export function ProfileSearchScreen({ navigation }: Props) {
   const handleSearch = () => {
     const trimmedCnic = cnic.trim();
     if (!trimmedCnic) {
-      Alert.alert(t('cnicRequired'), t('cnicRequiredBody'));
+      showAppAlert(t('cnicRequired'), t('cnicRequiredBody'));
       return;
     }
 
@@ -42,7 +43,7 @@ export function ProfileSearchScreen({ navigation }: Props) {
         },
         onError: (error) => {
           setSearchResult(null);
-          Alert.alert(t('notFound'), error.message);
+          showAppAlert(t('notFound'), error.message);
         },
       },
     );

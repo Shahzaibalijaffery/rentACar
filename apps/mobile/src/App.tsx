@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { queryClient } from '@/api/query-client';
+import { AppAlertHost } from '@/components/app-alert-host';
 import { bootstrapI18n, i18n } from '@/i18n';
 import { RootNavigator } from '@/navigation/root-navigator';
 import { colors } from '@/theme';
@@ -32,6 +33,7 @@ export function App() {
             <View style={[styles.navigator, I18nManager.isRTL ? styles.rtl : null]}>
               <RootNavigator />
             </View>
+            <AppAlertHost />
           </SafeAreaView>
         </SafeAreaProvider>
       </QueryClientProvider>

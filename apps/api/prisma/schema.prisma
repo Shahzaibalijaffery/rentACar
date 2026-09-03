@@ -91,6 +91,7 @@ model User {
   updatedAt       DateTime   @updatedAt
 
   emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
   refreshTokens           RefreshToken[]
   vehicles                Vehicle[]
   rentalsAsRenter         Rental[]                 @relation("RentalRenter")
@@ -113,6 +114,20 @@ model User {
 }
 
 model EmailVerificationToken {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @db.ObjectId
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   userId    String    @db.ObjectId
   tokenHash String

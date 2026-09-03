@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
@@ -18,6 +18,7 @@ import { useOpenPickupPhotos } from '@/features/handovers/use-open-pickup-photos
 import { formatRentalDate } from '@/features/rentals/rental-utils';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'AgreementDetail'>;
 
@@ -45,7 +46,7 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
   const { openPickupPhotos, isOpening } = useOpenPickupPhotos(rentalId, isFullyApproved);
 
   const handleApprove = () => {
-    Alert.alert(t('approveTitle'), t('approveBody'), [
+    showAppAlert(t('approveTitle'), t('approveBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('common:approve'),
@@ -54,7 +55,7 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
             onSuccess: (updated) => {
               if (updated.status === 'APPROVED') {
                 if (isOwnerView) {
-                  Alert.alert(t('approvedTitle'), t('approvedOwner'), [
+                  showAppAlert(t('approvedTitle'), t('approvedOwner'), [
                     {
                       text: t('takePhotos'),
                       onPress: () => openPickupPhotos(navigation, 'owner'),
@@ -62,15 +63,15 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
                     { text: t('common:later'), style: 'cancel' },
                   ]);
                 } else {
-                  Alert.alert(t('approvedTitle'), t('approvedRenter'), [
+                  showAppAlert(t('approvedTitle'), t('approvedRenter'), [
                     { text: t('common:ok'), onPress: () => navigation.goBack() },
                   ]);
                 }
               } else {
-                Alert.alert(t('approvalRecorded'), t('approvalRecordedBody'));
+                showAppAlert(t('approvalRecorded'), t('approvalRecordedBody'));
               }
             },
-            onError: (error) => Alert.alert(t('approvalFailed'), error.message),
+            onError: (error) => showAppAlert(t('approvalFailed'), error.message),
           });
         },
       },
@@ -78,7 +79,7 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
   };
 
   const handleCancel = () => {
-    Alert.alert(t('cancelTitle'), t('cancelBody'), [
+    showAppAlert(t('cancelTitle'), t('cancelBody'), [
       { text: t('keep'), style: 'cancel' },
       {
         text: t('cancelCta'),
@@ -86,10 +87,10 @@ export function AgreementDetailScreen({ navigation, route }: Props) {
         onPress: () => {
           cancelMutation.mutate(undefined, {
             onSuccess: () => {
-              Alert.alert(t('cancelledTitle'), t('cancelledBody'));
+              showAppAlert(t('cancelledTitle'), t('cancelledBody'));
               navigation.goBack();
             },
-            onError: (error) => Alert.alert(t('cancelFailed'), error.message),
+            onError: (error) => showAppAlert(t('cancelFailed'), error.message),
           });
         },
       },

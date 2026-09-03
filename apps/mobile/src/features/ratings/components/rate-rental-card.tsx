@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { RATING_COMMENT_MAX_LENGTH, type RentalRatingsView } from '@rentacar/shared';
 import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
@@ -8,6 +8,7 @@ import { AppText } from '@/components/app-text';
 import { useSubmitRentalRatingMutation } from '@/api/hooks/use-ratings';
 import { StarRating } from '@/features/ratings/components/star-rating';
 import { colors, radii, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type RateRentalCardProps = {
   rentalId: string;
@@ -27,7 +28,7 @@ export function RateRentalCard({ rentalId, perspective, ratings }: RateRentalCar
 
   const handleSubmit = () => {
     if (stars < 1) {
-      Alert.alert(t('chooseStars'), t('chooseStarsBody'));
+      showAppAlert(t('chooseStars'), t('chooseStarsBody'));
       return;
     }
 
@@ -36,9 +37,9 @@ export function RateRentalCard({ rentalId, perspective, ratings }: RateRentalCar
       {
         onSuccess: () => {
           setComment('');
-          Alert.alert(t('saved'), t('savedBody'));
+          showAppAlert(t('saved'), t('savedBody'));
         },
-        onError: (error) => Alert.alert(t('sendFailed'), error.message),
+        onError: (error) => showAppAlert(t('sendFailed'), error.message),
       },
     );
   };

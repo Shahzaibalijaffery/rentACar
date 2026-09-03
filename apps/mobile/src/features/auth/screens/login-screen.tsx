@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppCard } from '@/components/app-card';
@@ -10,6 +10,8 @@ import { ScreenLayout } from '@/components/screen-layout';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useLoginMutation } from '@/api/hooks/use-auth';
+import { ApiError } from '@/api/errors';
+import { showAppAlert } from '@/stores/app-alert-store';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 
@@ -26,7 +28,11 @@ export function LoginScreen({ navigation }: Props) {
       { email, password },
       {
         onError: (error) => {
-          Alert.alert(t('signInFailed'), error.message);
+          if (error instanceof ApiError && error.errorCode === 'EMAIL_NOT_VERIFIED') {
+            navigation.navigate('VerifyEmail', { email: email.trim() });
+            return;
+          }
+          showAppAlert(t('signInFailed'), error.message);
         },
       },
     );
@@ -67,8 +73,16 @@ export function LoginScreen({ navigation }: Props) {
           placeholder={t('passwordPlaceholder')}
           secureTextEntry
           autoComplete="password"
+          textContentType="password"
           value={password}
           onChangeText={setPassword}
+        />
+
+        <AppButton
+          title={t('forgotPassword')}
+          variant="ghost"
+          size="sm"
+          onPress={() => navigation.navigate('ForgotPassword', { email: email.trim() || undefined })}
         />
 
         <AppButton

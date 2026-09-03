@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, UserStatus } from '@prisma/client';
 import type {
   ApiResponse,
   LoginResponse,
@@ -13,9 +13,15 @@ import { EmailService } from '../../common/email/email.service';
 import { DomainError } from '../../common/errors/domain.error';
 import { normalizeCnic } from '../../common/utils/cnic.util';
 import { normalizePhone } from '../../common/utils/phone.util';
-import { generateSecureToken, hashToken } from '../../common/utils/token.util';
+import {
+  EMAIL_VERIFICATION_CODE_LENGTH,
+  generateEmailVerificationCode,
+  hashToken,
+  normalizeEmailVerificationCode,
+} from '../../common/utils/token.util';
 import { AppConfig } from '../../config/env.config';
 import { PrismaService } from '../../common/database/prisma.service';
+import { MONGO_DATE_UNSET } from '../../common/database/mongo-date-unset';
 import { toUserProfile } from '../users/user.mapper';
 import { UsersRepository } from '../users/users.repository';
 import { LoginDto } from './dto/login.dto';
@@ -24,6 +30,8 @@ import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly passwordService: PasswordService,
@@ -65,6 +73,7 @@ export class AuthService {
     }
 
     const passwordHash = await this.passwordService.hash(dto.password);
+    const verifyEmail = this.isEmailVerificationEnabled();
 
     let user: User;
     try {
@@ -74,21 +83,26 @@ export class AuthService {
         fullName: dto.fullName,
         cnic: normalizedCnic,
         phone: normalizedPhone,
+        ...(verifyEmail
+          ? {}
+          : { emailVerifiedAt: new Date(), status: UserStatus.ACTIVE }),
       });
     } catch (error) {
       this.handlePrismaUniqueError(error);
     }
 
-    // Email verification disabled for now — auto-verify on registration.
-    if (this.isEmailVerificationEnabled()) {
-      await this.createAndSendVerificationToken(user.id, user.email);
-    } else {
-      await this.usersRepository.markEmailVerified(user.id);
+    if (verifyEmail) {
+      void this.createAndSendVerificationToken(user.id, user.email).catch((error: unknown) => {
+        this.logger.error(
+          `Verification email failed after registration userId=${user.id}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+      });
     }
 
     return {
       data: {
-        message: this.isEmailVerificationEnabled()
+        message: verifyEmail
           ? 'Registration successful. Please verify your email.'
           : 'Registration successful. You can sign in now.',
         userId: user.id,
@@ -112,8 +126,22 @@ export class AuthService {
       throw new DomainError('Invalid email or password', 'INVALID_CREDENTIALS', 401);
     }
 
+    if (this.isEmailVerificationEnabled() && !user.emailVerifiedAt) {
+      throw new DomainError(
+        'Please verify your email before signing in',
+        'EMAIL_NOT_VERIFIED',
+        403,
+      );
+    }
+
     if (!this.isEmailVerificationEnabled() && !user.emailVerifiedAt) {
-      user = await this.usersRepository.markEmailVerified(user.id);
+      try {
+        user = await this.usersRepository.markEmailVerified(user.id);
+      } catch (error) {
+        this.logger.warn(
+          `Auto-verify on login failed userId=${user.id}: ${error instanceof Error ? error.message : 'unknown'}`,
+        );
+      }
     }
 
     const tokens = await this.tokenService.issueTokens(user);
@@ -140,7 +168,7 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(token: string): Promise<ApiResponse<VerifyEmailResponse>> {
+  async verifyEmail(email: string, code: string): Promise<ApiResponse<VerifyEmailResponse>> {
     if (!this.isEmailVerificationEnabled()) {
       throw new DomainError(
         'Email verification is currently disabled',
@@ -148,19 +176,32 @@ export class AuthService {
         400,
       );
     }
-    const tokenHash = hashToken(token);
-    const record = await this.prisma.emailVerificationToken.findFirst({
-      where: {
-        tokenHash,
-        usedAt: null,
-        expiresAt: { gt: new Date() },
-      },
-      include: { user: true },
-    });
+
+    const normalizedCode = normalizeEmailVerificationCode(code);
+    if (normalizedCode.length !== EMAIL_VERIFICATION_CODE_LENGTH) {
+      throw new DomainError(
+        'Invalid or expired verification code',
+        'INVALID_VERIFICATION_TOKEN',
+        400,
+      );
+    }
+
+    const user = await this.usersRepository.findByEmail(email.toLowerCase().trim());
+    const tokenHash = hashToken(normalizedCode);
+    const record = user
+      ? await this.prisma.emailVerificationToken.findFirst({
+          where: {
+            userId: user.id,
+            tokenHash,
+            usedAt: MONGO_DATE_UNSET,
+            expiresAt: { gt: new Date() },
+          },
+        })
+      : null;
 
     if (!record) {
       throw new DomainError(
-        'Invalid or expired verification token',
+        'Invalid or expired verification code',
         'INVALID_VERIFICATION_TOKEN',
         400,
       );
@@ -180,12 +221,12 @@ export class AuthService {
       }),
     ]);
 
-    const user = await this.usersRepository.getByIdOrThrow(record.userId);
+    const verifiedUser = await this.usersRepository.getByIdOrThrow(record.userId);
 
     return {
       data: {
         message: 'Email verified successfully',
-        user: toUserProfile(user),
+        user: toUserProfile(verifiedUser),
       },
     };
   }
@@ -206,7 +247,12 @@ export class AuthService {
     }
 
     await this.invalidateExistingVerificationTokens(user.id);
-    await this.createAndSendVerificationToken(user.id, user.email);
+    void this.createAndSendVerificationToken(user.id, user.email).catch((error: unknown) => {
+      this.logger.error(
+        `Verification email failed on resend userId=${user.id}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    });
 
     return { data: { message: 'If the account exists, a verification email has been sent.' } };
   }
@@ -216,8 +262,10 @@ export class AuthService {
   }
 
   private async createAndSendVerificationToken(userId: string, email: string): Promise<void> {
-    const plainToken = generateSecureToken(32);
-    const tokenHash = hashToken(plainToken);
+    await this.invalidateExistingVerificationTokens(userId);
+
+    const code = generateEmailVerificationCode();
+    const tokenHash = hashToken(code);
     const hours = this.configService.get('emailVerificationExpiresHours', { infer: true });
     const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
 
@@ -225,20 +273,17 @@ export class AuthService {
       data: { userId, tokenHash, expiresAt },
     });
 
-    const appUrl = this.configService.get('appUrl', { infer: true });
-    const verificationUrl = `${appUrl}/verify-email?token=${plainToken}`;
-
     await this.emailService.sendEmail({
       to: email,
-      subject: 'Verify your RentACar account',
-      text: `Verify your email by opening this link: ${verificationUrl}\n\nOr enter this code in the app: ${plainToken}`,
-      html: `<p>Verify your email by opening this link:</p><p><a href="${verificationUrl}">Verify email</a></p><p>Or enter this code in the app: <strong>${plainToken}</strong></p>`,
+      subject: 'Your RentACar verification code',
+      text: `Your RentACar verification code is ${code}.\n\nEnter this 6-digit code in the app. It expires in ${hours} hours.`,
+      html: `<p>Your RentACar verification code is:</p><p style="font-size:28px;letter-spacing:6px;font-weight:700">${code}</p><p>Enter this 6-digit code in the app. It expires in ${hours} hours.</p>`,
     });
   }
 
   private async invalidateExistingVerificationTokens(userId: string): Promise<void> {
     await this.prisma.emailVerificationToken.updateMany({
-      where: { userId, usedAt: null },
+      where: { userId, usedAt: MONGO_DATE_UNSET },
       data: { usedAt: new Date() },
     });
   }

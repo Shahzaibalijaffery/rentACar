@@ -1,7 +1,11 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
+
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   VerifyEmail: { email?: string } | undefined;
+  ForgotPassword: { email?: string } | undefined;
+  ResetPassword: { email: string };
 };
 
 export type AppStackParamList = {
@@ -11,6 +15,7 @@ export type AppStackParamList = {
   Discovery: undefined;
   DiscoveryVehicleDetail: { vehicleId: string; distanceLabel?: string };
   Profile: undefined;
+  ChangePassword: undefined;
   MyVehicles: undefined;
   AddVehicle: undefined;
   EditVehicle: { vehicleId: string };
@@ -23,6 +28,6 @@ export type AppStackParamList = {
 };
 
 export type RootStackParamList = {
-  Auth: undefined;
-  App: undefined;
+  Auth: NavigatorScreenParams<AuthStackParamList> | undefined;
+  App: NavigatorScreenParams<AppStackParamList> | undefined;
 };

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { AgreementParticipant } from '@rentacar/shared';
 import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
@@ -8,6 +8,7 @@ import { AppText } from '@/components/app-text';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { useLookupUserByCnicMutation } from '@/api/hooks/use-users';
 import { colors, radii, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = {
   participant: 'renter' | 'owner';
@@ -23,7 +24,7 @@ export function CnicProfileLookup({ participant }: Props) {
   const handleLookup = () => {
     const trimmedCnic = cnic.trim();
     if (!trimmedCnic) {
-      Alert.alert(t('cnicRequired'), t('cnicRequiredLookup', { role }));
+      showAppAlert(t('cnicRequired'), t('cnicRequiredLookup', { role }));
       return;
     }
 
@@ -35,7 +36,7 @@ export function CnicProfileLookup({ participant }: Props) {
         },
         onError: (error) => {
           setProfile(null);
-          Alert.alert(t('notFound'), error.message);
+          showAppAlert(t('notFound'), error.message);
         },
       },
     );

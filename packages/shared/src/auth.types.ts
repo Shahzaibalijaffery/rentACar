@@ -52,7 +52,31 @@ export type LoginResponse = AuthTokens & {
 
 export type RefreshResponse = AuthTokens;
 
+export type VerifyEmailRequest = {
+  email: string;
+  code: string;
+};
+
 export type VerifyEmailResponse = {
   message: string;
   user: UserProfile;
+};
+
+export type ForgotPasswordRequest = {
+  email: string;
+};
+
+export type ResetPasswordRequest = {
+  email: string;
+  code: string;
+  newPassword: string;
+};
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type ChangePasswordResponse = AuthTokens & {
+  message: string;
 };

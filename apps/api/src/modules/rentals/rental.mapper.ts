@@ -6,6 +6,7 @@ import type {
   RentalVehicleSummary,
 } from '@rentacar/shared';
 import { toUserPublicProfile } from '../users/user.mapper';
+import { jsonHasQuotedKeys } from '../../common/utils/privacy-assert';
 import { CONTACT_VISIBLE_STATUSES } from './rental-state.constants';
 import type { RentalRecord } from './rentals.repository';
 
@@ -80,12 +81,12 @@ export function toRentalDetailView(
   };
 }
 
+const PUBLIC_PROFILE_FORBIDDEN_KEYS = ['cnic', 'email', 'phone', 'passwordHash'] as const;
+
 export function assertRentalSummaryIsPublicSafe(summary: RentalSummary): void {
-  const serialized = JSON.stringify({
-    renter: summary.renter,
-    owner: summary.owner,
-  });
-  if (/cnic|email|phone/i.test(serialized)) {
+  if (
+    jsonHasQuotedKeys({ renter: summary.renter, owner: summary.owner }, PUBLIC_PROFILE_FORBIDDEN_KEYS)
+  ) {
     throw new Error('Rental summary leaked private user fields');
   }
 }
@@ -93,11 +94,12 @@ export function assertRentalSummaryIsPublicSafe(summary: RentalSummary): void {
 export function assertRentalDetailIsSafe(detail: RentalDetailView): void {
   assertRentalSummaryIsPublicSafe(detail);
 
-  const profiles = JSON.stringify({
-    renterProfile: detail.renterProfile,
-    ownerProfile: detail.ownerProfile,
-  });
-  if (/cnic|email|phone/i.test(profiles)) {
+  if (
+    jsonHasQuotedKeys(
+      { renterProfile: detail.renterProfile, ownerProfile: detail.ownerProfile },
+      PUBLIC_PROFILE_FORBIDDEN_KEYS,
+    )
+  ) {
     throw new Error('Rental request profile leaked private user fields');
   }
 

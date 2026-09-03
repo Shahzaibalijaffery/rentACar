@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { DEFAULT_RENTAL_AGREEMENT_TERMS } from '@rentacar/shared';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { RatingReviewList } from '@/features/ratings/components/rating-review-li
 import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'DiscoveryVehicleDetail'>;
 
@@ -34,7 +35,7 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
       return;
     }
 
-    Alert.alert(
+    showAppAlert(
       t('requestTitle'),
       t('requestBody', {
         year: vehicle.year,
@@ -51,7 +52,7 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
               { vehicleId: vehicle.id },
               {
                 onSuccess: (rental) => {
-                  Alert.alert(t('requestSent'), t('requestSentBody'), [
+                  showAppAlert(t('requestSent'), t('requestSentBody'), [
                     {
                       text: t('viewRequest'),
                       onPress: () =>
@@ -63,7 +64,7 @@ export function DiscoveryVehicleDetailScreen({ navigation, route }: Props) {
                     { text: t('common:ok') },
                   ]);
                 },
-                onError: (error) => Alert.alert(t('requestFailed'), error.message),
+                onError: (error) => showAppAlert(t('requestFailed'), error.message),
               },
             );
           },

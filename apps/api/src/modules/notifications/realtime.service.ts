@@ -1,10 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { Socket } from 'socket.io';
+import type { Server, Socket } from 'socket.io';
 
 @Injectable()
 export class RealtimeService {
   private readonly logger = new Logger(RealtimeService.name);
   private readonly socketsByUser = new Map<string, Set<Socket>>();
+  private server: Server | null = null;
+
+  attachServer(server: Server): void {
+    this.server = server;
+  }
 
   addClient(userId: string, socket: Socket): void {
     const existing = this.socketsByUser.get(userId) ?? new Set<Socket>();
@@ -28,6 +33,7 @@ export class RealtimeService {
   }
 
   emitToUser(userId: string, event: string, payload: unknown): void {
+    this.server?.to(`user:${userId}`).emit(event, payload);
     const sockets = this.socketsByUser.get(userId);
     if (!sockets) {
       return;

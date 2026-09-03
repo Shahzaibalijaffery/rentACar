@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
 import { AppCard } from '@/components/app-card';
@@ -8,6 +8,8 @@ import { FormField } from '@/components/form-field';
 import { ScreenLayout } from '@/components/screen-layout';
 import { useTranslation } from 'react-i18next';
 import { useRegisterMutation } from '@/api/hooks/use-auth';
+import { registrationPasswordError } from '@/features/auth/registration-passwords';
+import { showAppAlert } from '@/stores/app-alert-store';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 
@@ -18,21 +20,26 @@ export function RegisterScreen({ navigation }: Props) {
   const registerMutation = useRegisterMutation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [cnic, setCnic] = useState('');
   const [phone, setPhone] = useState('');
 
   const handleRegister = () => {
+    const passwordError = registrationPasswordError(password, confirmPassword);
+    if (passwordError) {
+      showAppAlert(t('registrationFailed'), t(passwordError));
+      return;
+    }
+
     registerMutation.mutate(
       { email, password, fullName, cnic, phone },
       {
         onSuccess: () => {
-          Alert.alert(t('accountCreated'), t('accountCreatedBody'), [
-            { text: t('common:ok'), onPress: () => navigation.navigate('Login') },
-          ]);
+          navigation.navigate('VerifyEmail', { email: email.trim() });
         },
         onError: (error) => {
-          Alert.alert(t('registrationFailed'), error.message);
+          showAppAlert(t('registrationFailed'), error.message);
         },
       },
     );
@@ -89,8 +96,19 @@ export function RegisterScreen({ navigation }: Props) {
           placeholder={t('passwordNewPlaceholder')}
           secureTextEntry
           autoComplete="password-new"
+          textContentType="newPassword"
           value={password}
           onChangeText={setPassword}
+        />
+        <FormField
+          label={t('confirmPassword')}
+          icon="lock"
+          placeholder={t('confirmPasswordPlaceholder')}
+          secureTextEntry
+          autoComplete="password-new"
+          textContentType="newPassword"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
         />
 
         <AppButton

@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getPlanLimits } from '@rentacar/shared';
@@ -23,6 +23,7 @@ import { useProfileQuery } from '@/api/hooks/use-auth';
 import { CnicProfileLookup } from '@/features/users/components/cnic-profile-lookup';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PickupHandover'>;
 
@@ -63,18 +64,18 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
         name: asset.fileName ?? 'handover.jpg',
       },
       {
-        onError: (error) => Alert.alert(t('uploadFailed'), error.message),
+        onError: (error) => showAppAlert(t('uploadFailed'), error.message),
       },
     );
   };
 
   const handleAddPhoto = () => {
     if (atEvidenceLimit) {
-      Alert.alert(t('planLimitTitle'), t('planLimitBody', { limit: limits.maxHandoverPhotos }));
+      showAppAlert(t('planLimitTitle'), t('planLimitBody', { limit: limits.maxHandoverPhotos }));
       return;
     }
 
-    Alert.alert(t('addPhoto'), t('addPhotoBody'), [
+    showAppAlert(t('addPhoto'), t('addPhotoBody'), [
       { text: t('camera'), onPress: () => void pickPhoto(true) },
       { text: t('gallery'), onPress: () => void pickPhoto(false) },
       { text: t('common:cancel'), style: 'cancel' },
@@ -82,14 +83,14 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
   };
 
   const handleDeletePhoto = (photoId: string) => {
-    Alert.alert(t('removePhoto'), t('removePhotoBody'), [
+    showAppAlert(t('removePhoto'), t('removePhotoBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('common:remove'),
         style: 'destructive',
         onPress: () => {
           deleteMutation.mutate(photoId, {
-            onError: (error) => Alert.alert(t('removeFailed'), error.message),
+            onError: (error) => showAppAlert(t('removeFailed'), error.message),
           });
         },
       },
@@ -97,16 +98,16 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
   };
 
   const handleSubmit = () => {
-    Alert.alert(t('submitTitle'), t('submitBody'), [
+    showAppAlert(t('submitTitle'), t('submitBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('common:submit'),
         onPress: () => {
           submitMutation.mutate(undefined, {
             onSuccess: () => {
-              Alert.alert(t('submittedTitle'), t('submittedBody'));
+              showAppAlert(t('submittedTitle'), t('submittedBody'));
             },
-            onError: (error) => Alert.alert(t('submitFailed'), error.message),
+            onError: (error) => showAppAlert(t('submitFailed'), error.message),
           });
         },
       },
@@ -114,16 +115,16 @@ export function PickupHandoverScreen({ navigation, route }: Props) {
   };
 
   const handleApprove = () => {
-    Alert.alert(t('approveTitle'), t('approveBody'), [
+    showAppAlert(t('approveTitle'), t('approveBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('common:approve'),
         onPress: () => {
           approveMutation.mutate(undefined, {
             onSuccess: () => {
-              Alert.alert(t('approvedTitle'), t('approvedBody'));
+              showAppAlert(t('approvedTitle'), t('approvedBody'));
             },
-            onError: (error) => Alert.alert(t('approvalFailed'), error.message),
+            onError: (error) => showAppAlert(t('approvalFailed'), error.message),
           });
         },
       },

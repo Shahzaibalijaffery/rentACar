@@ -4,6 +4,7 @@
   "activeProfileHint": "Switch between renter and owner mode for the home screen.",
   "fullName": "Full name",
   "saveName": "Save name",
+  "changePassword": "Change password",
   "nameEmpty": "Name cannot be empty",
   "validation": "Check your details",
   "saved": "Saved",

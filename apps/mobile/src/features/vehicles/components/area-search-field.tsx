@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import type { AreaSearchResult } from '@rentacar/shared';
 import { useTranslation } from 'react-i18next';
 import { AppButton } from '@/components/app-button';
@@ -13,6 +13,7 @@ import {
   requestAndroidLocationPermission,
 } from '@/services/location-service';
 import { colors, radii, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 const MIN_SEARCH_LENGTH = 2;
 
@@ -66,7 +67,7 @@ export function AreaSearchField({
     try {
       const granted = await requestAndroidLocationPermission();
       if (!granted) {
-        Alert.alert(t('locationNeeded'), t('locationNeededBody'));
+        showAppAlert(t('locationNeeded'), t('locationNeededBody'));
         return;
       }
 
@@ -77,7 +78,7 @@ export function AreaSearchField({
       onSelect(resolved);
     } catch (error) {
       const message = error instanceof Error ? error.message : t('locationError');
-      Alert.alert(t('locationError'), message);
+      showAppAlert(t('locationError'), message);
     } finally {
       setGpsLoading(false);
     }

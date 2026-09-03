@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { ScreenLayout } from '@/components/screen-layout';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppButton } from '@/components/app-button';
@@ -9,41 +9,60 @@ import { useTranslation } from 'react-i18next';
 import { useResendVerificationMutation, useVerifyEmailMutation } from '@/api/hooks/use-auth';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyEmail'>;
+
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, '').slice(0, 6);
+}
 
 export function VerifyEmailScreen({ route, navigation }: Props) {
   const { t } = useTranslation('auth');
   const verifyMutation = useVerifyEmailMutation();
   const resendMutation = useResendVerificationMutation();
-  const [token, setToken] = useState('');
+  const [code, setCode] = useState('');
   const email = route.params?.email ?? '';
 
   const handleVerify = () => {
-    verifyMutation.mutate(token.trim(), {
-      onSuccess: () => {
-        Alert.alert(t('emailVerified'), t('emailVerifiedBody'), [
-          { text: t('common:ok'), onPress: () => navigation.navigate('Login') },
-        ]);
+    if (!email) {
+      showAppAlert(t('emailRequired'), t('emailRequiredBody'));
+      return;
+    }
+
+    const normalizedCode = digitsOnly(code);
+    if (normalizedCode.length !== 6) {
+      showAppAlert(t('verificationFailed'), t('codeRequired'));
+      return;
+    }
+
+    verifyMutation.mutate(
+      { email, code: normalizedCode },
+      {
+        onSuccess: () => {
+          showAppAlert(t('emailVerified'), t('emailVerifiedBody'), [
+            { text: t('common:ok'), onPress: () => navigation.navigate('Login') },
+          ]);
+        },
+        onError: (error) => {
+          showAppAlert(t('verificationFailed'), error.message);
+        },
       },
-      onError: (error) => {
-        Alert.alert(t('verificationFailed'), error.message);
-      },
-    });
+    );
   };
 
   const handleResend = () => {
     if (!email) {
-      Alert.alert(t('emailRequired'), t('emailRequiredBody'));
+      showAppAlert(t('emailRequired'), t('emailRequiredBody'));
       return;
     }
 
     resendMutation.mutate(email, {
       onSuccess: (data) => {
-        Alert.alert(t('verificationEmail'), data.message);
+        showAppAlert(t('verificationEmail'), data.message);
       },
       onError: (error) => {
-        Alert.alert(t('couldNotResend'), error.message);
+        showAppAlert(t('couldNotResend'), error.message);
       },
     });
   };
@@ -58,8 +77,14 @@ export function VerifyEmailScreen({ route, navigation }: Props) {
       <AppInput
         icon="mail"
         placeholder={t('verificationCode')}
-        value={token}
-        onChangeText={setToken}
+        value={code}
+        onChangeText={(value) => setCode(digitsOnly(value))}
+        keyboardType="number-pad"
+        inputMode="numeric"
+        maxLength={6}
+        autoCorrect={false}
+        autoComplete="one-time-code"
+        textContentType="oneTimeCode"
       />
 
       <AppButton

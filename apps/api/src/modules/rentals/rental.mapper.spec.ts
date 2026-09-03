@@ -1,5 +1,5 @@
 import { RentalStatus } from '@prisma/client';
-import { assertRentalDetailIsSafe, toRentalDetailView, toRentalSummary } from './rental.mapper';
+import { assertRentalDetailIsSafe, assertRentalSummaryIsPublicSafe, toRentalDetailView, toRentalSummary } from './rental.mapper';
 import type { RentalRecord } from './rentals.repository';
 
 const rental = {
@@ -71,5 +71,17 @@ describe('rental mapper', () => {
     expect(detail).not.toHaveProperty('messages');
     expect(detail).not.toHaveProperty('chatId');
     expect(() => assertRentalDetailIsSafe(detail)).not.toThrow();
+  });
+
+  it('does not treat names or photo URLs as leaked PII keys', () => {
+    const summary = toRentalSummary({
+      ...rental,
+      renter: {
+        ...rental.renter,
+        fullName: 'Email Khan',
+        profilePhotoUrl: 'https://cdn.example/phone-cover.jpg',
+      },
+    });
+    expect(() => assertRentalSummaryIsPublicSafe(summary)).not.toThrow();
   });
 });

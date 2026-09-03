@@ -51,6 +51,7 @@ describe('AuthService', () => {
       findById: jest.fn(),
       updateProfile: jest.fn(),
       markEmailVerified: jest.fn(),
+      updatePasswordHash: jest.fn(),
     };
 
     passwordService = {
@@ -125,7 +126,13 @@ describe('AuthService', () => {
     expect(result.data.userId).toBe('user-1');
     expect(result.data.message).toContain('sign in');
     expect(passwordService.hash).toHaveBeenCalledWith('Password1');
-    expect(usersRepository.markEmailVerified).toHaveBeenCalledWith('user-1');
+    expect(usersRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'test@example.com',
+        status: UserStatus.ACTIVE,
+      }),
+    );
+    expect(usersRepository.markEmailVerified).not.toHaveBeenCalled();
     expect(emailService.sendEmail).not.toHaveBeenCalled();
   });
 
@@ -177,6 +184,69 @@ describe('AuthService', () => {
     expect(result.data.user.email).toBe('test@example.com');
   });
 
+  it('still signs in when auto-verify on login fails', async () => {
+    usersRepository.findByEmail.mockResolvedValue(baseUser);
+    usersRepository.markEmailVerified.mockRejectedValue(new Error('write conflict'));
+    passwordService.compare.mockResolvedValue(true);
+
+    const result = await authService.login({
+      email: 'test@example.com',
+      password: 'Password1',
+    });
+
+    expect(result.data.accessToken).toBe('access');
+  });
+
+  it('returns registration success even if the verification email fails', async () => {
+    configValues['emailVerificationEnabled'] = true;
+    usersRepository.findByEmail.mockResolvedValue(null);
+    usersRepository.findByCnic.mockResolvedValue(null);
+    usersRepository.findByPhone.mockResolvedValue(null);
+    usersRepository.create.mockResolvedValue(baseUser);
+    emailService.sendEmail.mockRejectedValue(new Error('SMTP down'));
+
+    const result = await authService.register({
+      email: 'test@example.com',
+      password: 'Password1',
+      fullName: 'Test User',
+      cnic: '35202-1234567-1',
+      phone: '03001234567',
+    });
+
+    expect(result.data.userId).toBe('user-1');
+    expect(result.data.message).toContain('verify');
+    expect(usersRepository.markEmailVerified).not.toHaveBeenCalled();
+    await Promise.resolve();
+  });
+
+  it('rejects login when verification is enabled and the email is not verified', async () => {
+    configValues['emailVerificationEnabled'] = true;
+    usersRepository.findByEmail.mockResolvedValue(baseUser);
+    passwordService.compare.mockResolvedValue(true);
+
+    await expect(
+      authService.login({ email: 'test@example.com', password: 'Password1' }),
+    ).rejects.toMatchObject({ errorCode: 'EMAIL_NOT_VERIFIED', statusCode: 403 });
+    expect(tokenService.issueTokens).not.toHaveBeenCalled();
+  });
+
+  it('logs in a verified user when verification is enabled', async () => {
+    configValues['emailVerificationEnabled'] = true;
+    usersRepository.findByEmail.mockResolvedValue({
+      ...baseUser,
+      emailVerifiedAt: new Date(),
+      status: UserStatus.ACTIVE,
+    });
+    passwordService.compare.mockResolvedValue(true);
+
+    const result = await authService.login({
+      email: 'test@example.com',
+      password: 'Password1',
+    });
+
+    expect(result.data.accessToken).toBe('access');
+  });
+
   it('rejects invalid credentials without leaking details', async () => {
     usersRepository.findByEmail.mockResolvedValue(null);
 
@@ -194,8 +264,9 @@ describe('AuthService', () => {
     ).rejects.toMatchObject({ errorCode: 'INVALID_CREDENTIALS' });
   });
 
-  it('verifies email with a valid token', async () => {
+  it('verifies email with a valid 6-digit code', async () => {
     configValues['emailVerificationEnabled'] = true;
+    usersRepository.findByEmail.mockResolvedValue(baseUser);
     prisma.emailVerificationToken.findFirst.mockResolvedValue({
       id: 'token-1',
       userId: 'user-1',
@@ -208,17 +279,23 @@ describe('AuthService', () => {
       status: UserStatus.ACTIVE,
     });
 
-    const result = await authService.verifyEmail('valid-token-value-1234567890');
+    const result = await authService.verifyEmail('test@example.com', '123456');
 
     expect(result.data.message).toBe('Email verified successfully');
     expect(result.data.user.emailVerified).toBe(true);
+    expect(prisma.emailVerificationToken.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: 'user-1' }),
+      }),
+    );
   });
 
   it('rejects expired verification token', async () => {
     configValues['emailVerificationEnabled'] = true;
+    usersRepository.findByEmail.mockResolvedValue(baseUser);
     prisma.emailVerificationToken.findFirst.mockResolvedValue(null);
 
-    await expect(authService.verifyEmail('expired-token')).rejects.toMatchObject({
+    await expect(authService.verifyEmail('test@example.com', '000000')).rejects.toMatchObject({
       errorCode: 'INVALID_VERIFICATION_TOKEN',
     });
   });

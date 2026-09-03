@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getPlanLimits, resolveUserPlan } from '@rentacar/shared';
@@ -24,10 +24,11 @@ import {
 } from '@/api/hooks/use-auth';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>;
 
-export function ProfileScreen(_props: Props) {
+export function ProfileScreen({ navigation }: Props) {
   const { t } = useTranslation('profile');
   const { intlTag } = useLocale();
   const profileQuery = useProfileQuery();
@@ -45,15 +46,15 @@ export function ProfileScreen(_props: Props) {
 
   const handleSaveName = () => {
     if (!displayName.trim()) {
-      Alert.alert(t('validation'), t('nameEmpty'));
+      showAppAlert(t('validation'), t('nameEmpty'));
       return;
     }
 
     updateProfileMutation.mutate(
       { fullName: displayName.trim() },
       {
-        onSuccess: () => Alert.alert(t('saved'), t('savedBody')),
-        onError: (error) => Alert.alert(t('updateFailed'), error.message),
+        onSuccess: () => showAppAlert(t('saved'), t('savedBody')),
+        onError: (error) => showAppAlert(t('updateFailed'), error.message),
       },
     );
   };
@@ -72,7 +73,7 @@ export function ProfileScreen(_props: Props) {
     const asset = result.assets[0];
     const fileName = asset.fileName ?? 'profile.jpg';
     if (!asset.uri) {
-      Alert.alert(t('photoError'), t('photoErrorBody'));
+      showAppAlert(t('photoError'), t('photoErrorBody'));
       return;
     }
 
@@ -83,7 +84,7 @@ export function ProfileScreen(_props: Props) {
         name: fileName,
       },
       {
-        onError: (error) => Alert.alert(t('uploadFailed'), error.message),
+        onError: (error) => showAppAlert(t('uploadFailed'), error.message),
       },
     );
   };
@@ -139,6 +140,12 @@ export function ProfileScreen(_props: Props) {
                 icon="check"
                 loading={updateProfileMutation.isPending}
                 onPress={handleSaveName}
+              />
+              <AppButton
+                title={t('changePassword')}
+                icon="lock"
+                variant="secondary"
+                onPress={() => navigation.navigate('ChangePassword')}
               />
             </AppCard>
 

@@ -45,6 +45,7 @@ describe('UsersService', () => {
       create: jest.fn(),
       updateProfile: jest.fn(),
       markEmailVerified: jest.fn(),
+      updatePasswordHash: jest.fn(),
       getByIdOrThrow: jest.fn(),
       hasSharedRental: jest.fn(),
     };

@@ -4,9 +4,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { restoreSessionFromStorage } from '@/api/hooks/use-auth';
 import { startAndroidPush } from '@/features/notifications/android-push';
+import { NotificationToastBanner } from '@/features/notifications/components/notification-toast-banner';
 import { useRealtimeConnection } from '@/features/notifications/use-realtime-connection';
 import { AppNavigator } from '@/navigation/app-navigator';
 import { AuthNavigator } from '@/navigation/auth-navigator';
+import { navigationRef } from '@/navigation/navigation-ref';
 import type { RootStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/stores/auth-store';
 import { colors } from '@/theme';
@@ -39,7 +41,7 @@ export function RootNavigator() {
   }
 
   return (
-    <NavigationContainer key={accessToken ? 'app' : 'auth'}>
+    <NavigationContainer ref={navigationRef} key={accessToken ? 'app' : 'auth'}>
       <RootStack.Navigator screenOptions={{ headerShown: false, statusBarStyle: 'dark' }}>
         {accessToken ? (
           <RootStack.Screen name="App" component={AppNavigator} />
@@ -47,6 +49,7 @@ export function RootNavigator() {
           <RootStack.Screen name="Auth" component={AuthNavigator} />
         )}
       </RootStack.Navigator>
+      {accessToken ? <NotificationToastBanner /> : null}
     </NavigationContainer>
   );
 }

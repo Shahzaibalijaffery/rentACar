@@ -7,6 +7,7 @@ import { DiscoveryVehicleDetailScreen } from '@/features/discovery/screens/disco
 import { HomeScreen } from '@/features/home/screens/home-screen';
 import { NotificationsScreen } from '@/features/notifications/screens/notifications-screen';
 import { ProfileScreen } from '@/features/profile/screens/profile-screen';
+import { ChangePasswordScreen } from '@/features/profile/screens/change-password-screen';
 import { AddVehicleScreen } from '@/features/vehicles/screens/add-vehicle-screen';
 import { EditVehicleScreen } from '@/features/vehicles/screens/edit-vehicle-screen';
 import { MyVehiclesScreen } from '@/features/vehicles/screens/my-vehicles-screen';
@@ -54,6 +55,11 @@ export function AppNavigator() {
         options={{ title: t('vehicleDetails') }}
       />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: t('profile') }} />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{ title: t('changePassword') }}
+      />
       <Stack.Screen name="MyVehicles" component={MyVehiclesScreen} options={{ title: t('myVehicles') }} />
       <Stack.Screen name="AddVehicle" component={AddVehicleScreen} options={{ title: t('addVehicle') }} />
       <Stack.Screen

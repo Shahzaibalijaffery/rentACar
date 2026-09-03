@@ -45,6 +45,9 @@ export type RealtimeEvent = {
 
 export type DevicePlatform = 'ANDROID';
 
+/** Must match the Android notification channel created in MainApplication. */
+export const ANDROID_FCM_CHANNEL_ID = 'rentacar_alerts';
+
 export type RegisterDeviceTokenRequest = {
   token: string;
   platform: DevicePlatform;

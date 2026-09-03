@@ -10,8 +10,14 @@ import { notificationKeys } from '@/api/keys/notification.keys';
 export function useNotificationsQuery(page = 1) {
   return useQuery({
     queryKey: notificationKeys.list(page),
-    queryFn: () =>
-      apiRequestPaginated<NotificationView>(`/notifications?page=${page}&pageSize=20`),
+    queryFn: async () => {
+      const result = await apiRequestPaginated<NotificationView>(
+        `/notifications?page=${page}&pageSize=20`,
+      );
+      return result.data;
+    },
+    refetchInterval: 8_000,
+    refetchOnMount: 'always',
   });
 }
 
@@ -19,6 +25,8 @@ export function useUnreadNotificationCountQuery() {
   return useQuery({
     queryKey: notificationKeys.unreadCount(),
     queryFn: () => apiRequest<NotificationUnreadCount>('/notifications/unread-count'),
+    refetchInterval: 8_000,
+    refetchOnMount: 'always',
   });
 }
 

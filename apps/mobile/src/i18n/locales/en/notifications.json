@@ -5,6 +5,11 @@
   "markAllRead": "Mark all read",
   "bellA11y": "Notifications",
   "bellA11yUnread": "Notifications, {{count}} unread",
+  "permissionTitle": "Allow notifications",
+  "permissionBody": "RentACar can alert you when a rental is updated or needs your approval.",
+  "permissionAllow": "Allow",
+  "permissionNotNow": "Not now",
+  "toastA11y": "New notification: {{title}}",
   "types": {
     "RENTAL_CREATED": "New rental request",
     "RENTAL_ACCEPTED": "Your request was accepted",
@@ -18,5 +23,19 @@
     "HANDOVER_PHOTOS_READY": "Pickup photos are ready",
     "HANDOVER_APPROVED": "Pickup photos were approved",
     "RENTAL_BECAME_ACTIVE": "Rental is now active"
+  },
+  "bodies": {
+    "RENTAL_CREATED": "A renter asked to book your vehicle.",
+    "RENTAL_ACCEPTED": "The owner accepted your rental request.",
+    "RENTAL_REJECTED": "The owner rejected your rental request.",
+    "RENTAL_CANCELLED": "This rental was cancelled.",
+    "RENTAL_COMPLETED": "The rental is complete. You can leave a rating.",
+    "AGREEMENT_CREATED": "Review and approve the rental agreement.",
+    "AGREEMENT_APPROVAL_NEEDED": "The rental agreement needs your approval.",
+    "AGREEMENT_FULLY_APPROVED": "Both parties approved the rental agreement.",
+    "AGREEMENT_CANCELLED": "The rental agreement was cancelled.",
+    "HANDOVER_PHOTOS_READY": "Review and approve the vehicle photos.",
+    "HANDOVER_APPROVED": "The renter approved the pickup photos.",
+    "RENTAL_BECAME_ACTIVE": "Pickup is done. The rental is now active."
   }
 }

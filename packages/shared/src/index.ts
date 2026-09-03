@@ -30,7 +30,12 @@ export type {
   UserProfileSearchResult,
   UserPublicProfile,
   UserStatus,
+  VerifyEmailRequest,
   VerifyEmailResponse,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from './auth.types';
 export type { DiscoverVehiclesQuery, VehicleDiscoveryItem } from './discovery.types';
 export type { AreaSearchResult } from './geocoding.types';
@@ -75,7 +80,7 @@ export type {
   VehiclePublicView,
   VehicleStatus,
 } from './vehicle.types';
-export { NOTIFICATION_TYPES, isNotificationType } from './notification.types';
+export { ANDROID_FCM_CHANNEL_ID, NOTIFICATION_TYPES, isNotificationType } from './notification.types';
 export type {
   DevicePlatform,
   NotificationType,

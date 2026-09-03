@@ -6,7 +6,9 @@ export class ConsoleEmailService extends EmailService {
   private readonly logger = new Logger(ConsoleEmailService.name);
 
   sendEmail(input: SendEmailInput): Promise<void> {
-    this.logger.log(`Email queued to ${input.to} — subject: ${input.subject}`);
+    this.logger.log(
+      `SMTP_HOST unset — logging email instead of sending via Nodemailer\nto=${input.to}\nsubject=${input.subject}\n${input.text}`,
+    );
     return Promise.resolve();
   }
 }

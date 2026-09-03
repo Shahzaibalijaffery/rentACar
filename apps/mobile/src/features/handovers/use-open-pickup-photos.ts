@@ -1,10 +1,10 @@
-import { Alert } from 'react-native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   useCreatePickupHandoverMutation,
   usePickupHandoverByRentalQuery,
 } from '@/api/hooks/use-handovers';
 import type { AppStackParamList } from '@/navigation/types';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Navigation = NativeStackNavigationProp<AppStackParamList>;
 
@@ -30,7 +30,7 @@ export function useOpenPickupPhotos(rentalId: string, enabled: boolean) {
     }
 
     if (perspective !== 'owner') {
-      Alert.alert(
+      showAppAlert(
         'Pickup photos not ready',
         'The owner has not started pickup photos yet. Check back shortly.',
       );
@@ -39,7 +39,7 @@ export function useOpenPickupPhotos(rentalId: string, enabled: boolean) {
 
     createHandoverMutation.mutate(undefined, {
       onSuccess: (handover) => navigate(handover.id),
-      onError: (error) => Alert.alert('Could not open pickup photos', error.message),
+      onError: (error) => showAppAlert('Could not open pickup photos', error.message),
     });
   };
 

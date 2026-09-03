@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { changeAppLocale } from '@/i18n';
 import { LOCALE_META, resolveLocale, type Locale } from '@/i18n/locale.types';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 export function useLocale() {
   const { t, i18n } = useTranslation();
@@ -10,7 +10,7 @@ export function useLocale() {
   const setLocale = async (next: Locale) => {
     const { needsRestart } = await changeAppLocale(next);
     if (needsRestart) {
-      Alert.alert(t('restartTitle'), t('restartBody'), [{ text: t('ok') }]);
+      showAppAlert(t('restartTitle'), t('restartBody'), [{ text: t('ok') }]);
     }
   };
 

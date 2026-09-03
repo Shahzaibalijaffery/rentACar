@@ -1,4 +1,4 @@
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import { DEFAULT_AGREEMENT_TERMS } from '@/features/agreements/agreement-utils';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 import { useState } from 'react';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'CreateAgreement'>;
 
@@ -21,7 +22,7 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
 
   const handleCreate = () => {
     if (terms.trim().length < 10) {
-      Alert.alert(t('termsRequired'), t('termsRequiredBody'));
+      showAppAlert(t('termsRequired'), t('termsRequiredBody'));
       return;
     }
 
@@ -29,7 +30,7 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
       { terms: terms.trim() },
       {
         onSuccess: () => {
-          Alert.alert(t('createdTitle'), t('createdBody'), [
+          showAppAlert(t('createdTitle'), t('createdBody'), [
             {
               text: t('backToRental'),
               onPress: () =>
@@ -37,7 +38,7 @@ export function CreateAgreementScreen({ navigation, route }: Props) {
             },
           ]);
         },
-        onError: (error) => Alert.alert(t('createFailed'), error.message),
+        onError: (error) => showAppAlert(t('createFailed'), error.message),
       },
     );
   };

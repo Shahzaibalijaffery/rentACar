@@ -10,6 +10,7 @@ export const envValidationSchema = Joi.object({
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
   EMAIL_VERIFICATION_EXPIRES_HOURS: Joi.number().integer().min(1).default(24),
   EMAIL_VERIFICATION_ENABLED: Joi.boolean().default(false),
+  PASSWORD_RESET_EXPIRES_MINUTES: Joi.number().integer().min(5).max(120).default(15),
   EMAIL_FROM: Joi.string().email().default('noreply@rentacar.com'),
   SMTP_HOST: Joi.string().allow('').optional(),
   SMTP_PORT: Joi.number().port().default(587),
@@ -37,6 +38,7 @@ export type AppConfig = {
   jwtRefreshExpiresIn: string;
   emailVerificationExpiresHours: number;
   emailVerificationEnabled: boolean;
+  passwordResetExpiresMinutes: number;
   emailFrom: string;
   smtpHost: string | undefined;
   smtpPort: number;
@@ -64,11 +66,15 @@ export default (): AppConfig => ({
   jwtRefreshExpiresIn: process.env['JWT_REFRESH_EXPIRES_IN'] ?? '7d',
   emailVerificationExpiresHours: Number(process.env['EMAIL_VERIFICATION_EXPIRES_HOURS'] ?? 24),
   emailVerificationEnabled: process.env['EMAIL_VERIFICATION_ENABLED'] === 'true',
+  passwordResetExpiresMinutes: Number(process.env['PASSWORD_RESET_EXPIRES_MINUTES'] ?? 15),
   emailFrom: process.env['EMAIL_FROM'] ?? 'noreply@rentacar.com',
   smtpHost: process.env['SMTP_HOST']?.length ? process.env['SMTP_HOST'] : undefined,
   smtpPort: Number(process.env['SMTP_PORT'] ?? 587),
   smtpUser: process.env['SMTP_USER']?.length ? process.env['SMTP_USER'] : undefined,
-  smtpPass: process.env['SMTP_PASS']?.length ? process.env['SMTP_PASS'] : undefined,
+  smtpPass: (() => {
+    const pass = process.env['SMTP_PASS']?.replace(/\s+/g, '') ?? '';
+    return pass.length ? pass : undefined;
+  })(),
   appUrl: process.env['APP_URL'] ?? 'http://localhost:3000',
   r2AccountId: process.env['R2_ACCOUNT_ID'] ?? '',
   r2AccessKeyId: process.env['R2_ACCESS_KEY_ID'] ?? '',

@@ -15,14 +15,24 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost): void {
+    if (host.getType() !== 'http') {
+      this.logger.error(
+        'Unhandled non-HTTP error',
+        exception instanceof Error ? exception.stack : undefined,
+      );
+      return;
+    }
+
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<{ method?: string; url?: string }>();
 
     const body = this.toErrorBody(exception);
 
     if (body.statusCode >= 500) {
+      const location = `${request.method ?? '?'} ${request.url ?? '?'}`;
       this.logger.error(
-        'Unhandled server error',
+        `${location} Unhandled server error: ${exception instanceof Error ? exception.message : 'unknown'}`,
         exception instanceof Error ? exception.stack : undefined,
       );
     }

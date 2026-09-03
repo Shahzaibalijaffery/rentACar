@@ -1,4 +1,4 @@
-import { Alert, FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getPlanLimits } from '@rentacar/shared';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,7 @@ import { useMyVehiclesQuery } from '@/api/hooks/use-vehicles';
 import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, radii, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'MyVehicles'>;
 
@@ -33,7 +34,7 @@ export function MyVehiclesScreen({ navigation }: Props) {
         icon="plus"
         onPress={() => {
           if (atListingLimit) {
-            Alert.alert(t('planLimitTitle'), t('planLimitBody', { limit: limits.maxListedVehicles }));
+            showAppAlert(t('planLimitTitle'), t('planLimitBody', { limit: limits.maxListedVehicles }));
             return;
           }
           navigation.navigate('AddVehicle');

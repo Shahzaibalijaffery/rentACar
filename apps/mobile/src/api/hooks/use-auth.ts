@@ -1,9 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  ChangePasswordRequest,
+  ChangePasswordResponse,
+  ForgotPasswordRequest,
   LoginResponse,
   RegisterResponse,
+  ResetPasswordRequest,
   UpdateProfileRequest,
   UserProfile,
+  VerifyEmailRequest,
   VerifyEmailResponse,
 } from '@rentacar/shared';
 import { apiRequest } from '@/api/client';
@@ -67,10 +72,10 @@ export function useVerifyEmailMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (token: string) =>
+    mutationFn: (input: VerifyEmailRequest) =>
       apiRequest<VerifyEmailResponse>('/auth/verify-email', {
         method: 'POST',
-        body: { token },
+        body: input,
         auth: false,
       }),
     onSuccess: (data) => {
@@ -87,6 +92,44 @@ export function useResendVerificationMutation() {
         body: { email },
         auth: false,
       }),
+  });
+}
+
+export function useForgotPasswordMutation() {
+  return useMutation({
+    mutationFn: (input: ForgotPasswordRequest) =>
+      apiRequest<{ message: string }>('/auth/forgot-password', {
+        method: 'POST',
+        body: input,
+        auth: false,
+      }),
+  });
+}
+
+export function useResetPasswordMutation() {
+  return useMutation({
+    mutationFn: (input: ResetPasswordRequest) =>
+      apiRequest<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: input,
+        auth: false,
+      }),
+  });
+}
+
+export function useChangePasswordMutation() {
+  return useMutation({
+    mutationFn: (input: ChangePasswordRequest) =>
+      apiRequest<ChangePasswordResponse>('/auth/change-password', {
+        method: 'POST',
+        body: input,
+      }),
+    onSuccess: async (data) => {
+      await persistSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      });
+    },
   });
 }
 

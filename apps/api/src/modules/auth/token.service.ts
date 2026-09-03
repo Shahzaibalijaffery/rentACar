@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserStatus, type User } from '@prisma/client';
 import type { AuthTokens } from '@rentacar/shared';
 import { PrismaService } from '../../common/database/prisma.service';
+import { MONGO_DATE_UNSET } from '../../common/database/mongo-date-unset';
 import {
   generateSecureToken,
   hashToken,
@@ -50,7 +51,7 @@ export class TokenService {
     const stored = await this.prisma.refreshToken.findFirst({
       where: {
         tokenHash,
-        revokedAt: null,
+        revokedAt: MONGO_DATE_UNSET,
         expiresAt: { gt: new Date() },
       },
       include: { user: true },
@@ -93,7 +94,14 @@ export class TokenService {
   async revokeRefreshToken(refreshToken: string): Promise<void> {
     const tokenHash = hashToken(refreshToken);
     await this.prisma.refreshToken.updateMany({
-      where: { tokenHash, revokedAt: null },
+      where: { tokenHash, revokedAt: MONGO_DATE_UNSET },
+      data: { revokedAt: new Date() },
+    });
+  }
+
+  async revokeAllRefreshTokensForUser(userId: string): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
+      where: { userId, revokedAt: MONGO_DATE_UNSET },
       data: { revokedAt: new Date() },
     });
   }

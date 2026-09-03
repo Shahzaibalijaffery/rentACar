@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -18,6 +18,7 @@ import {
 } from '@/features/vehicles/vehicle-form-utils';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'AddVehicle'>;
 
@@ -42,13 +43,13 @@ export function AddVehicleScreen({ navigation }: Props) {
 
   const handleSubmit = () => {
     if (listedCount >= limits.maxListedVehicles) {
-      Alert.alert(t('planLimitTitle'), t('planLimitShort', { limit: limits.maxListedVehicles }));
+      showAppAlert(t('planLimitTitle'), t('planLimitShort', { limit: limits.maxListedVehicles }));
       return;
     }
 
     const error = validateVehicleForm(values);
     if (error) {
-      Alert.alert(
+      showAppAlert(
         t('validation'),
         t(`formErrors.${error}`, { min: VEHICLE_YEAR_MIN, max: VEHICLE_YEAR_MAX }),
       );
@@ -59,7 +60,7 @@ export function AddVehicleScreen({ navigation }: Props) {
       onSuccess: (vehicle) => {
         navigation.replace('VehicleDetails', { vehicleId: vehicle.id });
       },
-      onError: (err) => Alert.alert(t('createFailed'), err.message),
+      onError: (err) => showAppAlert(t('createFailed'), err.message),
     });
   };
 

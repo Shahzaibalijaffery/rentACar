@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { PaginatedResponse, VehicleDiscoveryItem } from '@rentacar/shared';
 import { resolveSearchRadiusKm, validateCoordinates } from '../../common/utils/location.util';
+import { runPrivacyAssert } from '../../common/utils/privacy-assert';
 import { DISCOVERY_DEFAULT_PAGE, DISCOVERY_DEFAULT_PAGE_SIZE } from './discovery.constants';
 import { assertDiscoveryItemIsPublicSafe, toVehicleDiscoveryItem } from './discovery.mapper';
 import { DiscoveryRepository } from './discovery.repository';
@@ -32,7 +33,9 @@ export class DiscoveryService {
     });
 
     const data = items.map(toVehicleDiscoveryItem);
-    data.forEach(assertDiscoveryItemIsPublicSafe);
+    data.forEach((item) => {
+      runPrivacyAssert('discovery.item', () => assertDiscoveryItemIsPublicSafe(item));
+    });
 
     return {
       data,

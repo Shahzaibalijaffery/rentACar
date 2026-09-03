@@ -1,5 +1,6 @@
-import { useLayoutEffect } from 'react';
+import { useCallback, useLayoutEffect } from 'react';
 import { FlatList, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { NotificationView } from '@rentacar/shared';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +14,8 @@ import { EmptyState } from '@/components/empty-state';
 import { QueryState } from '@/components/query-state';
 import { ScreenLayout } from '@/components/screen-layout';
 import { NotificationListItem } from '@/features/notifications/components/notification-list-item';
-import { perspectiveForNotification } from '@/features/notifications/notification-navigation';
+import { targetForNotification } from '@/features/notifications/notification-navigation';
+import { openNotificationTarget } from '@/features/notifications/open-notification-target';
 import type { AppStackParamList } from '@/navigation/types';
 import { useAppModeStore } from '@/stores/app-mode-store';
 import { spacing } from '@/theme';
@@ -26,55 +28,29 @@ export function NotificationsScreen({ navigation }: Props) {
   const listQuery = useNotificationsQuery(1);
   const markRead = useMarkNotificationReadMutation();
   const markAllRead = useMarkAllNotificationsReadMutation();
-  const items = listQuery.data?.data ?? [];
+  const items = listQuery.data ?? [];
   const hasUnread = items.some((item) => item.readAt === null);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: t('title') });
   }, [navigation, t]);
 
+  useFocusEffect(
+    useCallback(() => {
+      void listQuery.refetch();
+    }, [listQuery.refetch]),
+  );
+
   const openItem = (item: NotificationView) => {
     if (!item.readAt) {
       markRead.mutate(item.id);
     }
 
-    if (!item.rentalId) {
+    const target = targetForNotification(item, fallbackPerspective);
+    if (target.screen === 'Notifications') {
       return;
     }
-
-    const perspective = perspectiveForNotification(item.type, fallbackPerspective);
-
-    if (
-      item.agreementId &&
-      (item.type === 'AGREEMENT_CREATED' ||
-        item.type === 'AGREEMENT_APPROVAL_NEEDED' ||
-        item.type === 'AGREEMENT_FULLY_APPROVED' ||
-        item.type === 'AGREEMENT_CANCELLED')
-    ) {
-      navigation.navigate('AgreementDetail', {
-        agreementId: item.agreementId,
-        rentalId: item.rentalId,
-        perspective,
-      });
-      return;
-    }
-
-    if (
-      item.handoverId &&
-      (item.type === 'HANDOVER_PHOTOS_READY' || item.type === 'HANDOVER_APPROVED')
-    ) {
-      navigation.navigate('PickupHandover', {
-        handoverId: item.handoverId,
-        rentalId: item.rentalId,
-        perspective,
-      });
-      return;
-    }
-
-    navigation.navigate('RentalRequestDetail', {
-      rentalId: item.rentalId,
-      perspective,
-    });
+    openNotificationTarget(target);
   };
 
   return (

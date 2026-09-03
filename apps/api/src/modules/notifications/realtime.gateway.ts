@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
@@ -25,10 +26,10 @@ type JwtPayload = {
 @WebSocketGateway({
   namespace: '/realtime',
   cors: { origin: '*' },
-  transports: ['websocket'],
+  transports: ['websocket', 'polling'],
 })
 @Injectable()
-export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
+export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
   private readonly logger = new Logger(RealtimeGateway.name);
 
   @WebSocketServer()
@@ -42,6 +43,10 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   onModuleInit(): void {
     this.logger.log('Realtime gateway ready on /realtime');
+  }
+
+  afterInit(server: Server): void {
+    this.realtimeService.attachServer(server);
   }
 
   async handleConnection(client: Socket): Promise<void> {
@@ -59,7 +64,9 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
       client.data.userId = userId;
       void client.join(`user:${userId}`);
       this.realtimeService.addClient(userId, client);
+      this.logger.log(`Realtime connected user=${userId}`);
     } catch {
+      this.logger.warn('Realtime connection rejected');
       client.disconnect(true);
     }
   }

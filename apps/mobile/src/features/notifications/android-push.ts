@@ -1,31 +1,19 @@
 import { PermissionsAndroid, Platform } from 'react-native';
 import { registerDeviceToken, unregisterDeviceToken } from '@/api/hooks/use-notifications';
 import { applyRealtimeEvent } from '@/features/notifications/apply-realtime-event';
-import { getCurrentLocale } from '@/i18n';
+import { presentIncomingNotification } from '@/features/notifications/notification-toast-store';
+import {
+  resolveMessagingApi,
+  type MessagingApi,
+} from '@/features/notifications/resolve-messaging-api';
+import { getCurrentLocale, i18n } from '@/i18n';
 import type { RealtimeEvent } from '@rentacar/shared';
 import { isNotificationType } from '@rentacar/shared';
-
-type MessagingModule = {
-  default: () => {
-    requestPermission: () => Promise<number>;
-    getToken: () => Promise<string>;
-    onTokenRefresh: (handler: (token: string) => void) => () => void;
-    onMessage: (handler: (message: { data?: Record<string, string> }) => void) => () => void;
-    setBackgroundMessageHandler: (
-      handler: (message: { data?: Record<string, string> }) => Promise<void>,
-    ) => void;
-    onNotificationOpenedApp: (
-      handler: (message: { data?: Record<string, string> }) => void,
-    ) => () => void;
-    getInitialNotification: () => Promise<{ data?: Record<string, string> } | null>;
-  };
-  AuthorizationStatus: { AUTHORIZED: number; PROVISIONAL: number };
-};
 
 let registeredToken: string | null = null;
 let unsubscribeFns: Array<() => void> = [];
 
-function loadMessaging(): MessagingModule | null {
+function loadMessagingApi(): MessagingApi | null {
   if (Platform.OS !== 'android') {
     return null;
   }
@@ -33,30 +21,17 @@ function loadMessaging(): MessagingModule | null {
   try {
     // Native module is optional until google-services.json is added.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const loaded = require('@react-native-firebase/messaging') as MessagingModule & {
-      default?: MessagingModule['default'];
-    };
-    if (typeof loaded.default !== 'function') {
-      return null;
+    require('@react-native-firebase/app');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const loaded = require('@react-native-firebase/messaging');
+    const api = resolveMessagingApi(loaded);
+    if (!api) {
+      console.warn('[push] Firebase Messaging modular API was not found');
     }
-    return loaded;
-  } catch {
+    return api;
+  } catch (error) {
+    console.warn('[push] Firebase Messaging is not available', error);
     return null;
-  }
-}
-
-export function registerAndroidBackgroundHandler(): void {
-  try {
-    const messagingModule = loadMessaging();
-    if (!messagingModule) {
-      return;
-    }
-
-    messagingModule.default().setBackgroundMessageHandler(async (remoteMessage) => {
-      applyRealtimeEvent(eventFromData(remoteMessage.data));
-    });
-  } catch {
-    // Native Firebase is optional until google-services.json is added.
   }
 }
 
@@ -70,15 +45,51 @@ function eventFromData(data?: Record<string, string>): RealtimeEvent {
   };
 }
 
-async function requestAndroidNotificationPermission(): Promise<void> {
-  if (Platform.OS !== 'android' || Number(Platform.Version) < 33) {
-    return;
+export function registerAndroidBackgroundHandler(): void {
+  try {
+    const api = loadMessagingApi();
+    if (!api) {
+      return;
+    }
+
+    api.setBackgroundMessageHandler(api.getMessaging(), async (remoteMessage) => {
+      applyRealtimeEvent(eventFromData(remoteMessage.data));
+    });
+  } catch (error) {
+    console.warn('[push] Failed to register FCM background handler', error);
+  }
+}
+
+async function ensureAndroidNotificationPermission(): Promise<boolean> {
+  if (Platform.OS !== 'android') {
+    return true;
+  }
+
+  if (Number(Platform.Version) < 33) {
+    return true;
+  }
+
+  const permission = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
+  if (!permission) {
+    return false;
   }
 
   try {
-    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    const alreadyGranted = await PermissionsAndroid.check(permission);
+    if (alreadyGranted) {
+      return true;
+    }
+
+    const result = await PermissionsAndroid.request(permission, {
+      title: i18n.t('notifications:permissionTitle'),
+      message: i18n.t('notifications:permissionBody'),
+      buttonPositive: i18n.t('notifications:permissionAllow'),
+      buttonNegative: i18n.t('notifications:permissionNotNow'),
+    });
+
+    return result === PermissionsAndroid.RESULTS.GRANTED;
   } catch {
-    // Permission prompt is best-effort; token registration can still fail later.
+    return false;
   }
 }
 
@@ -86,37 +97,39 @@ export async function startAndroidPush(): Promise<void> {
   unsubscribeFns.forEach((fn) => fn());
   unsubscribeFns = [];
 
-  const messagingModule = loadMessaging();
-  if (!messagingModule) {
+  const permissionGranted = await ensureAndroidNotificationPermission();
+  if (!permissionGranted) {
+    console.warn('[push] Notification permission was not granted');
+  }
+
+  const api = loadMessagingApi();
+  if (!api) {
     return;
   }
 
   try {
-    await requestAndroidNotificationPermission();
+    const messaging = api.getMessaging();
+    await api.requestPermission(messaging).catch(() => undefined);
+    if (typeof api.registerDeviceForRemoteMessages === 'function') {
+      await api.registerDeviceForRemoteMessages(messaging);
+    }
 
-    const messaging = messagingModule.default();
-    const authStatus = await messaging.requestPermission();
-    const statuses = messagingModule.AuthorizationStatus;
-    const allowed =
-      !statuses ||
-      authStatus === statuses.AUTHORIZED ||
-      authStatus === statuses.PROVISIONAL;
-    if (!allowed) {
+    const token = await api.getToken(messaging);
+    if (!token) {
+      console.warn('[push] FCM token was empty');
       return;
     }
 
-    const token = await messaging.getToken();
-    if (token) {
-      registeredToken = token;
-      await registerDeviceToken({
-        token,
-        platform: 'ANDROID',
-        locale: getCurrentLocale(),
-      });
-    }
+    registeredToken = token;
+    await registerDeviceToken({
+      token,
+      platform: 'ANDROID',
+      locale: getCurrentLocale(),
+    });
+    console.log('[push] Android FCM token registered');
 
     unsubscribeFns.push(
-      messaging.onTokenRefresh((nextToken) => {
+      api.onTokenRefresh(messaging, (nextToken) => {
         registeredToken = nextToken;
         void registerDeviceToken({
           token: nextToken,
@@ -127,23 +140,25 @@ export async function startAndroidPush(): Promise<void> {
     );
 
     unsubscribeFns.push(
-      messaging.onMessage((remoteMessage) => {
-        applyRealtimeEvent(eventFromData(remoteMessage.data));
+      api.onMessage(messaging, (remoteMessage) => {
+        const event = eventFromData(remoteMessage.data);
+        applyRealtimeEvent(event);
+        presentIncomingNotification(event);
       }),
     );
 
     unsubscribeFns.push(
-      messaging.onNotificationOpenedApp((remoteMessage) => {
+      api.onNotificationOpenedApp(messaging, (remoteMessage) => {
         applyRealtimeEvent(eventFromData(remoteMessage.data));
       }),
     );
 
-    const initial = await messaging.getInitialNotification();
+    const initial = await api.getInitialNotification(messaging);
     if (initial?.data) {
       applyRealtimeEvent(eventFromData(initial.data));
     }
-  } catch {
-    // Firebase is optional until google-services.json is added.
+  } catch (error) {
+    console.warn('[push] Failed to register Android FCM', error);
   }
 }
 

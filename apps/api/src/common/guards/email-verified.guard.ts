@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { AppConfig } from '../../config/env.config';
-import { REQUIRES_VERIFIED_EMAIL_KEY } from '../decorators/auth.decorators';
+import { IS_PUBLIC_KEY } from '../decorators/auth.decorators';
 import type { AuthenticatedUser } from '../decorators/current-user.decorator';
 
 type AuthenticatedRequest = Request & {
@@ -26,12 +26,12 @@ export class EmailVerifiedGuard implements CanActivate {
       return true;
     }
 
-    const requiresVerified = this.reflector.getAllAndOverride<boolean>(
-      REQUIRES_VERIFIED_EMAIL_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-    if (!requiresVerified) {
+    if (isPublic) {
       return true;
     }
 

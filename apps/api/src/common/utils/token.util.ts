@@ -1,7 +1,20 @@
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, randomInt } from 'crypto';
+
+export const EMAIL_VERIFICATION_CODE_LENGTH = 6;
 
 export function generateSecureToken(byteLength = 32): string {
   return randomBytes(byteLength).toString('hex');
+}
+
+export function generateEmailVerificationCode(
+  length = EMAIL_VERIFICATION_CODE_LENGTH,
+): string {
+  const max = 10 ** length;
+  return randomInt(0, max).toString().padStart(length, '0');
+}
+
+export function normalizeEmailVerificationCode(value: string): string {
+  return value.replace(/\D/g, '');
 }
 
 export function hashToken(token: string): string {

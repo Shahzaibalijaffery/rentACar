@@ -1,6 +1,9 @@
 package com.rentacarmobile
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -22,6 +25,24 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+    createDefaultNotificationChannel()
     loadReactNative(this)
+  }
+
+  private fun createDefaultNotificationChannel() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+      return
+    }
+
+    val channel =
+      NotificationChannel(
+        getString(R.string.default_notification_channel_id),
+        getString(R.string.default_notification_channel_name),
+        NotificationManager.IMPORTANCE_HIGH,
+      )
+    channel.description = getString(R.string.default_notification_channel_description)
+    channel.enableVibration(true)
+    val manager = getSystemService(NotificationManager::class.java)
+    manager.createNotificationChannel(channel)
   }
 }

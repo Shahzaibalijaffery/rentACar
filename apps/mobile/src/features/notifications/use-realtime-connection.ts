@@ -3,6 +3,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { io, type Socket } from 'socket.io-client';
 import type { RealtimeEvent } from '@rentacar/shared';
 import { applyRealtimeEvent } from '@/features/notifications/apply-realtime-event';
+import { presentIncomingNotification } from '@/features/notifications/notification-toast-store';
 import { env } from '@/config/env';
 import { getAccessToken } from '@/stores/auth-store';
 
@@ -12,8 +13,10 @@ function connectRealtime(token: string): void {
   disconnectRealtime();
 
   socket = io(`${env.wsBaseUrl}/realtime`, {
-    transports: ['websocket'],
+    transports: ['websocket', 'polling'],
     auth: { token },
+    extraHeaders: { Authorization: `Bearer ${token}` },
+    query: { token },
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 8000,
@@ -23,8 +26,13 @@ function connectRealtime(token: string): void {
     applyRealtimeEvent({ type: 'STATE_SYNC' });
   });
 
+  socket.on('connect_error', (error) => {
+    console.warn('[realtime] connect failed', error.message);
+  });
+
   socket.on('notification', (event: RealtimeEvent) => {
     applyRealtimeEvent(event);
+    presentIncomingNotification(event);
   });
 }
 

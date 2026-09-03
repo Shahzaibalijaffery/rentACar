@@ -4,12 +4,13 @@ import { PasswordService } from '../../common/auth/password.service';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { PasswordFlowService } from './password-flow.service';
 import { TokenService } from './token.service';
 
 @Module({
   imports: [UsersModule, JwtModule.register({})],
   controllers: [AuthController],
-  providers: [AuthService, TokenService, PasswordService],
+  providers: [AuthService, PasswordFlowService, TokenService, PasswordService],
   exports: [AuthService, TokenService],
 })
 export class AuthModule {}

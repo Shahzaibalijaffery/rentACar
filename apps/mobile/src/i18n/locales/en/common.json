@@ -26,5 +26,7 @@
   "keep": "Keep it",
   "call": "Call",
   "photos": "Photos",
-  "details": "Details"
+  "details": "Details",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password"
 }

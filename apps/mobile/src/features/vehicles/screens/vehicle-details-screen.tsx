@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getPlanLimits } from '@rentacar/shared';
@@ -20,6 +20,7 @@ import { RatingReviewList } from '@/features/ratings/components/rating-review-li
 import { RatingSummaryText } from '@/features/ratings/components/rating-summary-text';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'VehicleDetails'>;
 
@@ -45,13 +46,13 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
 
     const next = vehicle.availability === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
     availabilityMutation.mutate(next, {
-      onError: (error) => Alert.alert(t('availabilityFailed'), error.message),
+      onError: (error) => showAppAlert(t('availabilityFailed'), error.message),
     });
   };
 
   const handleAddPhoto = async () => {
     if (atPhotoLimit) {
-      Alert.alert(t('planLimitTitle'), t('photoPlanLimit', { limit: limits.maxVehiclePhotos }));
+      showAppAlert(t('planLimitTitle'), t('photoPlanLimit', { limit: limits.maxVehiclePhotos }));
       return;
     }
 
@@ -73,20 +74,20 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
         name: asset.fileName ?? 'vehicle.jpg',
       },
       {
-        onError: (error) => Alert.alert(t('uploadFailed'), error.message),
+        onError: (error) => showAppAlert(t('uploadFailed'), error.message),
       },
     );
   };
 
   const handleDeletePhoto = (photoId: string) => {
-    Alert.alert(t('removePhoto'), t('removePhotoBody'), [
+    showAppAlert(t('removePhoto'), t('removePhotoBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('common:delete'),
         style: 'destructive',
         onPress: () => {
           deletePhotoMutation.mutate(photoId, {
-            onError: (error) => Alert.alert(t('deleteFailed'), error.message),
+            onError: (error) => showAppAlert(t('deleteFailed'), error.message),
           });
         },
       },
@@ -94,7 +95,7 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
   };
 
   const handleArchive = () => {
-    Alert.alert(t('archiveTitle'), t('archiveBody'), [
+    showAppAlert(t('archiveTitle'), t('archiveBody'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('archiveVehicle'),
@@ -102,11 +103,11 @@ export function VehicleDetailsScreen({ navigation, route }: Props) {
         onPress: () => {
           archiveMutation.mutate(vehicleId, {
             onSuccess: () => {
-              Alert.alert(t('archivedTitle'), t('archivedBody'), [
+              showAppAlert(t('archivedTitle'), t('archivedBody'), [
                 { text: t('common:ok'), onPress: () => navigation.navigate('MyVehicles') },
               ]);
             },
-            onError: (error) => Alert.alert(t('archiveFailed'), error.message),
+            onError: (error) => showAppAlert(t('archiveFailed'), error.message),
           });
         },
       },

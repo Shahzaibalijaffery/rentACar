@@ -7,6 +7,7 @@ import type {
   RentalSummary,
 } from '@rentacar/shared';
 import { DomainError } from '../../common/errors/domain.error';
+import { runPrivacyAssert } from '../../common/utils/privacy-assert';
 import { isUserActive } from '../users/user.mapper';
 import { UsersRepository } from '../users/users.repository';
 import { isVehicleActive } from '../vehicles/vehicle.mapper';
@@ -87,7 +88,7 @@ export class RentalsService {
     });
 
     const summary = toRentalSummary(rental);
-    assertRentalSummaryIsPublicSafe(summary);
+    runPrivacyAssert('rental.create', () => assertRentalSummaryIsPublicSafe(summary));
 
     this.rentalEventsService.emit('RENTAL_CREATED', {
       rentalId: rental.id,
@@ -108,7 +109,7 @@ export class RentalsService {
     const rentals = await this.rentalsRepository.findByRenter(renterId, lifecycle);
     const data = rentals.map((rental) => {
       const summary = toRentalSummary(rental);
-      assertRentalSummaryIsPublicSafe(summary);
+      runPrivacyAssert('rental.list', () => assertRentalSummaryIsPublicSafe(summary));
       return summary;
     });
     return { data };
@@ -121,7 +122,7 @@ export class RentalsService {
     const rentals = await this.rentalsRepository.findByOwner(ownerId, lifecycle);
     const data = rentals.map((rental) => {
       const summary = toRentalSummary(rental);
-      assertRentalSummaryIsPublicSafe(summary);
+      runPrivacyAssert('rental.list', () => assertRentalSummaryIsPublicSafe(summary));
       return summary;
     });
     return { data };
@@ -131,7 +132,7 @@ export class RentalsService {
     const rental = await this.getParticipantRentalOrThrow(rentalId, userId);
     const related = await this.rentalsRepository.findRelatedIds(rentalId);
     const detail = toRentalDetailView(rental, related);
-    assertRentalDetailIsSafe(detail);
+    runPrivacyAssert('rental.detail', () => assertRentalDetailIsSafe(detail));
     return { data: detail };
   }
 
@@ -175,7 +176,7 @@ export class RentalsService {
 
     const related = await this.rentalsRepository.findRelatedIds(rentalId);
     const detail = toRentalDetailView(updated, related);
-    assertRentalDetailIsSafe(detail);
+    runPrivacyAssert('rental.complete', () => assertRentalDetailIsSafe(detail));
 
     this.rentalEventsService.emit('RENTAL_COMPLETED', {
       rentalId: updated.id,
@@ -246,7 +247,7 @@ export class RentalsService {
 
     const related = await this.rentalsRepository.findRelatedIds(rentalId);
     const detail = toRentalDetailView(updated, related);
-    assertRentalDetailIsSafe(detail);
+    runPrivacyAssert('rental.accept', () => assertRentalDetailIsSafe(detail));
 
     this.rentalEventsService.emit('RENTAL_ACCEPTED', {
       rentalId: updated.id,
@@ -271,7 +272,7 @@ export class RentalsService {
 
     const updated = await this.rentalsRepository.updateStatus(rentalId, RentalStatus.REJECTED);
     const summary = toRentalSummary(updated);
-    assertRentalSummaryIsPublicSafe(summary);
+    runPrivacyAssert('rental.reject', () => assertRentalSummaryIsPublicSafe(summary));
 
     this.rentalEventsService.emit('RENTAL_REJECTED', {
       rentalId: updated.id,
@@ -317,7 +318,7 @@ export class RentalsService {
     }
 
     const summary = toRentalSummary(updated);
-    assertRentalSummaryIsPublicSafe(summary);
+    runPrivacyAssert('rental.cancel', () => assertRentalSummaryIsPublicSafe(summary));
 
     this.rentalEventsService.emit('RENTAL_CANCELLED', {
       rentalId: updated.id,
