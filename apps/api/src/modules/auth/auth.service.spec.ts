@@ -203,7 +203,7 @@ describe('AuthService', () => {
     usersRepository.findByCnic.mockResolvedValue(null);
     usersRepository.findByPhone.mockResolvedValue(null);
     usersRepository.create.mockResolvedValue(baseUser);
-    emailService.sendEmail.mockRejectedValue(new Error('email delivery failed'));
+    emailService.sendEmail.mockRejectedValue(new Error('SMTP down'));
 
     const result = await authService.register({
       email: 'test@example.com',

@@ -3,23 +3,23 @@ import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../../config/env.config';
 import { ConsoleEmailService } from './console-email.service';
 import { EmailService } from './email.service';
-import { ResendEmailService } from './resend-email.service';
+import { SmtpEmailService } from './smtp-email.service';
 
 @Global()
 @Module({
   providers: [
     ConsoleEmailService,
-    ResendEmailService,
+    SmtpEmailService,
     {
       provide: EmailService,
-      inject: [ConfigService, ConsoleEmailService, ResendEmailService],
+      inject: [ConfigService, ConsoleEmailService, SmtpEmailService],
       useFactory: (
         configService: ConfigService<AppConfig, true>,
         consoleEmailService: ConsoleEmailService,
-        resendEmailService: ResendEmailService,
+        smtpEmailService: SmtpEmailService,
       ) => {
-        const resendApiKey = configService.get('resendApiKey', { infer: true });
-        return resendApiKey ? resendEmailService : consoleEmailService;
+        const smtpHost = configService.get('smtpHost', { infer: true });
+        return smtpHost ? smtpEmailService : consoleEmailService;
       },
     },
   ],
