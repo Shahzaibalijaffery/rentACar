@@ -44,6 +44,7 @@ export type AuthTokens = {
 export type RegisterResponse = {
   message: string;
   userId: string;
+  emailVerificationRequired: boolean;
 };
 
 export type LoginResponse = AuthTokens & {

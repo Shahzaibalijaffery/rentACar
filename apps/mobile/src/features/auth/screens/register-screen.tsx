@@ -35,8 +35,13 @@ export function RegisterScreen({ navigation }: Props) {
     registerMutation.mutate(
       { email, password, fullName, cnic, phone },
       {
-        onSuccess: () => {
-          navigation.navigate('VerifyEmail', { email: email.trim() });
+        onSuccess: (data) => {
+          if (data.emailVerificationRequired) {
+            navigation.navigate('VerifyEmail', { email: email.trim() });
+            return;
+          }
+          showAppAlert(t('accountCreated'), t('accountCreatedReady'));
+          navigation.navigate('Login');
         },
         onError: (error) => {
           showAppAlert(t('registrationFailed'), error.message);

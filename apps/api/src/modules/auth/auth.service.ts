@@ -106,6 +106,7 @@ export class AuthService {
           ? 'Registration successful. Please verify your email.'
           : 'Registration successful. You can sign in now.',
         userId: user.id,
+        emailVerificationRequired: verifyEmail,
       },
     };
   }

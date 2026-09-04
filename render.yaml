@@ -18,6 +18,8 @@ services:
         generateValue: true
       - key: APP_URL
         sync: false
+      - key: EMAIL_VERIFICATION_ENABLED
+        value: "false"
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID

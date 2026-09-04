@@ -125,6 +125,7 @@ describe('AuthService', () => {
 
     expect(result.data.userId).toBe('user-1');
     expect(result.data.message).toContain('sign in');
+    expect(result.data.emailVerificationRequired).toBe(false);
     expect(passwordService.hash).toHaveBeenCalledWith('Password1');
     expect(usersRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -215,6 +216,7 @@ describe('AuthService', () => {
 
     expect(result.data.userId).toBe('user-1');
     expect(result.data.message).toContain('verify');
+    expect(result.data.emailVerificationRequired).toBe(true);
     expect(usersRepository.markEmailVerified).not.toHaveBeenCalled();
     await Promise.resolve();
   });
