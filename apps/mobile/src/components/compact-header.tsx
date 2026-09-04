@@ -1,21 +1,31 @@
-import { I18nManager, Pressable, StyleSheet, View } from 'react-native';
+import { I18nManager, Pressable, StatusBar, StyleSheet, View } from 'react-native';
 import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
-import { colors, spacing } from '@/theme';
+import { spacing, useAppModeTheme } from '@/theme';
 
 const HEADER_HEIGHT = 44;
 
 export function CompactHeader({ navigation, options, back }: NativeStackHeaderProps) {
   const { t } = useTranslation('nav');
-  const tintColor = options.headerTintColor ?? colors.primary;
+  const theme = useAppModeTheme();
+  const tintColor = options.headerTintColor ?? theme.headerTint;
   const canGoBack = Boolean(back) && options.headerBackVisible !== false;
   const title =
     typeof options.headerTitle === 'string' ? options.headerTitle : (options.title ?? '');
 
   return (
-    <View style={styles.bar}>
+    <View
+      style={[
+        styles.bar,
+        {
+          backgroundColor: theme.headerBg,
+          borderBottomColor: theme.headerBorder,
+        },
+      ]}
+    >
+      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.headerBg} />
       <View style={styles.side}>
         {canGoBack ? (
           <Pressable
@@ -40,7 +50,11 @@ export function CompactHeader({ navigation, options, back }: NativeStackHeaderPr
           {options.headerTitle({ children: title, tintColor })}
         </View>
       ) : (
-        <AppText variant="subtitle" numberOfLines={1} style={styles.title}>
+        <AppText
+          variant="subtitle"
+          numberOfLines={1}
+          style={[styles.title, { color: theme.headerTitle }]}
+        >
           {title}
         </AppText>
       )}
@@ -59,9 +73,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
-    backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
     overflow: 'visible',
   },
   side: {
@@ -81,6 +93,5 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: 'center',
-    color: colors.text,
   },
 });

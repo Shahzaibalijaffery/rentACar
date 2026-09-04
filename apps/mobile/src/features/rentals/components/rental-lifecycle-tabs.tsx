@@ -3,7 +3,7 @@ import type { RentalLifecycleFilter } from '@rentacar/shared';
 import { useTranslation } from 'react-i18next';
 import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
-import { colors, radii, spacing } from '@/theme';
+import { colors, radii, spacing, useAppModeTheme } from '@/theme';
 
 type RentalLifecycleTabsProps = {
   value: RentalLifecycleFilter;
@@ -18,9 +18,10 @@ const OPTIONS: { value: RentalLifecycleFilter; labelKey: 'all' | 'active' | 'com
 
 export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProps) {
   const { t } = useTranslation('rentals');
+  const theme = useAppModeTheme();
 
   return (
-    <View style={styles.track}>
+    <View style={[styles.track, { backgroundColor: theme.accentMuted }]}>
       {OPTIONS.map((option) => {
         const selected = option.value === value;
         return (
@@ -29,15 +30,21 @@ export function RentalLifecycleTabs({ value, onChange }: RentalLifecycleTabsProp
             accessibilityRole="button"
             accessibilityState={{ selected }}
             onPress={() => onChange(option.value)}
-            style={[styles.tab, selected ? styles.tabSelected : null]}
+            style={[
+              styles.tab,
+              selected ? { backgroundColor: theme.heroBg } : null,
+            ]}
           >
             <View style={styles.tabInner}>
               <AppIcon
                 name={option.icon}
                 size={14}
-                color={selected ? colors.primary : colors.textSecondary}
+                color={selected ? theme.heroText : colors.textSecondary}
               />
-              <AppText variant="subtitle" style={selected ? styles.tabTextSelected : styles.tabText}>
+              <AppText
+                variant="subtitle"
+                style={selected ? { color: theme.heroText } : styles.tabText}
+              >
                 {t(`tabs.${option.labelKey}`)}
               </AppText>
             </View>
@@ -67,13 +74,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  tabSelected: {
-    backgroundColor: colors.surface,
-  },
   tabText: {
     color: colors.textSecondary,
-  },
-  tabTextSelected: {
-    color: colors.primary,
   },
 });

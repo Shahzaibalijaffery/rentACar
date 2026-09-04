@@ -4,11 +4,16 @@ import type { AppMode } from '@rentacar/shared';
 import { AppIcon, type AppIconName } from '@/components/app-icon';
 import { AppText } from '@/components/app-text';
 import { useAppModeStore } from '@/stores/app-mode-store';
-import { colors, radii, spacing } from '@/theme';
+import { appModeThemes, colors, radii, shadows, spacing } from '@/theme';
 
-const MODE_OPTIONS: { mode: AppMode; labelKey: 'renter' | 'owner'; icon: AppIconName }[] = [
-  { mode: 'renter', labelKey: 'renter', icon: 'user' },
-  { mode: 'owner', labelKey: 'owner', icon: 'car' },
+const MODE_OPTIONS: {
+  mode: AppMode;
+  labelKey: 'renter' | 'owner';
+  hintKey: 'renterSwitchHint' | 'ownerSwitchHint';
+  icon: AppIconName;
+}[] = [
+  { mode: 'renter', labelKey: 'renter', hintKey: 'renterSwitchHint', icon: 'compass' },
+  { mode: 'owner', labelKey: 'owner', hintKey: 'ownerSwitchHint', icon: 'car' },
 ];
 
 type Props = {
@@ -22,31 +27,53 @@ export function AppModeSwitcher({ compact = false }: Props) {
 
   return (
     <View style={styles.container}>
-      {!compact ? <AppText variant="label">{t('home:activeProfile')}</AppText> : null}
-      <View style={styles.track}>
+      {!compact ? <AppText variant="label">{t('home:yourProfiles')}</AppText> : null}
+      <View style={styles.row}>
         {MODE_OPTIONS.map((option) => {
           const selected = activeMode === option.mode;
+          const theme = appModeThemes[option.mode];
           return (
             <Pressable
               key={option.mode}
               accessibilityRole="button"
               accessibilityState={{ selected }}
               onPress={() => setActiveMode(option.mode)}
-              style={[styles.segment, selected ? styles.segmentSelected : null]}
+              style={({ pressed }) => [
+                styles.card,
+                selected
+                  ? { backgroundColor: theme.heroBg, borderColor: theme.heroBg }
+                  : styles.cardIdle,
+                pressed ? styles.pressed : null,
+              ]}
             >
-              <View style={styles.segmentInner}>
+              <View
+                style={[
+                  styles.iconWrap,
+                  {
+                    backgroundColor: selected ? theme.heroBadgeBg : theme.accentMuted,
+                  },
+                ]}
+              >
                 <AppIcon
                   name={option.icon}
-                  size={16}
-                  color={selected ? colors.textOnPrimary : colors.textSecondary}
+                  size={20}
+                  color={selected ? theme.heroText : theme.accent}
                 />
-                <AppText
-                  variant="subtitle"
-                  style={[styles.segmentText, selected ? styles.segmentTextSelected : null]}
-                >
-                  {t(option.labelKey)}
-                </AppText>
               </View>
+              <AppText
+                variant="subtitle"
+                style={[styles.name, { color: selected ? theme.heroText : colors.text }]}
+              >
+                {t(option.labelKey)}
+              </AppText>
+              {compact ? null : (
+                <AppText
+                  variant="caption"
+                  style={{ color: selected ? theme.heroMuted : colors.textSecondary }}
+                >
+                  {t(`home:${option.hintKey}`)}
+                </AppText>
+              )}
             </Pressable>
           );
         })}
@@ -59,32 +86,34 @@ const styles = StyleSheet.create({
   container: {
     gap: spacing.sm,
   },
-  track: {
+  row: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radii.full,
-    padding: 4,
-    gap: 4,
+    gap: spacing.sm,
   },
-  segment: {
+  card: {
     flex: 1,
+    gap: spacing.xs,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    padding: spacing.md,
+    ...shadows.sm,
+  },
+  cardIdle: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderLight,
+  },
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    borderRadius: radii.full,
+    marginBottom: spacing.xs,
   },
-  segmentInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+  name: {
+    fontWeight: '700',
   },
-  segmentSelected: {
-    backgroundColor: colors.primary,
-  },
-  segmentText: {
-    color: colors.textSecondary,
-  },
-  segmentTextSelected: {
-    color: colors.textOnPrimary,
+  pressed: {
+    opacity: 0.92,
   },
 });

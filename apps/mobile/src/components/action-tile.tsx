@@ -8,6 +8,7 @@ type ActionTileProps = {
   description: string;
   icon: AppIconName;
   accent?: string;
+  iconBackground?: string;
   onPress: () => void;
 };
 
@@ -16,6 +17,7 @@ export function ActionTile({
   description,
   icon,
   accent = colors.primary,
+  iconBackground = colors.primaryMuted,
   onPress,
 }: ActionTileProps) {
   return (
@@ -24,7 +26,7 @@ export function ActionTile({
       onPress={onPress}
       style={({ pressed }) => [styles.tile, pressed ? styles.pressed : null]}
     >
-      <View style={[styles.icon, { backgroundColor: colors.primaryMuted }]}>
+      <View style={[styles.icon, { backgroundColor: iconBackground }]}>
         <AppIcon name={icon} size={22} color={accent} />
       </View>
       <View style={styles.copy}>

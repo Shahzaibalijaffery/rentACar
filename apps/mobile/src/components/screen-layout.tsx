@@ -2,7 +2,8 @@ import { StyleSheet, View, type ScrollViewProps, type ViewStyle } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScroll } from '@/components/keyboard-aware-scroll';
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
-import { colors, spacing } from '@/theme';
+import { spacing, colors, useAppModeTheme } from '@/theme';
+import { useAuthStore } from '@/stores/auth-store';
 
 type ScreenLayoutProps = ScrollViewProps & {
   children: React.ReactNode;
@@ -20,19 +21,22 @@ export function ScreenLayout({
   ...scrollProps
 }: ScreenLayoutProps) {
   const keyboardHeight = useKeyboardHeight();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { canvas } = useAppModeTheme();
   const paddingStyle = padded ? styles.padded : undefined;
   const bottomEdges = keyboardHeight > 0 ? [] : (['bottom'] as const);
+  const canvasStyle = { backgroundColor: accessToken ? canvas : colors.background };
 
   if (!scroll) {
     return (
-      <SafeAreaView style={styles.safe} edges={bottomEdges}>
+      <SafeAreaView style={[styles.safe, canvasStyle]} edges={bottomEdges}>
         <View style={[styles.content, paddingStyle, contentStyle]}>{children}</View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={bottomEdges}>
+    <SafeAreaView style={[styles.safe, canvasStyle]} edges={bottomEdges}>
       <KeyboardAwareScroll
         contentContainerStyle={[styles.scrollContent, paddingStyle, contentStyle]}
         style={style}
@@ -47,7 +51,6 @@ export function ScreenLayout({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,

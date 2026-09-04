@@ -4,20 +4,21 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RentalLifecycleFilter } from '@rentacar/shared';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/empty-state';
+import { ModeWorkspaceBanner } from '@/components/mode-workspace-banner';
 import { QueryState } from '@/components/query-state';
 import { ScreenLayout } from '@/components/screen-layout';
 import { useIncomingRentalsQuery, useMyRentalsQuery } from '@/api/hooks/use-rentals';
 import { RentalLifecycleTabs } from '@/features/rentals/components/rental-lifecycle-tabs';
 import { RentalListItem } from '@/features/rentals/components/rental-list-item';
 import type { AppStackParamList } from '@/navigation/types';
-import { useAppModeStore } from '@/stores/app-mode-store';
-import { spacing } from '@/theme';
+import { spacing, useAppModeTheme } from '@/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Rentals'>;
 
 export function RentalsScreen({ navigation }: Props) {
   const { t } = useTranslation('rentals');
-  const isOwnerMode = useAppModeStore((state) => state.activeMode) === 'owner';
+  const theme = useAppModeTheme();
+  const isOwnerMode = theme.mode === 'owner';
   const perspective = isOwnerMode ? 'owner' : 'renter';
   const [lifecycle, setLifecycle] = useState<RentalLifecycleFilter>('all');
   const mineQuery = useMyRentalsQuery(lifecycle, !isOwnerMode);
@@ -41,11 +42,15 @@ export function RentalsScreen({ navigation }: Props) {
           };
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: t('title') });
-  }, [navigation, t]);
+    navigation.setOptions({
+      title: isOwnerMode ? t('ownerTitle') : t('renterTitle'),
+      headerTintColor: theme.headerTint,
+    });
+  }, [navigation, t, isOwnerMode, theme.headerTint]);
 
   return (
     <ScreenLayout scroll={false} contentStyle={styles.content}>
+      <ModeWorkspaceBanner />
       <RentalLifecycleTabs value={lifecycle} onChange={setLifecycle} />
 
       <QueryState

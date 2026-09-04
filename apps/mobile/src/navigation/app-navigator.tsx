@@ -1,6 +1,5 @@
 import {
   createNativeStackNavigator,
-  type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
 import { DiscoveryScreen } from '@/features/discovery/screens/discovery-screen';
 import { DiscoveryVehicleDetailScreen } from '@/features/discovery/screens/discovery-vehicle-detail-screen';
@@ -21,22 +20,25 @@ import { ProfileSearchScreen } from '@/features/users/screens/profile-search-scr
 import { CompactHeader } from '@/components/compact-header';
 import { useTranslation } from 'react-i18next';
 import type { AppStackParamList } from '@/navigation/types';
-import { colors } from '@/theme';
+import { useAppModeTheme } from '@/theme';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
-const screenOptions: NativeStackNavigationOptions = {
-  header: (props) => <CompactHeader {...props} />,
-  headerTintColor: colors.primary,
-  contentStyle: { backgroundColor: colors.background },
-  statusBarStyle: 'dark',
-};
-
 export function AppNavigator() {
   const { t } = useTranslation('nav');
+  const theme = useAppModeTheme();
 
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
+    <Stack.Navigator
+      screenOptions={{
+        header: (props) => <CompactHeader {...props} />,
+        headerTintColor: theme.headerTint,
+        headerStyle: { backgroundColor: theme.headerBg },
+        contentStyle: { backgroundColor: theme.canvas },
+        statusBarStyle: theme.statusBar === 'light-content' ? 'light' : 'dark',
+        statusBarBackgroundColor: theme.headerBg,
+      }}
+    >
       <Stack.Screen name="Home" component={HomeScreen} options={{ title: t('home') }} />
       <Stack.Screen
         name="Notifications"

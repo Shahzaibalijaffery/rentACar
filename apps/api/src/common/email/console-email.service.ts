@@ -7,7 +7,7 @@ export class ConsoleEmailService extends EmailService {
 
   sendEmail(input: SendEmailInput): Promise<void> {
     this.logger.log(
-      `SMTP_HOST unset — logging email instead of sending via Nodemailer\nto=${input.to}\nsubject=${input.subject}\n${input.text}`,
+      `RESEND_API_KEY unset — logging email instead of sending via Resend\nto=${input.to}\nsubject=${input.subject}\n${input.text}`,
     );
     return Promise.resolve();
   }

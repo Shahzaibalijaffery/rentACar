@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -23,7 +23,7 @@ import {
   useUploadProfilePhotoMutation,
 } from '@/api/hooks/use-auth';
 import type { AppStackParamList } from '@/navigation/types';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useAppModeTheme } from '@/theme';
 import { showAppAlert } from '@/stores/app-alert-store';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>;
@@ -31,12 +31,20 @@ type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>;
 export function ProfileScreen({ navigation }: Props) {
   const { t } = useTranslation('profile');
   const { intlTag } = useLocale();
+  const theme = useAppModeTheme();
   const profileQuery = useProfileQuery();
   const updateProfileMutation = useUpdateProfileMutation();
   const uploadPhotoMutation = useUploadProfilePhotoMutation();
   const [fullName, setFullName] = useState('');
   const profile = profileQuery.data;
   const displayName = fullName !== '' ? fullName : (profile?.fullName ?? '');
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: theme.mode === 'owner' ? t('ownerTitle') : t('renterTitle'),
+      headerTintColor: theme.headerTint,
+    });
+  }, [navigation, t, theme.headerTint, theme.mode]);
 
   useEffect(() => {
     if (profile?.fullName) {
@@ -98,7 +106,13 @@ export function ProfileScreen({ navigation }: Props) {
       >
         {profile ? (
           <>
-            <AppCard style={styles.profileHeader}>
+            <AppCard style={[styles.profileHeader, { backgroundColor: theme.heroBg, borderColor: theme.heroBg }]}>
+              <View style={[styles.roleBadge, { backgroundColor: theme.heroBadgeBg }]}>
+                <AppIcon name={theme.icon} size={14} color={theme.heroText} />
+                <AppText variant="label" style={{ color: theme.heroText }}>
+                  {theme.mode === 'owner' ? t('ownerWorkspace') : t('renterWorkspace')}
+                </AppText>
+              </View>
               <ProfileAvatar
                 fullName={profile.fullName}
                 profilePhotoUrl={profile.profilePhotoUrl}
@@ -107,9 +121,11 @@ export function ProfileScreen({ navigation }: Props) {
                 }}
                 editLoading={uploadPhotoMutation.isPending}
               />
-              <AppText variant="heading">{profile.fullName}</AppText>
-              <PlanBadge plan={resolveUserPlan(profile.plan)} />
-              <AppText variant="caption" style={styles.email}>
+              <AppText variant="heading" style={{ color: theme.heroText }}>
+                {profile.fullName}
+              </AppText>
+              <PlanBadge plan={resolveUserPlan(profile.plan)} onPrimary />
+              <AppText variant="caption" style={{ color: theme.heroMuted }}>
                 {profile.email}
               </AppText>
             </AppCard>
@@ -150,43 +166,53 @@ export function ProfileScreen({ navigation }: Props) {
             </AppCard>
 
             <AppCard muted>
-              <ProfileInfoRow icon="id" label={t('cnic')} value={profile.cnic} />
+              <ProfileInfoRow icon="id" label={t('cnic')} value={profile.cnic} accent={theme.accent} muted={theme.accentMuted} />
               <AppText variant="caption" style={styles.note}>
                 {t('cnicNote')}
               </AppText>
-              <ProfileInfoRow icon="phone" label={t('phone')} value={profile.phone} />
+              <ProfileInfoRow icon="phone" label={t('phone')} value={profile.phone} accent={theme.accent} muted={theme.accentMuted} />
               <AppText variant="caption" style={styles.note}>
                 {t('phoneNote')}
               </AppText>
             </AppCard>
 
             <AppCard muted>
-              <ProfileInfoRow icon="badge" label={t('plan')} value={t(`plans.${resolveUserPlan(profile.plan)}`)} />
+              <ProfileInfoRow icon="badge" label={t('plan')} value={t(`plans.${resolveUserPlan(profile.plan)}`)} accent={theme.accent} muted={theme.accentMuted} />
               <ProfileInfoRow
                 icon="car"
                 label={t('listedVehicles')}
                 value={t('upTo', { count: getPlanLimits(profile.plan).maxListedVehicles })}
+                accent={theme.accent}
+                muted={theme.accentMuted}
               />
               <ProfileInfoRow
                 icon="camera"
                 label={t('photosPerListing')}
                 value={t('upTo', { count: getPlanLimits(profile.plan).maxVehiclePhotos })}
+                accent={theme.accent}
+                muted={theme.accentMuted}
               />
               <ProfileInfoRow
                 icon="photo"
                 label={t('evidencePhotos')}
                 value={t('upTo', { count: getPlanLimits(profile.plan).maxHandoverPhotos })}
+                accent={theme.accent}
+                muted={theme.accentMuted}
               />
-              <ProfileInfoRow icon="shield" label={t('status')} value={profile.status} />
+              <ProfileInfoRow icon="shield" label={t('status')} value={profile.status} accent={theme.accent} muted={theme.accentMuted} />
               <ProfileInfoRow
                 icon="mail"
                 label={t('emailVerified')}
                 value={profile.emailVerified ? t('common:yes') : t('common:no')}
+                accent={theme.accent}
+                muted={theme.accentMuted}
               />
               <ProfileInfoRow
                 icon="calendar"
                 label={t('memberSince')}
                 value={new Date(profile.createdAt).toLocaleDateString(intlTag)}
+                accent={theme.accent}
+                muted={theme.accentMuted}
               />
             </AppCard>
           </>
@@ -200,15 +226,19 @@ function ProfileInfoRow({
   icon,
   label,
   value,
+  accent = colors.primary,
+  muted = colors.primaryMuted,
 }: {
   icon: AppIconName;
   label: string;
   value: string;
+  accent?: string;
+  muted?: string;
 }) {
   return (
     <View style={styles.infoRow}>
-      <View style={styles.infoIcon}>
-        <AppIcon name={icon} size={16} color={colors.primary} />
+      <View style={[styles.infoIcon, { backgroundColor: muted }]}>
+        <AppIcon name={icon} size={16} color={accent} />
       </View>
       <View style={styles.infoCopy}>
         <AppText variant="label">{label}</AppText>
@@ -222,8 +252,14 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
   },
-  email: {
-    color: colors.textSecondary,
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'center',
+    borderRadius: 999,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   infoRow: {
     flexDirection: 'row',

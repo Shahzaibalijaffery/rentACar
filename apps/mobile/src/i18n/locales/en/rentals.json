@@ -1,5 +1,7 @@
 {
   "title": "Rentals",
+  "renterTitle": "Cars I'm renting",
+  "ownerTitle": "Requests on my cars",
   "tabs": {
     "all": "All",
     "active": "Active",

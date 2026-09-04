@@ -8,7 +8,11 @@ import { AppText } from '@/components/app-text';
 import type { AppStackParamList } from '@/navigation/types';
 import { colors } from '@/theme';
 
-export function NotificationBellButton() {
+type Props = {
+  color?: string;
+};
+
+export function NotificationBellButton({ color = colors.primary }: Props) {
   const { t } = useTranslation('notifications');
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const unreadQuery = useUnreadNotificationCountQuery();
@@ -24,7 +28,7 @@ export function NotificationBellButton() {
       onPress={() => navigation.navigate('Notifications')}
       style={styles.button}
     >
-      <AppIcon name="bell" size={22} color={colors.primary} />
+      <AppIcon name="bell" size={22} color={color} />
       {count > 0 ? (
         <View style={styles.badge}>
           <AppText variant="caption" style={styles.badgeText}>

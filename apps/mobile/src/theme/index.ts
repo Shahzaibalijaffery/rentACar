@@ -15,3 +15,5 @@ export const theme = {
 export type Theme = typeof theme;
 
 export { colors, radii, shadows, spacing, typography };
+export { appModeThemes, getAppModeTheme, useAppModeTheme } from './app-mode-theme';
+export type { AppModeTheme } from './app-mode-theme';

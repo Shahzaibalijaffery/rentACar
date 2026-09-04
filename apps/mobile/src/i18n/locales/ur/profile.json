@@ -1,7 +1,11 @@
 {
   "title": "میرا پروفائل",
-  "activeProfile": "فعال پروفائل",
-  "activeProfileHint": "ہوم اسکرین کے لیے کرایہ دار یا مالک موڈ بدلیں۔",
+  "renterTitle": "کرایہ دار پروفائل",
+  "ownerTitle": "مالک پروفائل",
+  "renterWorkspace": "کرایہ دار",
+  "ownerWorkspace": "مالک",
+  "activeProfile": "پروفائل بدلیں",
+  "activeProfileHint": "جس پروفائل کو چنیں گے، ایپ کا رنگ اور ٹولز اسی کے مطابق بدل جائیں گے۔",
   "fullName": "پورا نام",
   "saveName": "نام محفوظ کریں",
   "changePassword": "پاس ورڈ تبدیل کریں",
